@@ -24,8 +24,7 @@ const [showEmailActionsModal, toggleEmailModal] = useToggle(false);
 const [showActionsDropdown, toggleDropdown] = useToggle(false);
 
 const currentChat = computed(() => store.getters.getSelectedChat);
-// old callInfo: 'webphone/getCallInfo',
-const callInfo = computed(() => store.getters.getCallInfo);
+const callInfo = computed(() => store.getters['webphone/getCallInfo']);
 
 const actionMenuItems = computed(() => {
   const items = [];
@@ -55,7 +54,7 @@ const actionMenuItems = computed(() => {
 
   if (!callInfo.value.id) {
     items.push({
-      icon: 'call',
+      icon: 'i-lucide-phone-call',
       label: t('WEBPHONE.CALL'),
       action: 'startCall',
       value: 'startCall',

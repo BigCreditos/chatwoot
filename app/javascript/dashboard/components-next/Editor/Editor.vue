@@ -28,7 +28,7 @@ const slots = useSlots();
 
 const isFocused = ref(false);
 
-const characterCount = computed(() => props.modelValue.length);
+const characterCount = computed(() => props.modelValue?.length);
 
 const messageClass = computed(() => {
   switch (props.messageType) {

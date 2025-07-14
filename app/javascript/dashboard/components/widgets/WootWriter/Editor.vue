@@ -109,7 +109,7 @@ const createState = (
   enabledMenuOptions = []
 ) => {
   return EditorState.create({
-    doc: new MessageMarkdownTransformer(messageSchema).parse(content),
+    doc: new MessageMarkdownTransformer(messageSchema).parse(content || ''),
     plugins: buildEditor({
       schema: messageSchema,
       placeholder,

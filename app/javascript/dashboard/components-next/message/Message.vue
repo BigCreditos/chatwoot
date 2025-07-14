@@ -6,6 +6,7 @@ import { useTrack } from 'dashboard/composables';
 import { emitter } from 'shared/helpers/mitt';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
+import { useStore } from 'vuex';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { ACCOUNT_EVENTS } from 'dashboard/helper/AnalyticsHelper/events';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
@@ -335,9 +336,23 @@ const payloadForContextMenu = computed(() => {
   };
 });
 
+const store = useStore();
+const currentRole = computed(() => store.getters.getCurrentRole);
+const accountId = computed(() => store.getters.getCurrentAccountId);
+const isFeatureEnabledonAccount = computed(
+  () => store.getters['accounts/isFeatureEnabledonAccount']
+);
+
 const contextMenuEnabledOptions = computed(() => {
   const hasText = !!props.content;
   const hasAttachments = !!(props.attachments && props.attachments.length > 0);
+
+  const hideDeleteMessageForAgents =
+    currentRole.value !== 'administrator' &&
+    isFeatureEnabledonAccount.value(
+      accountId.value,
+      'hide_delete_message_for_agent'
+    );
 
   const isOutgoing = props.messageType === MESSAGE_TYPES.OUTGOING;
   const isFailedOrProcessing =
@@ -347,6 +362,7 @@ const contextMenuEnabledOptions = computed(() => {
   return {
     copy: hasText,
     delete:
+      !hideDeleteMessageForAgents &&
       (hasText || hasAttachments) &&
       !isFailedOrProcessing &&
       !isMessageDeleted.value,

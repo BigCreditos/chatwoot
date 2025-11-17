@@ -36,7 +36,7 @@ class Whatsapp::OneoffUnoapiCampaignService
   end
 
   def schedule_job(campaign, audience, interval)
-    interval = audience[:wait_for_seconds] || (interval + rand(1..10))
+    interval = audience[:wait_for_seconds] || (interval + rand(10..180))
     CampaignMessageJob.set(wait: interval.seconds).perform_later(
       campaign.account_id,
       campaign.inbox_id,

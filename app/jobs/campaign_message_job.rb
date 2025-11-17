@@ -4,10 +4,19 @@ class CampaignMessageJob < ApplicationJob
   retry_on ActiveRecord::RecordNotFound, wait: 30.seconds, attempts: 5
 
   def perform(account_id, inbox_id, campaign_id, content, audience)
+    inbox = Inbox.find(inbox_id)
     contact_inbox = create_contact_inbox(inbox_id, audience)
     conversation = create_conversation(contact_inbox)
+    message_content = bind(content, audience)
+
+    if inbox.channel_type == 'Channel::Whatsapp' &&
+       inbox.channel&.provider == 'unoapi' &&
+       Groq::TextVariationService.enabled?
+      message_content = Groq::TextVariationService.new(text: message_content).perform
+    end
+
     conversation.messages.create!(
-      content: bind(content, audience),
+      content: message_content,
       account_id: account_id,
       content_type: :text,
       inbox_id: inbox_id,

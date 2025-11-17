@@ -169,6 +169,11 @@
             "PLACEHOLDER": "Select Inbox",
             "ERROR": "Inbox is required"
           },
+          "MESSAGE": {
+            "LABEL": "Message",
+            "PLACEHOLDER": "Enter the WhatsApp message content",
+            "ERROR": "Message is required"
+          },
           "TEMPLATE": {
             "LABEL": "WhatsApp Template",
             "PLACEHOLDER": "Select a template",
@@ -184,6 +189,11 @@
             "LABEL": "Audience",
             "PLACEHOLDER": "Select the customer labels",
             "ERROR": "Audience is required"
+          },
+          "UNOAPI_AUDIENCE": {
+            "LABEL": "Audience list (Unoapi)",
+            "PLACEHOLDER": "One contact per line: phone_number;name;identifier;email;value;due_at;scheduled_at;wait_for_seconds",
+            "ERROR": "Audience list is required"
           },
           "SCHEDULED_AT": {
             "LABEL": "Scheduled time",

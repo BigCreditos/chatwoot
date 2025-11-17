@@ -19,6 +19,72 @@ ___
     - da opção de alterar logo e nome da empresa
   Exemplo de stack com os dois projetos integrados: https://github.com/clairton/unoapi-cloud/tree/main/examples/unochat
 
+## Campanhas WhatsApp com Unoapi
+
+Este fork adiciona um fluxo específico de campanhas para caixas de entrada WhatsApp com provider `unoapi`.
+
+### Como usar
+
+- Habilite a feature `whatsapp_campaign` para a conta no super admin.
+- Crie ou use uma caixa de entrada WhatsApp com provider `unoapi`.
+- No dashboard, acesse `Campanhas → WhatsApp` e clique em **Create campaign**.
+- Selecione a inbox `unoapi` no campo **Select Inbox**.
+- Para inbox `unoapi`, o formulário muda para:
+  - **Message**: texto livre da campanha (conteúdo base da mensagem).
+  - **Audience list (Unoapi)**: lista de contatos, um por linha, no formato:
+    ```
+    phone_number;name;identifier;email;value;due_at;scheduled_at;wait_for_seconds
+    ```
+    Exemplo simples:
+    ```
+    +5511999998888;João
+    +351912345678;Maria
+    ```
+    O último campo (`wait_for_seconds`) é opcional e define o atraso, em segundos, apenas para aquele contato.
+
+### Lógica de disparo
+
+- Serviço responsável: `Whatsapp::OneoffUnoapiCampaignService`.
+- Para cada contato da audiência:
+  - Se houver `wait_for_seconds` na linha, ele é usado diretamente como atraso do job.
+  - Se não houver, é aplicado um atraso incremental aleatório entre **10 segundos e 3 minutos**:
+    ```ruby
+    interval = audience[:wait_for_seconds] || (interval + rand(10..180))
+    ```
+  - Cada contato é enviado via `CampaignMessageJob` com o texto da campanha já interpolado (`##name`, `##identifier`, etc.).
+
+### Variação de texto com Groq (apenas Unoapi)
+
+Para campanhas WhatsApp com provider `unoapi`, o envio pode usar a API da Groq para reescrever cada mensagem com sinônimos, mantendo o mesmo significado.
+
+- Serviço: `Groq::TextVariationService`.
+- Integração: `CampaignMessageJob` aplica a variação apenas quando:
+  - `inbox.channel_type == 'Channel::Whatsapp'`
+  - `inbox.channel.provider == 'unoapi'`
+  - `GROQ_API_KEY` está definido.
+- Fluxo:
+  - O texto final da mensagem é calculado com `bind(content, audience)` (substitui `##name`, `##value`, etc.).
+  - Se as condições acima forem verdadeiras, o texto é enviado para a Groq e a resposta é usada como conteúdo da mensagem.
+
+### Variáveis de ambiente para Groq
+
+- `GROQ_API_KEY` (obrigatório para habilitar a variação)
+  - Token da API Groq, usado no header `Authorization: Bearer ...`.
+- `GROQ_API_BASE_URL` (opcional)
+  - Endpoint base da API, default: `https://api.groq.com/openai/v1`.
+- `GROQ_CHAT_MODEL` (opcional)
+  - Modelo usado na chamada, default: `openai/gpt-oss-120b`.
+- `GROQ_WHATSAPP_CAMPAIGN_PROMPT` (opcional)
+  - Prompt usado para reescrever o texto. Deve conter o placeholder `{{text}}`, que será substituído pelo conteúdo original da mensagem.
+  - Exemplo:
+    ```text
+    Reescreva a mensagem abaixo em pt-BR usando sinônimos, mantendo exatamente o mesmo significado, links e números.
+    Responda apenas com o texto reescrito, sem explicações:
+    "{{text}}"
+    ```
+
+Se `GROQ_API_KEY` não estiver definido, as campanhas Unoapi continuam funcionando normalmente, apenas sem variação automática de texto.
+
 # Chatwoot
 
 The modern customer support platform, an open-source alternative to Intercom, Zendesk, Salesforce Service Cloud etc.

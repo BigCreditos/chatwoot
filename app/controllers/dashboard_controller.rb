@@ -72,6 +72,7 @@ class DashboardController < ActionController::Base
       WHATSAPP_CONFIGURATION_ID: GlobalConfigService.load('WHATSAPP_CONFIGURATION_ID', ''),
       IS_ENTERPRISE: ChatwootApp.enterprise?,
       AZURE_APP_ID: GlobalConfigService.load('AZURE_APP_ID', ''),
+      MAXIMUM_FILE_UPLOAD_SIZE: GlobalConfigService.load('MAXIMUM_FILE_UPLOAD_SIZE', '150'),
       # UNOAPI_AUTH_TOKEN: GlobalConfigService.load('UNOAPI_AUTH_TOKEN', ''),
       GIT_SHA: GIT_HASH
     }

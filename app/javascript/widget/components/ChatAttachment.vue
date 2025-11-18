@@ -29,6 +29,10 @@ export default {
       shouldShowFilePicker: 'appConfig/getShouldShowFilePicker',
     }),
     fileUploadSizeLimit() {
+      const configured = Number(this.globalConfig.maxFileUploadSizeInMb);
+      if (Number.isFinite(configured) && configured > 0) {
+        return configured;
+      }
       return MAXIMUM_FILE_UPLOAD_SIZE;
     },
     allowedFileTypes() {
@@ -145,7 +149,7 @@ export default {
 <template>
   <FileUpload
     ref="upload"
-    :size="150 * 1024 * 1024"
+    :size="fileUploadSizeLimit * 1024 * 1024"
     :accept="allowedFileTypes"
     :data="{
       direct_upload_url: '/api/v1/widget/direct_uploads',

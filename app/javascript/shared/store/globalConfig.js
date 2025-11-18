@@ -23,6 +23,7 @@ const {
   DISABLE_USER_PROFILE_UPDATE: disableUserProfileUpdate,
   DEPLOYMENT_ENV: deploymentEnv,
   CONVERSATION_STYLE_CSS: conversationStyleCss,
+  MAXIMUM_FILE_UPLOAD_SIZE: maxFileUploadSizeInMb,
 } = window.globalConfig || {};
 
 const state = {
@@ -48,6 +49,7 @@ const state = {
   widgetBrandURL,
   conversationStyleCss: conversationStyleCss || '',
   isEnterprise: parseBoolean(isEnterprise),
+  maxFileUploadSizeInMb,
 };
 
 export const getters = {

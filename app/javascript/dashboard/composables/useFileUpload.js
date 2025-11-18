@@ -3,7 +3,6 @@ import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { DirectUpload } from 'activestorage';
 import { checkFileSizeLimit } from 'shared/helpers/FileHelper';
-import { getMaxUploadSizeByChannel } from '@chatwoot/utils';
 import { MAXIMUM_FILE_UPLOAD_SIZE } from 'shared/constants/messages';
 
 /**
@@ -23,16 +22,13 @@ export const useFileUpload = ({ inbox, attachFile, isPrivateNote = false }) => {
 
   // helper: compute max upload size for a given file's mime
   const maxSizeFor = mime => {
-    // Use default file size limit for private notes
-    if (isPrivateNote) {
-      return MAXIMUM_FILE_UPLOAD_SIZE;
-    }
+    const configured =
+      Number(globalConfig.value.maxFileUploadSizeInMb) || MAXIMUM_FILE_UPLOAD_SIZE;
 
-    return getMaxUploadSizeByChannel({
-      channelType: inbox?.channel_type,
-      medium: inbox?.medium, // e.g. 'sms' | 'whatsapp' | etc.
-      mime, // e.g. 'image/png'
-    });
+    // Por enquanto usamos um limite global, independente do canal.
+    // O valor é definido via env MAXIMUM_FILE_UPLOAD_SIZE (em MB),
+    // com fallback para o constante padrão.
+    return configured;
   };
 
   const alertOverLimit = maxSizeMB =>

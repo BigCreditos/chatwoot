@@ -126,6 +126,29 @@ O comportamento da conversa de destino respeita a configuração `lock_to_single
 
 Esse fluxo funciona também para caixas de entrada WhatsApp com provider `unoapi`, reaproveitando a mesma lógica de envio usada nas respostas normais.
 
+## Tamanho máximo de anexos
+
+Este fork permite configurar o tamanho máximo de anexos (tanto no dashboard quanto no widget) via variável de ambiente.
+
+- Variável: `MAXIMUM_FILE_UPLOAD_SIZE`
+- Unidade: **MB**
+- Default (se não definida): `150`
+
+### Comportamento
+
+- **Frontend (dashboard e widget)**:
+  - O limite exibido na mensagem de erro (`CONVERSATION.FILE_SIZE_LIMIT` / `FILE_SIZE_LIMIT`) usa o valor de `MAXIMUM_FILE_UPLOAD_SIZE`.
+  - Uploads acima desse valor são bloqueados e o usuário vê o alerta com o limite em MB.
+
+- **Backend (Rails / ActiveStorage)**:
+  - O modelo `Attachment` valida o tamanho do arquivo com base na mesma env:
+    - Arquivos com tamanho maior que `MAXIMUM_FILE_UPLOAD_SIZE` MB recebem erro `size is too big`.
+
+### Exemplo de configuração
+
+ .env ou variáveis da stack
+MAXIMUM_FILE_UPLOAD_SIZE=150
+
 
 # Chatwoot
 

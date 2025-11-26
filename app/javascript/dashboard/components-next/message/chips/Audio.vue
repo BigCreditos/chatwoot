@@ -40,6 +40,25 @@ let retryTimer;
 
 const { uid } = getCurrentInstance();
 
+const formatTime = time => {
+  if (!time || Number.isNaN(time)) return '00:00';
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const isReadyToPlay = computed(() => {
+  return Number.isFinite(duration.value) && duration.value > 0;
+});
+
+const displayCurrentTime = computed(() => {
+  return isReadyToPlay.value ? formatTime(currentTime.value) : '00:00';
+});
+
+const displayDuration = computed(() => {
+  return isReadyToPlay.value ? formatTime(duration.value) : '--:--';
+});
+
 const clearRetryTimer = () => {
   if (retryTimer) {
     clearTimeout(retryTimer);
@@ -65,9 +84,11 @@ const audioSrc = computed(() => {
 });
 
 const onLoadedMetadata = () => {
-  duration.value = audioPlayer.value?.duration;
-  if (audioPlayer.value) {
-    audioPlayer.value.playbackRate = playbackSpeed.value;
+  const player = audioPlayer.value;
+  const metaDuration = player?.duration;
+  duration.value = Number.isFinite(metaDuration) ? metaDuration : 0;
+  if (player) {
+    player.playbackRate = playbackSpeed.value;
   }
   if (resumeTime.value) {
     audioPlayer.value.currentTime = Math.min(
@@ -117,13 +138,6 @@ useEmitter('pause_playing_audio', currentPlayingId => {
   }
 });
 
-const formatTime = time => {
-  if (!time || Number.isNaN(time)) return '00:00';
-  const minutes = Math.floor(time / 60);
-  const seconds = Math.floor(time % 60);
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-};
-
 const toggleMute = () => {
   audioPlayer.value.muted = !audioPlayer.value.muted;
   isMuted.value = audioPlayer.value.muted;
@@ -144,6 +158,11 @@ const playOrPause = () => {
     audioPlayer.value.pause();
     isPlaying.value = false;
   } else {
+    if (!isReadyToPlay.value) {
+      resumeOnLoad.value = true;
+      audioPlayer.value?.load();
+      return;
+    }
     // Emit event to pause all other audio
     emitter.emit('pause_playing_audio', uid);
     audioPlayer.value.play();
@@ -177,6 +196,8 @@ const handlePlaybackError = () => {
 
   if (!hasValidUrl || !hasRetries) {
     isPlaying.value = false;
+    duration.value = 0;
+    currentTime.value = 0;
     return;
   }
 
@@ -203,6 +224,8 @@ watch(audioSrc, newSrc => {
 watch(
   () => attachment.dataUrl,
   () => {
+    duration.value = 0;
+    currentTime.value = 0;
     resetRetryState();
     cacheBust.value = Date.now();
   }
@@ -232,22 +255,28 @@ onBeforeUnmount(clearRetryTimer);
     <div class="flex gap-1 w-full flex-1 items-center justify-start">
       <button class="p-0 border-0 size-8" @click="playOrPause">
         <Icon
-          v-if="isPlaying"
+          v-if="isReadyToPlay && isPlaying"
           class="size-8"
           icon="i-teenyicons-pause-small-solid"
         />
-        <Icon v-else class="size-8" icon="i-teenyicons-play-small-solid" />
+        <Icon
+          v-else-if="isReadyToPlay"
+          class="size-8"
+          icon="i-teenyicons-play-small-solid"
+        />
+        <Icon v-else class="size-6 animate-spin" icon="i-lucide-loader-2" />
       </button>
       <div class="tabular-nums text-xs">
-        {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+        {{ displayCurrentTime }} / {{ displayDuration }}
       </div>
       <div class="flex-1 items-center flex px-2">
         <input
           type="range"
           min="0"
-          :max="duration"
-          :value="currentTime"
-          class="w-full h-1 bg-n-slate-12/40 rounded-lg appearance-none cursor-pointer accent-current"
+          :max="isReadyToPlay ? duration : 0"
+          :value="isReadyToPlay ? currentTime : 0"
+          class="w-full h-1 bg-n-slate-12/40 rounded-lg appearance-none cursor-pointer accent-current disabled:cursor-not-allowed"
+          :disabled="!isReadyToPlay"
           @input="seek"
         />
       </div>

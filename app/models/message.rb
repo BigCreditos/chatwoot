@@ -415,12 +415,12 @@ class Message < ApplicationRecord
   def reindex_for_search
     reindex(mode: :async)
   end
-end
-
-Message.prepend_mod_with('Message')
 
   def schedule_attachment_availability_check
     return if attachments.blank?
 
     Attachments::EnsureAvailabilityJob.perform_later(id)
   end
+end
+
+Message.prepend_mod_with('Message')

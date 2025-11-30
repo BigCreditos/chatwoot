@@ -20,7 +20,7 @@ const attachment = computed(() => {
   return attachments.value[0];
 });
 
-const retryDelays = [500, 1000, 2000, 4000];
+const retryDelays = [500, 1000, 2000, 4000, 8000, 16000, 32000, 64000];
 const hasError = ref(false);
 const showGallery = ref(false);
 const isDownloading = ref(false);

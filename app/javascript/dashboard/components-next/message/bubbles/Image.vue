@@ -14,6 +14,7 @@ import GalleryView from 'dashboard/components/widgets/conversation/components/Ga
 const { t } = useI18n();
 
 const { filteredCurrentChatAttachments, attachments } = useMessageContext();
+const emit = defineEmits(['error']);
 
 const attachment = computed(() => {
   return attachments.value[0];
@@ -145,3 +146,4 @@ onBeforeUnmount(clearRetryTimer);
     @close="() => (showGallery = false)"
   />
 </template>
+

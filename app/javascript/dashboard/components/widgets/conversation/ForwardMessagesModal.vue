@@ -49,14 +49,13 @@ const contactableInboxesList = computed(() => {
   const contactInboxes = selectedContact.value?.contactInboxes || [];
   const baseInboxes = buildContactableInboxesList(contactInboxes);
 
-  const isLidEmail =
-    selectedContact.value?.email &&
-    selectedContact.value.email.toLowerCase().endsWith('@lid');
+  const email = (selectedContact.value?.email || '').toLowerCase();
+  const isLidEmail = email.endsWith('@lid');
+  const lidPhone = isLidEmail ? email.split('@')[0] : null;
+  const contactPhone = selectedContact.value?.phoneNumber || lidPhone;
 
   const unoFallbackInboxes = (() => {
-    if (!isLidEmail || !selectedContact.value?.phoneNumber) return [];
-
-    const contactPhone = selectedContact.value.phoneNumber;
+    if (!isLidEmail || !contactPhone) return [];
 
     return (
       inboxesList.value

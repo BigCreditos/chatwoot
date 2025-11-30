@@ -49,13 +49,14 @@ const contactableInboxesList = computed(() => {
   const contactInboxes = selectedContact.value?.contactInboxes || [];
   const baseInboxes = buildContactableInboxesList(contactInboxes);
 
-  const email = (selectedContact.value?.email || '').toLowerCase();
+  const emailRaw =
+    selectedContact.value?.rawEmail || selectedContact.value?.email || '';
+  const email = emailRaw.toLowerCase();
   const isLidEmail = email.endsWith('@lid');
   const isGusEmail = email.endsWith('@g.us');
   const lidPhone = isLidEmail ? email.split('@')[0] : null;
   const gusPhone = isGusEmail ? email : null;
-  const contactPhone =
-    selectedContact.value?.phoneNumber || lidPhone || gusPhone;
+  const contactPhone = selectedContact.value?.phoneNumber || lidPhone || gusPhone;
 
   const unoFallbackInboxes = (() => {
     if (!(isLidEmail || isGusEmail) || !contactPhone) return [];
@@ -188,20 +189,17 @@ const handleSelectedContact = async ({ value, action, ...rest }) => {
     contact = rest;
   }
 
-  const email = (contact?.email || '').toLowerCase();
+  const rawEmail = contact?.email || '';
+  const email = rawEmail.toLowerCase();
   const isLidEmail = email.endsWith('@lid');
   const isGusEmail = email.endsWith('@g.us');
+  const phoneFromEmail = isLidEmail ? email.split('@')[0] : isGusEmail ? email : null;
 
-  if (isLidEmail || isGusEmail) {
-    const lidPhone = isLidEmail ? email.split('@')[0] : null;
-    const gusPhone = isGusEmail ? email : null;
-
-    contact = {
-      ...contact,
-      email: null,
-      phoneNumber: contact.phoneNumber || lidPhone || gusPhone,
-    };
-  }
+  contact = {
+    ...contact,
+    rawEmail,
+    phoneNumber: contact.phoneNumber || phoneFromEmail,
+  };
 
   selectedContact.value = contact;
 

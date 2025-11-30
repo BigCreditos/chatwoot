@@ -172,6 +172,9 @@ class Messages::MessageBuilder
 
   def status_param
     @params[:status] = :progress if params_status_progress?
+    if @params[:status].blank? && attachments_present?
+      @params[:status] = :progress
+    end
     @params[:status].present? ? { status: @params[:status] } : {}
   end
 
@@ -280,3 +283,7 @@ class Messages::MessageBuilder
                                        })
   end
 end
+
+  def attachments_present?
+    @attachments.present?
+  end

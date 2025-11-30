@@ -303,43 +303,7 @@ class Message < ApplicationRecord
     self.content_type ||= Message.content_types[:text]
   end
 
-  def ensure_attachments_available
-    return if attachments.blank?
-
-    attempts = attachment_availability_attempts
-    base_delay = attachment_availability_base_delay
-    max_delay = [base_delay * 8, base_delay].max
-
-    attachments.each do |attachment|
-      blob = attachment.file&.blob
-      next if blob.blank?
-
-      service = blob.service
-      delay = base_delay
-
-      attempts.times do
-        break if service.exist?(blob.key)
-
-        sleep(delay)
-        delay = [delay * 2, max_delay].min
-      end
-    rescue StandardError => e
-      Rails.logger.warn("Attachment availability check failed for message #{id}: #{e.message}")
-    end
-  end
-
-  def attachment_availability_attempts
-    attempts = ENV.fetch('ATTACHMENT_AVAILABILITY_ATTEMPTS', 5).to_i
-    attempts.positive? ? attempts : 5
-  end
-
-  def attachment_availability_base_delay
-    delay = ENV.fetch('ATTACHMENT_AVAILABILITY_BASE_DELAY', 0.5).to_f
-    delay.positive? ? delay : 0.5
-  end
-
-  def execute_after_create_commit_callbacks
-    ensure_attachments_available
+    def execute_after_create_commit_callbacks
     # rails issue with order of active record callbacks being executed https://github.com/rails/rails/issues/20911
     reopen_conversation
     set_conversation_activity

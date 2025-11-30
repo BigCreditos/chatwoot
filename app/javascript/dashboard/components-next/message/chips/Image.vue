@@ -6,12 +6,13 @@ import { useMessageContext } from '../provider.js';
 
 import GalleryView from 'dashboard/components/widgets/conversation/components/GalleryView.vue';
 
-defineProps({
+const props = defineProps({
   attachment: {
     type: Object,
     required: true,
   },
 });
+const attachment = computed(() => props.attachment || {});
 const retryDelays = [500, 1000, 2000, 4000];
 const hasError = ref(false);
 const showGallery = ref(false);
@@ -35,7 +36,7 @@ const resetRetryState = () => {
 };
 
 const imageSrc = computed(() => {
-  const url = attachment.dataUrl || '';
+  const url = attachment.value?.dataUrl || '';
   if (!url) return '';
   if (!cacheBust.value) return url;
 
@@ -45,7 +46,7 @@ const imageSrc = computed(() => {
 
 const handleError = () => {
   const hasMoreRetries = retryCount.value < retryDelays.length;
-  const hasValidUrl = !!attachment.dataUrl;
+  const hasValidUrl = !!attachment.value?.dataUrl;
 
   if (!hasMoreRetries || !hasValidUrl) {
     hasError.value = true;
@@ -62,7 +63,7 @@ const handleError = () => {
 };
 
 watch(
-  () => attachment.dataUrl,
+  () => attachment.value?.dataUrl,
   () => {
     resetRetryState();
     cacheBust.value = Date.now();
@@ -94,7 +95,7 @@ onBeforeUnmount(clearRetryTimer);
   <GalleryView
     v-if="showGallery"
     v-model:show="showGallery"
-    :attachment="useSnakeCase(attachment)"
+    :attachment="useSnakeCase(attachment.value)"
     :all-attachments="filteredCurrentChatAttachments"
     @error="handleError"
     @close="() => (showGallery = false)"

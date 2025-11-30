@@ -47,7 +47,52 @@ const showInboxesDropdown = ref(false);
 
 const contactableInboxesList = computed(() => {
   const contactInboxes = selectedContact.value?.contactInboxes || [];
-  return buildContactableInboxesList(contactInboxes);
+  const baseInboxes = buildContactableInboxesList(contactInboxes);
+
+  const isLidEmail =
+    selectedContact.value?.email &&
+    selectedContact.value.email.toLowerCase().endsWith('@lid');
+
+  const unoFallbackInboxes = (() => {
+    if (!isLidEmail || !selectedContact.value?.phoneNumber) return [];
+
+    const contactPhone = selectedContact.value.phoneNumber;
+
+    return (
+      inboxesList.value
+        ?.filter(inbox => {
+          const provider = inbox.provider || inbox.provider_name;
+          const channelType = inbox.channel_type || inbox.channelType;
+          return (
+            channelType === 'Channel::Whatsapp' &&
+            provider &&
+            provider.toLowerCase() === 'unoapi'
+          );
+        })
+        .map(inbox => ({
+          id: inbox.id,
+          name: inbox.name,
+          email: inbox.email,
+          phoneNumber: contactPhone,
+          channelType: inbox.channel_type || inbox.channelType,
+          medium: inbox.medium,
+          sourceId: inbox.source_id || inbox.sourceId,
+        })) || []
+    );
+  })();
+
+  if (!unoFallbackInboxes.length) {
+    return baseInboxes;
+  }
+
+  const unoContactable = buildContactableInboxesList(unoFallbackInboxes);
+  const existingIds = new Set(baseInboxes.map(inbox => inbox.id));
+  const merged = [
+    ...unoContactable.filter(inbox => !existingIds.has(inbox.id)),
+    ...baseInboxes,
+  ];
+
+  return merged;
 });
 
 const forwardMessagePreview = computed(() => {

@@ -119,14 +119,21 @@ export function useMessageContext() {
 
   const currentChatAttachments = useMapGetter('getSelectedChatAttachments');
   const filteredCurrentChatAttachments = computed(() => {
-    const attachments = currentChatAttachments.value.filter(attachment =>
-      [
+    const attachments = currentChatAttachments.value.filter(attachment => {
+      if (!attachment) return false;
+      const { file_type: fileType, data_url: dataUrl, dataUrl: camelDataUrl } =
+        attachment;
+      const allowedTypes = [
         ATTACHMENT_TYPES.IMAGE,
         ATTACHMENT_TYPES.VIDEO,
         ATTACHMENT_TYPES.IG_REEL,
         ATTACHMENT_TYPES.AUDIO,
-      ].includes(attachment.file_type)
-    );
+      ];
+      return (
+        allowedTypes.includes(fileType) &&
+        (dataUrl || camelDataUrl)
+      );
+    });
 
     return useSnakeCase(attachments);
   });

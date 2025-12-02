@@ -44,6 +44,13 @@ const getAttachmentId = attachment =>
   attachment?.data_url ||
   attachment?.dataUrl;
 
+const getAttachmentUrl = attachment =>
+  attachment?.data_url ||
+  attachment?.dataUrl ||
+  attachment?.thumb_url ||
+  attachment?.thumbUrl ||
+  '';
+
 const initialActiveIndex = props.allAttachments.findIndex(
   attachment => getAttachmentId(attachment) === getAttachmentId(props.attachment)
 );
@@ -52,6 +59,7 @@ const isDownloading = ref(false);
 const activeAttachment = ref({});
 const activeFileType = ref('');
 const activeImageIndex = ref(initialActiveIndex >= 0 ? initialActiveIndex : 0);
+const activeAttachmentUrl = computed(() => getAttachmentUrl(activeAttachment.value));
 
 const imageRef = useTemplateRef('imageRef');
 
@@ -107,7 +115,7 @@ const senderDetails = computed(() => {
 });
 
 const fileNameFromDataUrl = computed(() => {
-  const { data_url: dataUrl } = activeAttachment.value;
+  const dataUrl = getAttachmentUrl(activeAttachment.value);
   if (!dataUrl) return '';
 
   const fileName = dataUrl.split('/').pop();
@@ -118,8 +126,9 @@ const onClose = () => emit('close');
 
 const setImageAndVideoSrc = attachment => {
   if (!attachment) return;
-  const { file_type: type, data_url: dataUrl } = attachment || {};
-  if (!type || !dataUrl) return;
+  const { file_type: type } = attachment || {};
+  const url = getAttachmentUrl(attachment);
+  if (!type || !url) return;
 
   activeAttachment.value = attachment;
   activeFileType.value = type;
@@ -296,7 +305,7 @@ onMounted(() => {
               <img
                 ref="imageRef"
                 :key="getAttachmentId(activeAttachment) || activeImageIndex"
-                :src="activeAttachment.data_url"
+                :src="activeAttachmentUrl"
                 :style="imageStyle"
                 class="max-h-full max-w-full object-contain duration-100 ease-in-out transform select-none"
                 @click.stop
@@ -310,7 +319,7 @@ onMounted(() => {
             <video
               v-if="isVideo"
               :key="getAttachmentId(activeAttachment) || activeImageIndex"
-              :src="activeAttachment.data_url"
+              :src="activeAttachmentUrl"
               controls
               playsInline
               class="max-h-full max-w-full object-contain"
@@ -324,7 +333,7 @@ onMounted(() => {
               class="w-full max-w-md"
               @click.stop
             >
-              <source :src="`${activeAttachment.data_url}?t=${Date.now()}`" />
+              <source :src="`${activeAttachmentUrl}?t=${Date.now()}`" />
             </audio>
           </div>
 

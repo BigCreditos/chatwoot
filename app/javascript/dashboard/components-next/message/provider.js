@@ -121,8 +121,13 @@ export function useMessageContext() {
   const filteredCurrentChatAttachments = computed(() => {
     const attachments = currentChatAttachments.value.filter(attachment => {
       if (!attachment) return false;
-      const { file_type: fileType, data_url: dataUrl, dataUrl: camelDataUrl } =
-        attachment;
+      const {
+        file_type: fileType,
+        data_url: dataUrl,
+        dataUrl: camelDataUrl,
+        thumb_url: thumbUrl,
+        thumbUrl: camelThumbUrl,
+      } = attachment;
       const allowedTypes = [
         ATTACHMENT_TYPES.IMAGE,
         ATTACHMENT_TYPES.VIDEO,
@@ -131,7 +136,7 @@ export function useMessageContext() {
       ];
       return (
         allowedTypes.includes(fileType) &&
-        (dataUrl || camelDataUrl)
+        (dataUrl || camelDataUrl || thumbUrl || camelThumbUrl)
       );
     });
 

@@ -118,6 +118,16 @@ export function useMessageContext() {
   }
 
   const currentChatAttachments = useMapGetter('getSelectedChatAttachments');
+const shouldLog = (import.meta.env?.VITE_CONSOLE_LOG ?? 'false')
+  .toString()
+  .toLowerCase() === 'true';
+const logDebug = (...args) => {
+  if (shouldLog) {
+    // eslint-disable-next-line no-console
+    console.log('[message:provider]', ...args);
+  }
+};
+
   const normalizeType = type => {
     if (!type) return '';
     const lower = type.toString().toLowerCase();
@@ -156,12 +166,15 @@ export function useMessageContext() {
 
         if (!hasUrl || !allowedTypes.includes(normalizedType)) return null;
 
-        return {
+        const result = {
           ...attachment,
           file_type: normalizedType,
           data_url: dataUrl || camelDataUrl || thumbUrl || camelThumbUrl,
           thumb_url: thumbUrl || camelThumbUrl || dataUrl || camelDataUrl,
         };
+
+        logDebug('Attachment kept for gallery', { result });
+        return result;
       })
       .filter(Boolean);
 

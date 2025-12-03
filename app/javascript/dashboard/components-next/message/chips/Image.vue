@@ -13,6 +13,13 @@ const props = defineProps({
   },
 });
 const attachment = computed(() => props.attachment || {});
+const galleryAttachment = computed(() => {
+  try {
+    return useSnakeCase(attachment.value) || attachment.value;
+  } catch {
+    return attachment.value;
+  }
+});
 const shouldLog =
   (import.meta.env?.VITE_CONSOLE_LOG ?? 'true').toString().toLowerCase() ===
   'true';
@@ -119,7 +126,7 @@ onBeforeUnmount(clearRetryTimer);
   <GalleryView
     v-if="showGallery"
     v-model:show="showGallery"
-    :attachment="useSnakeCase(attachment.value)"
+    :attachment="galleryAttachment"
     :all-attachments="filteredCurrentChatAttachments"
     @error="handleError"
     @close="() => (showGallery = false)"

@@ -26,9 +26,14 @@ defineOptions({
 
 const audioPlayer = useTemplateRef('audioPlayer');
 
+const shouldLog =
+  (import.meta.env?.VITE_CONSOLE_LOG ?? 'false').toString().toLowerCase() ===
+  'true';
 const logDebug = (...args) => {
-  // eslint-disable-next-line no-console
-  console.log('[AudioChip]', ...args);
+  if (shouldLog) {
+    // eslint-disable-next-line no-console
+    console.log('[AudioChip]', ...args);
+  }
 };
 
 const retryDelays = [

@@ -118,7 +118,7 @@ export function useMessageContext() {
   }
 
   const currentChatAttachments = useMapGetter('getSelectedChatAttachments');
-const shouldLog = (import.meta.env?.VITE_CONSOLE_LOG ?? 'false')
+const shouldLog = (import.meta.env?.VITE_CONSOLE_LOG ?? 'true')
   .toString()
   .toLowerCase() === 'true';
 const logDebug = (...args) => {

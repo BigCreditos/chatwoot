@@ -27,7 +27,7 @@ defineOptions({
 const audioPlayer = useTemplateRef('audioPlayer');
 
 const shouldLog =
-  (import.meta.env?.VITE_CONSOLE_LOG ?? 'false').toString().toLowerCase() ===
+  (import.meta.env?.VITE_CONSOLE_LOG ?? 'true').toString().toLowerCase() ===
   'true';
 const logDebug = (...args) => {
   if (shouldLog) {

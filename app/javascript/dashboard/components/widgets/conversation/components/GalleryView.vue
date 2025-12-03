@@ -30,7 +30,7 @@ const show = defineModel('show', { type: Boolean, default: false });
 const { t } = useI18n();
 const getters = useStoreGetters();
 const shouldLog =
-  (import.meta.env?.VITE_CONSOLE_LOG ?? 'false').toString().toLowerCase() ===
+  (import.meta.env?.VITE_CONSOLE_LOG ?? 'true').toString().toLowerCase() ===
   'true';
 const logDebug = (...args) => {
   if (shouldLog) {

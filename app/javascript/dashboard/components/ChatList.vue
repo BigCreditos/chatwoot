@@ -317,6 +317,7 @@ const conversationListPagination = computed(() => {
 const conversationFilters = computed(() => {
   const isInternalTab =
     activeAssigneeTab.value === wootConstants.ASSIGNEE_TYPE.INTERNAL;
+  const selectedInbox = inbox.value || {};
 
   const normalizedPage = Number.isFinite(Number(conversationListPagination.value))
     ? Number(conversationListPagination.value)
@@ -335,6 +336,7 @@ const conversationFilters = computed(() => {
     page: normalizedPage,
     labels: props.label ? [props.label] : undefined,
     teamId: props.teamId || undefined,
+    inboxChannelType: selectedInbox.channel_type || undefined,
     conversationType: isInternalTab
       ? 'internal'
       : props.conversationType || undefined,

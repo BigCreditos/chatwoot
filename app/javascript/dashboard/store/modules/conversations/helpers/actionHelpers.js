@@ -50,6 +50,7 @@ export const buildConversationList = (
     ...metaData,
     requested_assignee_type: requestPayload.assigneeType,
     requested_conversation_type: requestPayload.conversationType,
+    requested_inbox_channel_type: requestPayload.inboxChannelType,
   });
   context.dispatch(
     'conversationLabels/setBulkConversationLabels',

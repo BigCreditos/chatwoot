@@ -24,6 +24,7 @@ const fetchMetaData = async (commit, params) => {
       ...meta,
       requested_assignee_type: params?.assigneeType,
       requested_conversation_type: params?.conversationType,
+      requested_inbox_channel_type: params?.inboxChannelType,
     });
   } catch (error) {
     // ignore
@@ -64,11 +65,13 @@ export const mutations = {
       internal_count: internalCount,
       requested_assignee_type: requestedAssigneeType,
       requested_conversation_type: requestedConversationType,
+      requested_inbox_channel_type: requestedInboxChannelType,
     } = {}
   ) {
     const isInternalRequest =
       requestedAssigneeType === 'internal' ||
-      requestedConversationType === 'internal';
+      requestedConversationType === 'internal' ||
+      requestedInboxChannelType === 'Channel::Internal';
     const nextInternalCount =
       internalCount === undefined || internalCount === null
         ? $state.internalCount

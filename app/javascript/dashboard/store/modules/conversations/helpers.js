@@ -40,6 +40,11 @@ const filterByInternal = (shouldFilter, conversationType, inbox = {}) => {
     return shouldFilter;
   }
 
+  if (!inbox || !inbox.channel_type) {
+    // If inbox details are not present in the payload, rely on backend filtering.
+    return shouldFilter;
+  }
+
   return inbox.channel_type === 'Channel::Internal' && shouldFilter;
 };
 

@@ -17,6 +17,14 @@ class Conversations::PermissionFilterService
   private
 
   def accessible_conversations(base_scope = conversations.reorder(nil))
+    internal_inbox_ids = user.inboxes.where(account_id: account.id, channel_type: 'Channel::Internal').pluck(:id)
+
+    internal_access_ids = Conversation
+                          .joins(:inbox)
+                          .where(inboxes: { id: internal_inbox_ids }, account_id: account.id)
+                          .distinct
+                          .pluck(:id)
+
     internal_participant_ids = Conversation
                                .joins(:inbox, :conversation_participants)
                                .where(inboxes: { channel_type: 'Channel::Internal' },
@@ -33,7 +41,7 @@ class Conversations::PermissionFilterService
                        .distinct
                        .pluck(:id)
 
-    allowed_ids = (internal_participant_ids + inbox_access_ids).uniq
+    allowed_ids = (internal_access_ids + internal_participant_ids + inbox_access_ids).uniq
     return base_scope.none if allowed_ids.empty?
 
     base_scope.where(id: allowed_ids)

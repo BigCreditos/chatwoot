@@ -72,7 +72,9 @@ class ConversationFinder
   end
 
   def set_inboxes
-    @inbox_ids = if params[:inbox_id]
+    @inbox_ids = if params[:conversation_type] == 'internal'
+                   []
+                 elsif params[:inbox_id]
                    @current_user.assigned_inboxes.where(id: params[:inbox_id])
                  else
                    @current_user.assigned_inboxes.pluck(:id)
@@ -90,6 +92,7 @@ class ConversationFinder
   def find_conversation_by_inbox
     @conversations = current_account.conversations
 
+    return if params[:conversation_type] == 'internal'
     return unless params[:inbox_id]
 
     @conversations = @conversations.where(inbox_id: @inbox_ids)

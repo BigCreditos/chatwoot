@@ -152,6 +152,8 @@ class ConversationFinder
   end
 
   def filter_by_status
+    return if params[:conversation_type] == 'internal'
+
     return if params[:status] == 'all'
 
     @conversations = @conversations.where(status: params[:status] || DEFAULT_STATUS)

@@ -103,8 +103,25 @@ const actions = {
     let attachments = [];
 
     try {
-      const { data } = await ConversationApi.getAllAttachments(conversationId);
-      attachments = data.payload;
+      let page = 1;
+      const pageSize = 100; // matches ATTACHMENT_RESULTS_PER_PAGE on the backend
+      // Fetch paginated attachments until we exhaust results
+      // We avoid recursion to keep stack small
+      // If an error occurs mid-way we keep what we have
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        // eslint-disable-next-line no-await-in-loop
+        const { data } = await ConversationApi.getAllAttachments(
+          conversationId,
+          page
+        );
+        const batch = data.payload || [];
+        attachments = attachments.concat(batch);
+        if (batch.length < pageSize) {
+          break;
+        }
+        page += 1;
+      }
     } catch (error) {
       // in case of error, log the error and continue
       Sentry.setContext('Conversation', {

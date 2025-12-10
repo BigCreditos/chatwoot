@@ -110,12 +110,17 @@ class Imap::ImapMailbox
   end
 
   def find_or_create_contact
-    @contact = @inbox.contacts.from_email(@processed_mail.original_sender)
-    if @contact.present?
-      @contact_inbox = ContactInbox.find_by(inbox: @inbox, contact: @contact)
-    else
-      create_contact
-    end
+    @contact_inbox = ::ContactInboxWithContactBuilder.new(
+      source_id: processed_mail.original_sender,
+      inbox: @inbox,
+      contact_attributes: {
+        name: identify_contact_name,
+        email: processed_mail.original_sender,
+        additional_attributes: { source_id: "email:#{processed_mail.message_id}" }
+      }
+    ).perform
+
+    @contact = @contact_inbox.contact
   end
 
   def identify_contact_name

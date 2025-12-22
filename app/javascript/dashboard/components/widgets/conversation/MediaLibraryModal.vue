@@ -76,8 +76,41 @@ const getAttachmentSelectionKey = attachment => {
     attachment?.name ||
     attachment?.title ||
     '';
-  const rawId = attachment?.id || messageId || url || name;
+  const rawId =
+    attachment?.id ||
+    attachment?.attachment_id ||
+    attachment?.attachmentId ||
+    messageId ||
+    url ||
+    name;
   return rawId ? String(rawId) : '';
+};
+
+const getAttachmentSelectionKeys = attachment => {
+  const messageId =
+    attachment?.message_id ||
+    attachment?.messageId ||
+    attachment?.message?.id ||
+    null;
+  const url = getAttachmentUrl(attachment);
+  const name =
+    attachment?.file_name ||
+    attachment?.filename ||
+    attachment?.name ||
+    attachment?.title ||
+    '';
+  const candidates = [
+    attachment?.id,
+    attachment?.attachment_id,
+    attachment?.attachmentId,
+    messageId,
+    url,
+    name,
+  ];
+
+  return candidates
+    .map(value => (value ? String(value) : ''))
+    .filter(Boolean);
 };
 const { t } = useI18n();
 const router = useRouter();
@@ -411,16 +444,24 @@ const totalAttachmentCount = computed(() => {
 });
 
 const selectedAttachments = computed(() =>
-  attachmentList.value.filter(attachment =>
-    selectedAttachmentIds.value.includes(getAttachmentSelectionKey(attachment))
-  )
+  attachmentList.value.filter(attachment => {
+    const keys = getAttachmentSelectionKeys(attachment);
+    return keys.some(key => selectedAttachmentIds.value.includes(key));
+  })
 );
+
+const isAttachmentSelected = attachment => {
+  const keys = getAttachmentSelectionKeys(attachment);
+  return keys.some(key => selectedAttachmentIds.value.includes(key));
+};
 
 const selectedDeleteIds = computed(() =>
-  selectedAttachments.value.map(attachment => attachment.id).filter(Boolean)
+  selectedAttachments.value
+    .map(attachment => attachment?.id || attachment?.attachment_id || attachment?.attachmentId)
+    .filter(Boolean)
 );
 
-const selectedDeleteCount = computed(() => selectedDeleteIds.value.length);
+const selectedDeleteCount = computed(() => selectedAttachments.value.length);
 
 const deleteConfirmationCount = computed(() =>
   deleteTarget.value === 'all'
@@ -515,13 +556,21 @@ const openPreview = attachment => {
 };
 
 const toggleAttachmentSelection = attachment => {
-  const id = getAttachmentSelectionKey(attachment);
-  if (!id) return;
-  const index = selectedAttachmentIds.value.indexOf(id);
-  if (index === -1) {
-    selectedAttachmentIds.value.push(id);
-  } else {
-    selectedAttachmentIds.value.splice(index, 1);
+  const keys = getAttachmentSelectionKeys(attachment);
+  if (!keys.length) return;
+  const hasSelection = keys.some(key =>
+    selectedAttachmentIds.value.includes(key)
+  );
+  if (hasSelection) {
+    selectedAttachmentIds.value = selectedAttachmentIds.value.filter(
+      id => !keys.includes(id)
+    );
+    return;
+  }
+
+  const primaryKey = getAttachmentSelectionKey(attachment);
+  if (primaryKey) {
+    selectedAttachmentIds.value.push(primaryKey);
   }
 };
 
@@ -618,6 +667,17 @@ const requestDeleteAll = () => {
 };
 
 const confirmDelete = async () => {
+  // Temporary debug to verify delete flow is triggered.
+  // Remove after validation.
+  console.debug('MediaLibrary delete confirm', {
+    conversationId: props.conversationId,
+    deleteTarget: deleteTarget.value,
+    selectedCount: selectedDeleteCount.value,
+    selectedIds: selectedDeleteIds.value,
+    totalCount: totalAttachmentCount.value,
+    confirmationCount: deleteConfirmationCount.value,
+  });
+
   if (!props.conversationId || deleteConfirmationCount.value <= 0) {
     useAlert(t('CONVERSATION.MEDIA_LIBRARY.DELETE_ERROR'));
     return;
@@ -950,14 +1010,14 @@ watch(
                   v-if="isSelectionActive"
                   class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full border border-blue-500 bg-blue-500 text-white shadow-md ring-1 ring-blue-400/70 flex items-center justify-center text-xs"
                   :class="{
-                    'opacity-40': !selectedAttachmentIds.includes(getAttachmentSelectionKey(attachment)),
+                    'opacity-40': !isAttachmentSelected(attachment),
                     'ring-2 ring-white/70 shadow-lg opacity-100':
-                      selectedAttachmentIds.includes(getAttachmentSelectionKey(attachment)),
+                      isAttachmentSelected(attachment),
                   }"
                   >
                     <span
                     class="i-lucide-check w-3 h-3 text-n-brand"
-                    v-if="selectedAttachmentIds.includes(getAttachmentSelectionKey(attachment))"
+                    v-if="isAttachmentSelected(attachment)"
                   />
                 </div>
                 <div
@@ -1024,8 +1084,7 @@ watch(
                     class="relative flex items-center gap-3 p-3 rounded-lg bg-n-alpha-2 hover:bg-n-alpha-3 text-left no-underline"
                     :class="{
                       'ring-1 ring-blue-500':
-                        isSelectionActive &&
-                        selectedAttachmentIds.includes(getAttachmentSelectionKey(doc)),
+                        isSelectionActive && isAttachmentSelected(doc),
                     }"
                     :href="getAttachmentUrl(doc) || undefined"
                     :download="getDisplayName(doc) || undefined"
@@ -1058,14 +1117,14 @@ watch(
                       v-if="isSelectionActive"
                       class="absolute top-2 right-2 w-4 h-4 rounded-full border border-blue-500 bg-blue-500 text-white shadow-md ring-1 ring-blue-400/70 flex items-center justify-center text-[10px]"
                       :class="{
-                        'opacity-40': !selectedAttachmentIds.includes(getAttachmentSelectionKey(doc)),
+                        'opacity-40': !isAttachmentSelected(doc),
                         'ring-2 ring-white/70 shadow-lg opacity-100':
-                          selectedAttachmentIds.includes(getAttachmentSelectionKey(doc)),
+                          isAttachmentSelected(doc),
                       }"
                       >
                         <span
                         class="i-lucide-check w-3 h-3 text-n-brand"
-                        v-if="selectedAttachmentIds.includes(getAttachmentSelectionKey(doc))"
+                        v-if="isAttachmentSelected(doc)"
                       />
                     </span>
                   </a>

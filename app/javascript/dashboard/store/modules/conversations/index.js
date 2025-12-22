@@ -219,6 +219,40 @@ export const mutations = {
       };
     }
   },
+  [types.CLEAR_CONVERSATION_ATTACHMENTS](_state, { id }) {
+    _state.attachments[id] = [];
+    const meta = _state.attachmentsMeta[id];
+    if (meta) {
+      _state.attachmentsMeta[id] = { ...meta, totalCount: 0 };
+    }
+  },
+  [types.DELETE_CONVERSATION_ATTACHMENTS_BY_ID](
+    _state,
+    { id, attachmentIds, removedCount }
+  ) {
+    const existingAttachments = _state.attachments[id] || [];
+    if (!existingAttachments.length) return;
+
+    const idsToRemove = new Set(attachmentIds || []);
+    const filteredAttachments = existingAttachments.filter(
+      attachment => !idsToRemove.has(attachment.id)
+    );
+
+    _state.attachments[id] = filteredAttachments;
+
+    const meta = _state.attachmentsMeta[id];
+    if (meta) {
+      const fallbackRemoved =
+        existingAttachments.length - filteredAttachments.length;
+      const nextTotal =
+        (meta.totalCount || existingAttachments.length) -
+        (removedCount || fallbackRemoved);
+      _state.attachmentsMeta[id] = {
+        ...meta,
+        totalCount: nextTotal < 0 ? 0 : nextTotal,
+      };
+    }
+  },
 
   [types.ADD_MESSAGE]({ allConversations, selectedChatId }, message) {
     const { conversation_id: conversationId } = message;

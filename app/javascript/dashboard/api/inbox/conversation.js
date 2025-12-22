@@ -135,6 +135,12 @@ class ConversationApi extends ApiClient {
     });
   }
 
+  deleteAttachments(conversationId, payload) {
+    return axios.delete(`${this.url}/${conversationId}/attachments`, {
+      data: payload,
+    });
+  }
+
   getInboxAssistant(conversationId) {
     return axios.get(`${this.url}/${conversationId}/inbox_assistant`);
   }

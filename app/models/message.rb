@@ -255,7 +255,7 @@ class Message < ApplicationRecord
   def should_index?
     return false unless ChatwootApp.advanced_search_allowed?
     return false unless incoming? || outgoing?
-    # For Chatwoot Cloud:
+    # For ViperChat Cloud:
     #   - Enable indexing only if the account is paid.
     #   - The `advanced_search_indexing` feature flag is used only in the cloud.
     #

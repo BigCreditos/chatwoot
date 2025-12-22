@@ -2,9 +2,11 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useStore } from 'vuex';
 import { useAlert } from 'dashboard/composables';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Modal from 'dashboard/components/Modal.vue';
 import GalleryView from './components/GalleryView.vue';
 import ForwardMessagesModal from './ForwardMessagesModal.vue';
 import { downloadFile } from '@chatwoot/utils';
@@ -49,8 +51,17 @@ const previewAttachment = ref(null);
 const showGallery = ref(false);
 const showForwardModal = ref(false);
 const isForwardSelectionActive = ref(false);
+const isDeleteSelectionActive = ref(false);
+const showDeleteConfirm = ref(false);
+const showDeleteInfo = ref(false);
+const deleteTarget = ref('selected');
+const deleteInfoCount = ref(0);
+const isDeleting = ref(false);
 const selectedAttachmentIds = ref([]);
 const selectedLinkMessageIds = ref([]);
+const isSelectionActive = computed(
+  () => isForwardSelectionActive.value || isDeleteSelectionActive.value
+);
 const getAttachmentSelectionKey = attachment => {
   const messageId =
     attachment?.message_id ||
@@ -69,6 +80,7 @@ const getAttachmentSelectionKey = attachment => {
 };
 const { t } = useI18n();
 const router = useRouter();
+const store = useStore();
 
 const showDialog = computed(
   () => props.show && !showGallery.value && !showForwardModal.value
@@ -235,6 +247,12 @@ watch(
       previewAttachment.value = null;
       activeTab.value = 'media';
       mediaFilter.value = 'all';
+      isDeleteSelectionActive.value = false;
+      showDeleteConfirm.value = false;
+      showDeleteInfo.value = false;
+      deleteTarget.value = 'selected';
+      deleteInfoCount.value = 0;
+      isDeleting.value = false;
     }
   },
   { flush: 'post', immediate: true }
@@ -362,6 +380,29 @@ const totalCountFromMeta = computed(
   () => props.attachmentsMeta?.totalCount || 0
 );
 
+const totalAttachmentCount = computed(() => {
+  if (totalCountFromMeta.value) return totalCountFromMeta.value;
+  return attachmentList.value.length || 0;
+});
+
+const selectedAttachments = computed(() =>
+  attachmentList.value.filter(attachment =>
+    selectedAttachmentIds.value.includes(getAttachmentSelectionKey(attachment))
+  )
+);
+
+const selectedDeleteIds = computed(() =>
+  selectedAttachments.value.map(attachment => attachment.id).filter(Boolean)
+);
+
+const selectedDeleteCount = computed(() => selectedDeleteIds.value.length);
+
+const deleteConfirmationCount = computed(() =>
+  deleteTarget.value === 'all'
+    ? totalAttachmentCount.value
+    : selectedDeleteCount.value
+);
+
 const hasMoreAttachments = computed(() => {
   const loaded = attachmentList.value.length || 0;
   if (!totalCountFromMeta.value) return false;
@@ -472,7 +513,7 @@ const toggleLinkSelection = link => {
 };
 
 const handleMediaClick = attachment => {
-  if (isForwardSelectionActive.value) {
+  if (isSelectionActive.value) {
     toggleAttachmentSelection(attachment);
     return;
   }
@@ -487,17 +528,33 @@ const handleLinkClick = (link, event) => {
   }
 };
 
-const startForwardSelection = () => {
-  isForwardSelectionActive.value = true;
+const resetSelections = () => {
   selectedAttachmentIds.value = [];
   selectedLinkMessageIds.value = [];
 };
 
+const startForwardSelection = () => {
+  isDeleteSelectionActive.value = false;
+  resetSelections();
+  isForwardSelectionActive.value = true;
+};
+
 const cancelForwardSelection = () => {
   isForwardSelectionActive.value = false;
-  selectedAttachmentIds.value = [];
-  selectedLinkMessageIds.value = [];
+  resetSelections();
   showForwardModal.value = false;
+};
+
+const startDeleteSelection = () => {
+  isForwardSelectionActive.value = false;
+  showForwardModal.value = false;
+  resetSelections();
+  isDeleteSelectionActive.value = true;
+};
+
+const cancelDeleteSelection = () => {
+  isDeleteSelectionActive.value = false;
+  resetSelections();
 };
 
 const openForwardModal = () => {
@@ -510,6 +567,61 @@ const openForwardModal = () => {
     return;
   }
   showForwardModal.value = true;
+};
+
+const openDeleteConfirm = target => {
+  deleteTarget.value = target;
+  showDeleteConfirm.value = true;
+};
+
+const closeDeleteConfirm = () => {
+  showDeleteConfirm.value = false;
+};
+
+const closeDeleteInfo = () => {
+  showDeleteInfo.value = false;
+};
+
+const requestDeleteSelected = () => {
+  if (!selectedDeleteCount.value) return;
+  openDeleteConfirm('selected');
+};
+
+const requestDeleteAll = () => {
+  if (!totalAttachmentCount.value) return;
+  openDeleteConfirm('all');
+};
+
+const confirmDelete = async () => {
+  if (!props.conversationId || deleteConfirmationCount.value <= 0) {
+    useAlert(t('CONVERSATION.MEDIA_LIBRARY.DELETE_ERROR'));
+    return;
+  }
+
+  const deleteAll = deleteTarget.value === 'all';
+  const attachmentIds = deleteAll ? [] : selectedDeleteIds.value;
+
+  if (!deleteAll && !attachmentIds.length) {
+    useAlert(t('CONVERSATION.MEDIA_LIBRARY.DELETE_ERROR'));
+    return;
+  }
+
+  isDeleting.value = true;
+  try {
+    const { count } = await store.dispatch('deleteConversationAttachments', {
+      conversationId: props.conversationId,
+      attachmentIds,
+      deleteAll,
+    });
+    deleteInfoCount.value = count || deleteConfirmationCount.value;
+    showDeleteConfirm.value = false;
+    showDeleteInfo.value = true;
+    cancelDeleteSelection();
+  } catch (error) {
+    useAlert(t('CONVERSATION.MEDIA_LIBRARY.DELETE_ERROR'));
+  } finally {
+    isDeleting.value = false;
+  }
 };
 
 const handleForwarded = conversation => {
@@ -545,6 +657,9 @@ watch(
   value => {
     if (!value) {
       cancelForwardSelection();
+      cancelDeleteSelection();
+      showDeleteConfirm.value = false;
+      showDeleteInfo.value = false;
     }
   }
 );
@@ -716,10 +831,52 @@ watch(
             </button>
             <div class="ml-auto flex items-center gap-2">
               <Button
+                v-if="!isDeleteSelectionActive"
+                size="xs"
+                variant="ghost"
+                color="ruby"
+                :disabled="isForwardSelectionActive"
+                type="button"
+                @click="startDeleteSelection"
+              >
+                {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_ACTION') }}
+              </Button>
+              <Button
+                v-if="isDeleteSelectionActive"
+                size="xs"
+                color="ruby"
+                :disabled="!selectedDeleteCount"
+                type="button"
+                @click="requestDeleteSelected"
+              >
+                {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_SELECTED_ACTION') }}
+              </Button>
+              <Button
+                v-if="isDeleteSelectionActive"
+                size="xs"
+                variant="ghost"
+                color="ruby"
+                type="button"
+                @click="requestDeleteAll"
+              >
+                {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_ALL_ACTION') }}
+              </Button>
+              <Button
+                v-if="isDeleteSelectionActive"
                 size="xs"
                 variant="ghost"
                 color="slate"
-                :disabled="isForwardSelectionActive"
+                type="button"
+                @click="cancelDeleteSelection"
+              >
+                {{ $t('CONVERSATION.FORWARD_MESSAGES.CANCEL') }}
+              </Button>
+              <Button
+                v-if="!isForwardSelectionActive"
+                size="xs"
+                variant="ghost"
+                color="slate"
+                :disabled="isDeleteSelectionActive"
                 type="button"
                 @click="startForwardSelection"
               >
@@ -739,17 +896,17 @@ watch(
                   })
                 }}
               </Button>
-                <Button
-                  v-if="isForwardSelectionActive"
-                  size="xs"
-                  variant="ghost"
-                  color="slate"
-                  type="button"
-                  @click="cancelForwardSelection"
-                >
-                  {{ $t('CONVERSATION.FORWARD_MESSAGES.CANCEL') }}
-                </Button>
-              </div>
+              <Button
+                v-if="isForwardSelectionActive"
+                size="xs"
+                variant="ghost"
+                color="slate"
+                type="button"
+                @click="cancelForwardSelection"
+              >
+                {{ $t('CONVERSATION.FORWARD_MESSAGES.CANCEL') }}
+              </Button>
+            </div>
           </div>
 
           <div v-if="activeTab === 'media'" class="flex flex-col gap-4">
@@ -765,7 +922,7 @@ watch(
                 @click="handleMediaClick(attachment)"
               >
                 <div
-                  v-if="isForwardSelectionActive"
+                  v-if="isSelectionActive"
                   class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full border border-blue-500 bg-blue-500 text-white shadow-md ring-1 ring-blue-400/70 flex items-center justify-center text-xs"
                   :class="{
                     'opacity-40': !selectedAttachmentIds.includes(getAttachmentSelectionKey(attachment)),
@@ -842,7 +999,7 @@ watch(
                     class="relative flex items-center gap-3 p-3 rounded-lg bg-n-alpha-2 hover:bg-n-alpha-3 text-left no-underline"
                     :class="{
                       'ring-1 ring-blue-500':
-                        isForwardSelectionActive &&
+                        isSelectionActive &&
                         selectedAttachmentIds.includes(getAttachmentSelectionKey(doc)),
                     }"
                     :href="getAttachmentUrl(doc) || undefined"
@@ -850,7 +1007,7 @@ watch(
                     target="_blank"
                     rel="noopener noreferrer"
                     @click.prevent.stop="
-                      isForwardSelectionActive
+                      isSelectionActive
                         ? toggleAttachmentSelection(doc)
                         : openDocument(doc, $event)
                     "
@@ -873,7 +1030,7 @@ watch(
                     </div>
                     <span class="i-lucide-download w-4 h-4 text-n-slate-11 flex-shrink-0" />
                     <span
-                      v-if="isForwardSelectionActive"
+                      v-if="isSelectionActive"
                       class="absolute top-2 right-2 w-4 h-4 rounded-full border border-blue-500 bg-blue-500 text-white shadow-md ring-1 ring-blue-400/70 flex items-center justify-center text-[10px]"
                       :class="{
                         'opacity-40': !selectedAttachmentIds.includes(getAttachmentSelectionKey(doc)),
@@ -1029,4 +1186,69 @@ watch(
     @forwarded="handleForwarded"
     @close="cancelForwardSelection"
   />
+  <Modal
+    v-model:show="showDeleteConfirm"
+    :show-close-button="false"
+    :on-close="closeDeleteConfirm"
+  >
+    <div class="flex flex-col gap-4 p-6">
+      <div class="text-base font-medium text-n-slate-12">
+        {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_CONFIRM_TITLE') }}
+      </div>
+      <p class="text-sm text-n-slate-11">
+        {{
+          $t('CONVERSATION.MEDIA_LIBRARY.DELETE_CONFIRM_MESSAGE', {
+            count: deleteConfirmationCount,
+          })
+        }}
+      </p>
+      <div class="flex items-center justify-end gap-2">
+        <Button
+          size="sm"
+          variant="faded"
+          color="slate"
+          type="button"
+          @click="closeDeleteConfirm"
+        >
+          {{ $t('DIALOG.BUTTONS.CANCEL') }}
+        </Button>
+        <Button
+          size="sm"
+          color="ruby"
+          :is-loading="isDeleting"
+          :disabled="isDeleting"
+          type="button"
+          @click="confirmDelete"
+        >
+          {{ $t('DIALOG.BUTTONS.CONFIRM') }}
+        </Button>
+      </div>
+    </div>
+  </Modal>
+  <Modal
+    v-model:show="showDeleteInfo"
+    :show-close-button="false"
+    :on-close="closeDeleteInfo"
+  >
+    <div class="flex flex-col gap-3 p-6">
+      <div class="text-base font-medium text-n-slate-12">
+        {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_BACKGROUND_TITLE') }}
+      </div>
+      <p class="text-sm text-n-slate-11">
+        {{
+          $t('CONVERSATION.MEDIA_LIBRARY.DELETE_BACKGROUND_MESSAGE', {
+            count: deleteInfoCount,
+          })
+        }}
+      </p>
+      <p class="text-xs text-n-slate-11">
+        {{ $t('CONVERSATION.MEDIA_LIBRARY.DELETE_BACKGROUND_HINT') }}
+      </p>
+      <div class="flex justify-end">
+        <Button size="sm" color="blue" type="button" @click="closeDeleteInfo">
+          {{ $t('DIALOG.BUTTONS.CONFIRM') }}
+        </Button>
+      </div>
+    </div>
+  </Modal>
 </template>

@@ -13,8 +13,8 @@ vi.mock('dashboard/composables/useImpersonation', () => ({
   }),
 }));
 
-global.chatwootConfig = {
-  websocketURL: 'wss://test.chatwoot.com',
+global.viperchatConfig = {
+  websocketURL: 'wss://test.viperchat.com',
 };
 
 describe('ActionCableConnector - Copilot Tests', () => {

@@ -18,7 +18,7 @@ export const hasMessageFailedWithExternalError = pendingMessage => {
   // We have two cases
   // 1. Messages that fail from the UI itself (due to large attachments or a failed network):
   //    In this case, the message will have a status of failed but no external error. So we need to create that message again
-  // 2. Messages sent from Chatwoot but failed to deliver to the customer for some reason (user blocking or client system down):
+  // 2. Messages sent from ViperChat but failed to deliver to the customer for some reason (user blocking or client system down):
   //    In this case, the message will have a status of failed and an external error. So we need to retry that message
   const { content_attributes: contentAttributes, status } = pendingMessage;
   const externalError = contentAttributes?.external_error ?? '';
@@ -178,6 +178,40 @@ const actions = {
       });
 
       return batch.length;
+    } catch (error) {
+      Sentry.setContext('Conversation', {
+        id: conversationId,
+      });
+      Sentry.captureException(error);
+      throw error;
+    }
+  },
+
+  deleteConversationAttachments: async (
+    { commit },
+    { conversationId, attachmentIds = [], deleteAll = false }
+  ) => {
+    const payload = deleteAll
+      ? { delete_all: true }
+      : { attachment_ids: attachmentIds };
+
+    try {
+      const { data } = await ConversationApi.deleteAttachments(
+        conversationId,
+        payload
+      );
+
+      if (deleteAll) {
+        commit(types.CLEAR_CONVERSATION_ATTACHMENTS, { id: conversationId });
+      } else {
+        commit(types.DELETE_CONVERSATION_ATTACHMENTS_BY_ID, {
+          id: conversationId,
+          attachmentIds,
+          removedCount: data.count,
+        });
+      }
+
+      return data;
     } catch (error) {
       Sentry.setContext('Conversation', {
         id: conversationId,

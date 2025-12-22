@@ -1,18 +1,18 @@
 // Moved from editorHelper.spec.js to editorContentHelper.spec.js
-// the mock of chatwoot/prosemirror-schema is getting conflicted with other specs
+// the mock of viperchat/prosemirror-schema is getting conflicted with other specs
 import { getContentNode } from '../editorHelper';
 import {
   MessageMarkdownTransformer,
   messageSchema,
-} from '@chatwoot/prosemirror-schema';
-import { replaceVariablesInMessage } from '@chatwoot/utils';
+} from '@viperchat/prosemirror-schema';
+import { replaceVariablesInMessage } from '@viperchat/utils';
 
-vi.mock('@chatwoot/prosemirror-schema', () => ({
+vi.mock('@viperchat/prosemirror-schema', () => ({
   MessageMarkdownTransformer: vi.fn(),
   messageSchema: {},
 }));
 
-vi.mock('@chatwoot/utils', () => ({
+vi.mock('@viperchat/utils', () => ({
   replaceVariablesInMessage: vi.fn(),
 }));
 

@@ -23,6 +23,10 @@ const hasInstagramConfigured = computed(() => {
   return window.chatwootConfig?.instagramAppId;
 });
 
+const hasTiktokConfigured = computed(() => {
+  return window.chatwootConfig?.tiktokAppId;
+});
+
 const isActive = computed(() => {
   const { key } = props.channel;
   if (Object.keys(props.enabledFeatures).length === 0) {
@@ -58,6 +62,7 @@ const isActive = computed(() => {
     'telegram',
     'line',
     'instagram',
+    'tiktok',
     'voice',
     'notifica_me',
     'internal',

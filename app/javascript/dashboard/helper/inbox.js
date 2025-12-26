@@ -15,6 +15,11 @@ export const INBOX_TYPES = {
   INTERNAL: 'Channel::Internal',
 };
 
+export const TWILIO_CHANNEL_MEDIUM = {
+  WHATSAPP: 'whatsapp',
+  SMS: 'sms',
+};
+
 const INBOX_ICON_MAP_FILL = {
   [INBOX_TYPES.WEB]: 'i-ri-global-fill',
   [INBOX_TYPES.FB]: 'i-ri-messenger-fill',
@@ -143,6 +148,9 @@ export const getInboxClassByType = (type, phoneNumber) => {
 
     case INBOX_TYPES.INSTAGRAM:
       return 'brand-instagram';
+
+    case INBOX_TYPES.TIKTOK:
+      return 'brand-tiktok';
 
     case INBOX_TYPES.VOICE:
       return 'phone';

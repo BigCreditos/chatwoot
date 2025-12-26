@@ -9,7 +9,6 @@ import { replaceVariablesInMessage } from '@viperchat/utils';
 
 vi.mock('@viperchat/prosemirror-schema', () => ({
   MessageMarkdownTransformer: vi.fn(),
-  messageSchema: {},
 }));
 
 vi.mock('@viperchat/utils', () => ({
@@ -62,12 +61,18 @@ describe('getContentNode', () => {
       const to = 10;
       const updatedMessage = 'Hello John';
 
-      replaceVariablesInMessage.mockReturnValue(updatedMessage);
-      MessageMarkdownTransformer.mockImplementation(() => ({
-        parse: vi.fn().mockReturnValue({ textContent: updatedMessage }),
-      }));
+      // Mock the node that will be returned by parse
+      const mockNode = { textContent: updatedMessage };
 
-      const { node } = getContentNode(
+      replaceVariablesInMessage.mockReturnValue(updatedMessage);
+
+      // Mock MessageMarkdownTransformer instance with parse method
+      const mockTransformer = {
+        parse: vi.fn().mockReturnValue(mockNode),
+      };
+      MessageMarkdownTransformer.mockImplementation(() => mockTransformer);
+
+      const result = getContentNode(
         editorView,
         'cannedResponse',
         content,
@@ -79,8 +84,15 @@ describe('getContentNode', () => {
         message: content,
         variables,
       });
-      expect(MessageMarkdownTransformer).toHaveBeenCalledWith(messageSchema);
-      expect(node.textContent).toBe(updatedMessage);
+      expect(MessageMarkdownTransformer).toHaveBeenCalledWith(
+        editorView.state.schema
+      );
+      expect(mockTransformer.parse).toHaveBeenCalledWith(updatedMessage);
+      expect(result.node).toBe(mockNode);
+      expect(result.node.textContent).toBe(updatedMessage);
+      // When textContent matches updatedMessage, from should remain unchanged
+      expect(result.from).toBe(from);
+      expect(result.to).toBe(to);
     });
   });
 

@@ -487,7 +487,57 @@
       },
       "AUTH": {
         "TITLE": "Escolha um canal",
-        "DESC": "O ViperChat suporta widgets de chats ao vivo, Facebook Messenger, perfis do Twitter, WhatsApp, E-mails, etc., como canais. Se você quiser criar um canal personalizado, você pode criá-lo usando o canal API. Para começar, escolha um dos canais abaixo."
+        "DESC": "O ViperChat suporta widgets de chats ao vivo, Facebook Messenger, perfis do Twitter, WhatsApp, E-mails, etc., como canais. Se você quiser criar um canal personalizado, você pode criá-lo usando o canal API. Para começar, escolha um dos canais abaixo.",
+        "CHANNEL": {
+          "WEBSITE": {
+            "TITLE": "Website",
+            "DESCRIPTION": "Crie um widget de chat ao vivo"
+          },
+          "FACEBOOK": {
+            "TITLE": "Facebook",
+            "DESCRIPTION": "Conecte sua pagina do Facebook"
+          },
+          "WHATSAPP": {
+            "TITLE": "WhatsApp",
+            "DESCRIPTION": "Atenda seus clientes no WhatsApp"
+          },
+          "EMAIL": {
+            "TITLE": "Email",
+            "DESCRIPTION": "Conecte com Gmail, Outlook ou outros provedores"
+          },
+          "SMS": {
+            "TITLE": "SMS",
+            "DESCRIPTION": "Integre o canal SMS com Twilio ou Bandwidth"
+          },
+          "API": {
+            "TITLE": "API",
+            "DESCRIPTION": "Crie um canal personalizado usando nossa API"
+          },
+          "TELEGRAM": {
+            "TITLE": "Telegram",
+            "DESCRIPTION": "Configure o canal do Telegram usando o token do bot"
+          },
+          "LINE": {
+            "TITLE": "Line",
+            "DESCRIPTION": "Integre seu canal do Line"
+          },
+          "INSTAGRAM": {
+            "TITLE": "Instagram",
+            "DESCRIPTION": "Conecte sua conta do Instagram"
+          },
+          "TIKTOK": {
+            "TITLE": "TikTok",
+            "DESCRIPTION": "Conecte sua conta do TikTok"
+          },
+          "INTERNAL": {
+            "TITLE": "Chat interno",
+            "DESCRIPTION": "Conversa entre seus agentes dentro do ViperChat"
+          },
+          "VOICE": {
+            "TITLE": "Voz",
+            "DESCRIPTION": "Integre com o Twilio Voice"
+          }
+        }
       },
       "AGENTS": {
         "TITLE": "Agentes",

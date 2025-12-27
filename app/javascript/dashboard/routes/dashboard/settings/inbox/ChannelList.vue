@@ -106,13 +106,6 @@ const channelList = computed(() => {
     });
   }
 
-  channels.push({
-    key: 'voice',
-    title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.TITLE'),
-    description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.DESCRIPTION'),
-    icon: 'i-ri-phone-fill',
-  });
-
   return channels;
 });
 

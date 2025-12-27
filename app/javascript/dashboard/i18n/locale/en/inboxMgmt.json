@@ -605,6 +605,10 @@
             "TITLE": "Instagram",
             "DESCRIPTION": "Connect your instagram account"
           },
+          "TIKTOK": {
+            "TITLE": "TikTok",
+            "DESCRIPTION": "Connect your TikTok account"
+          },
           "INTERNAL": {
             "TITLE": "Internal chat",
             "DESCRIPTION": "Chat between your agents inside ViperChat"

@@ -941,11 +941,11 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_27_023000) do
   create_table "inbox_members", id: :serial, force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "inbox_id", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
     t.string "webrtc_username"
     t.text "webrtc_jwt"
     t.text "webrtc_password"
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
     t.index ["inbox_id", "user_id"], name: "index_inbox_members_on_inbox_id_and_user_id", unique: true
     t.index ["inbox_id"], name: "index_inbox_members_on_inbox_id"
   end

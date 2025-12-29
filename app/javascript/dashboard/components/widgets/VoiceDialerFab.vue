@@ -356,7 +356,7 @@ onUnmounted(() => {
   </div>
 
     <woot-modal v-model:show="showDialer" :on-close="closeDialer">
-      <div class="flex flex-col gap-4 p-6 w-[16rem] max-w-[16rem]">
+      <div class="flex flex-col gap-4 p-6 w-[22rem] max-w-[22rem]">
       <h3 class="text-base font-medium text-n-slate-12">
         {{ t('CONVERSATION.VOICE_WIDGET.DIALER_TITLE') }}
       </h3>

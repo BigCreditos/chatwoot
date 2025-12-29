@@ -203,12 +203,25 @@ class CustomVoiceClient extends EventTarget {
   endClientCall() {
     // eslint-disable-next-line no-console
     console.log('[CustomVoiceClient] endClientCall', { inboxId: this.inboxId });
-    if (this.activeSession?.bye) {
-      this.activeSession.bye();
+    if (this.activeSession) {
+      const { state } = this.activeSession;
+      if (state === SessionState.Established && this.activeSession.bye) {
+        this.activeSession.bye();
+      } else if (
+        (state === SessionState.Initial || state === SessionState.Establishing) &&
+        this.activeSession.cancel
+      ) {
+        this.activeSession.cancel();
+      }
     }
     this.activeSession = null;
     if (this.registerer) {
-      this.registerer.unregister();
+      try {
+        this.registerer.unregister();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('[CustomVoiceClient] unregister skipped', { error });
+      }
     }
   }
 

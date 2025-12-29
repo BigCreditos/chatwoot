@@ -106,6 +106,15 @@ const canInternalCall = computed(
 const ringAudio = ref(null);
 const ringSource = ref('');
 const ringTone = computed(() => {
+  if (activeCall.value) {
+    const conversation = getCallInfo(activeCall.value).conversation;
+    const status = conversation?.additional_attributes?.call_status;
+    if (status === 'ringing') {
+      return activeCall.value.callDirection === 'outbound' ? 'outbound' : 'inbound';
+    }
+    return null;
+  }
+
   for (const call of callsStore.calls) {
     const conversation = getCallInfo(call).conversation;
     const status = conversation?.additional_attributes?.call_status;
@@ -452,13 +461,13 @@ onUnmounted(() => {
         </p>
       </div>
       <div class="flex shrink-0 gap-2">
-        <button
+        <!-- <button
           v-if="hasActiveCall && canTransfer"
           class="flex justify-center items-center w-10 h-10 bg-n-slate-9 hover:bg-n-slate-10 rounded-full transition-colors"
           @click="openTransferModal"
         >
           <i class="text-lg text-white i-lucide-phone-forwarded" />
-        </button>
+        </button> -->
         <button
           v-if="hasActiveCall"
           class="flex justify-center items-center w-10 h-10 bg-n-slate-9 hover:bg-n-slate-10 rounded-full transition-colors"
@@ -467,14 +476,14 @@ onUnmounted(() => {
         >
           <i class="text-lg text-white i-ph-keyboard-bold" />
         </button>
-        <button
+        <!-- <button
           v-if="hasActiveCall && canInternalCall"
           class="flex justify-center items-center w-10 h-10 bg-n-slate-9 hover:bg-n-slate-10 rounded-full transition-colors"
           :title="$t('CONVERSATION.VOICE_WIDGET.INTERNAL_CALL_BUTTON')"
           @click="openInternalCallModal"
         >
           <i class="text-lg text-white i-ph-users-three-bold" />
-        </button>
+        </button> -->
         <button
           class="flex justify-center items-center w-10 h-10 bg-n-ruby-9 hover:bg-n-ruby-10 rounded-full transition-colors"
           @click="

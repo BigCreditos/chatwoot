@@ -18,17 +18,21 @@ class Whatsapp::OneoffUnoapiCampaignService
 
   def process_audience(audience)
     audience ||= []
+    label_entries = audience.select { |entry| entry['type'] == 'Label' }
+    manual_entries = audience.reject { |entry| entry['type'] == 'Label' }
     expanded_audience = expand_label_audience(audience)
-    full_audience = merge_audiences(audience, expanded_audience)
+    full_audience = merge_audiences(manual_entries, expanded_audience)
     Rails.logger.debug { "Process campaign #{campaign.id} and #{full_audience.length} audience record(s)" }
     interval = 0
-    new_audience = full_audience.map do |a|
+    processed_manual = manual_entries.map do |a|
+      update_audience(a.symbolize_keys)
+    end
+    full_audience.each do |a|
       aa = update_audience(a.symbolize_keys)
       interval = schedule_job(campaign, aa, interval) if aa[:status] == :scheduled
-      aa
     end
     # rubocop:disable Rails/SkipsModelValidations
-    campaign.update_column(:audience, new_audience)
+    campaign.update_column(:audience, processed_manual + label_entries)
     # rubocop:enable Rails/SkipsModelValidations
   end
 

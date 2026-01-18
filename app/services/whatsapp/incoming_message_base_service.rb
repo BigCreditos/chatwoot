@@ -93,6 +93,8 @@ class Whatsapp::IncomingMessageBaseService
     else
       raw_phone = waid.presence || profile_phone
       raw_phone = raw_phone.gsub(/\D/, '')
+      return if raw_phone.blank? || raw_phone == '0'
+      return unless raw_phone.match?(/^[1-9]\d{7,14}$/)
       if raw_phone.present?
         raw_phone = normalised_brazil_mobile_number(raw_phone) if brazil_phone_number?(raw_phone)
         waid = processed_waid(raw_phone) || raw_phone

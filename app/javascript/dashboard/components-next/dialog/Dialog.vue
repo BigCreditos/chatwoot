@@ -87,10 +87,13 @@ const open = () => {
 };
 
 const close = () => {
-  emit('close');
   if (dialogRef.value?.open) {
     dialogRef.value.close();
   }
+};
+
+const handleNativeClose = () => {
+  emit('close');
 };
 
 const confirm = () => {
@@ -111,7 +114,7 @@ defineExpose({ open, close });
         overflowYAuto ? 'overflow-y-auto' : 'overflow-visible',
       ]"
       v-bind="attrs"
-      @close="close"
+      @close="handleNativeClose"
     >
       <OnClickOutside @trigger="close">
         <form

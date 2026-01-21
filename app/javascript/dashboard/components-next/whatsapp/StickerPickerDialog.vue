@@ -57,11 +57,14 @@ const handleOpen = async () => {
   await loadStickers();
 };
 
-const handleClose = () => {
+const resetSelectionState = () => {
   selectionMode.value = false;
   selectedIds.value = new Set();
+};
+
+const handleClose = () => {
+  resetSelectionState();
   emit('close');
-  dialogRef.value?.close();
 };
 
 const toggleSelectionMode = () => {
@@ -152,7 +155,7 @@ watch(
     if (show) {
       handleOpen();
     } else {
-      handleClose();
+      resetSelectionState();
     }
   }
 );

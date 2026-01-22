@@ -85,6 +85,14 @@ const toggleStickerSelection = stickerId => {
   selectedIds.value = next;
 };
 
+const getStickerPreviewUrl = sticker => {
+  const fileUrl = sticker?.file_url;
+  const thumbUrl = sticker?.thumb_url;
+  if (!fileUrl) return thumbUrl;
+  const isAnimated = /\.(gif|webp)(\?|$)/i.test(fileUrl);
+  return isAnimated ? fileUrl : thumbUrl || fileUrl;
+};
+
 const handleStickerClick = sticker => {
   if (selectionMode.value) {
     toggleStickerSelection(sticker.id);
@@ -235,7 +243,7 @@ watch(
             @click="handleStickerClick(sticker)"
           >
             <img
-              :src="sticker.thumb_url || sticker.file_url"
+              :src="getStickerPreviewUrl(sticker)"
               :alt="t('CONVERSATION.REPLYBOX.STICKERS.ALT')"
               class="w-full h-20 object-contain"
             />
@@ -263,7 +271,7 @@ watch(
             @click="handleStickerClick(sticker)"
           >
             <img
-              :src="sticker.thumb_url || sticker.file_url"
+              :src="getStickerPreviewUrl(sticker)"
               :alt="t('CONVERSATION.REPLYBOX.STICKERS.ALT')"
               class="w-full h-20 object-contain"
             />

@@ -223,13 +223,26 @@ export default {
     },
     stickerUrl() {
       const attachment = this.data?.attachments?.[0];
-      return (
+      const url =
         this.contentAttributes.sticker_url ||
         this.contentAttributes.stickerUrl ||
         attachment?.data_url ||
+        attachment?.dataUrl ||
         attachment?.download_url ||
-        null
-      );
+        attachment?.downloadUrl ||
+        attachment?.thumb_url ||
+        attachment?.thumbUrl ||
+        null;
+      if (this.contentType === 'sticker') {
+        // eslint-disable-next-line no-console
+        console.log('[StickerBubble] url', {
+          messageId: this.data?.id,
+          url,
+          contentAttributes: this.contentAttributes,
+          attachment,
+        });
+      }
+      return url;
     },
     isStickerMessage() {
       return this.contentType === 'sticker' && !!this.stickerUrl;

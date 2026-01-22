@@ -270,6 +270,11 @@ export default {
     ActiveStorage.start();
   },
   methods: {
+    handleStickerPickerClick() {
+      // eslint-disable-next-line no-console
+      console.info('[StickerPicker] toggle button clicked');
+      this.$emit('toggleStickerPicker');
+    },
     toggleMessageSignature() {
       this.setSignatureFlagForInbox(this.channelType, !this.sendWithSignature);
     },
@@ -301,7 +306,7 @@ export default {
         slate
         faded
         sm
-        @click="$emit('toggleStickerPicker')"
+        @click="handleStickerPickerClick"
       />
       <FileUpload
         ref="uploadRef"

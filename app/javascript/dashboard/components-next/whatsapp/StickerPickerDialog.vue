@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { DirectUpload } from 'activestorage';
 import { useAlert } from 'dashboard/composables';
@@ -53,6 +53,7 @@ const loadStickers = async () => {
 };
 
 const handleOpen = async () => {
+  await nextTick();
   dialogRef.value?.open();
   await loadStickers();
 };

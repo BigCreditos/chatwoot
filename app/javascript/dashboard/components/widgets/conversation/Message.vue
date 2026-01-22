@@ -117,6 +117,7 @@ export default {
       return (
         this.hasAttachments ||
         this.data.content ||
+        this.isStickerMessage ||
         this.isEmailContentType ||
         this.isUnsupported ||
         this.isAnIntegrationMessage
@@ -219,6 +220,19 @@ export default {
     },
     contentAttributes() {
       return this.data.content_attributes || {};
+    },
+    stickerUrl() {
+      const attachment = this.data?.attachments?.[0];
+      return (
+        this.contentAttributes.sticker_url ||
+        this.contentAttributes.stickerUrl ||
+        attachment?.data_url ||
+        attachment?.download_url ||
+        null
+      );
+    },
+    isStickerMessage() {
+      return this.contentType === 'sticker' && !!this.stickerUrl;
     },
     externalError() {
       return this.contentAttributes.external_error || '';
@@ -526,6 +540,17 @@ export default {
           :is-email="isEmailContentType"
           :display-quoted-button="displayQuotedButton"
         />
+        <div
+          v-else-if="isStickerMessage"
+          class="p-2"
+          @contextmenu.prevent="openContextMenu($event)"
+        >
+          <img
+            :src="stickerUrl"
+            :alt="$t('CONVERSATION.REPLYBOX.STICKERS.ALT')"
+            class="max-w-[12rem] max-h-[12rem] object-contain rounded-lg"
+          />
+        </div>
         <BubbleIntegration
           :message-id="data.id"
           :content-attributes="contentAttributes"
@@ -537,7 +562,7 @@ export default {
         >
           {{ $t('CONVERSATION.UPLOADING_ATTACHMENTS') }}
         </span>
-        <div v-if="!isPending && hasAttachments">
+        <div v-if="!isPending && hasAttachments && !isStickerMessage">
           <div v-for="attachment in attachments" :key="attachment.id">
             <InstagramStory
               v-if="isAnInstagramStory"

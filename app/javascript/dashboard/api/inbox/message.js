@@ -5,6 +5,7 @@ import ApiClient from '../ApiClient';
 export const buildCreatePayload = ({
   message,
   isPrivate,
+  contentType,
   contentAttributes,
   echoId,
   files,
@@ -24,6 +25,9 @@ export const buildCreatePayload = ({
     });
     payload.append('private', isPrivate);
     payload.append('echo_id', echoId);
+    if (contentType) {
+      payload.append('content_type', contentType);
+    }
     payload.append('cc_emails', ccEmails);
     payload.append('bcc_emails', bccEmails);
 
@@ -38,6 +42,7 @@ export const buildCreatePayload = ({
       content: message,
       private: isPrivate,
       echo_id: echoId,
+      content_type: contentType,
       content_attributes: contentAttributes,
       cc_emails: ccEmails,
       bcc_emails: bccEmails,
@@ -58,6 +63,9 @@ class MessageApi extends ApiClient {
     message,
     private: isPrivate,
     contentAttributes,
+    content_attributes: contentAttributesSnake,
+    contentType,
+    content_type: contentTypeSnake,
     echo_id: echoId,
     files,
     ccEmails = '',
@@ -65,13 +73,17 @@ class MessageApi extends ApiClient {
     toEmails = '',
     templateParams,
   }) {
+    const normalizedContentAttributes =
+      contentAttributes || contentAttributesSnake;
+    const normalizedContentType = contentType || contentTypeSnake;
     return axios({
       method: 'post',
       url: `${this.url}/${conversationId}/messages`,
       data: buildCreatePayload({
         message,
         isPrivate,
-        contentAttributes,
+        contentAttributes: normalizedContentAttributes,
+        contentType: normalizedContentType,
         echoId,
         files,
         ccEmails,

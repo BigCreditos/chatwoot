@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_11_100000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -1354,13 +1354,27 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
   create_table "webhooks", force: :cascade do |t|
     t.integer "account_id"
     t.integer "inbox_id"
-    t.string "url"
+    t.text "url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "webhook_type", default: 0
     t.jsonb "subscriptions", default: ["conversation_status_changed", "conversation_updated", "conversation_created", "contact_created", "contact_updated", "message_created", "message_updated", "webwidget_triggered"]
     t.string "name"
     t.index ["account_id", "url"], name: "index_webhooks_on_account_id_and_url", unique: true
+  end
+
+  create_table "whatsapp_stickers", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_whatsapp_stickers_on_account_id"
+    t.index ["blob_id"], name: "index_whatsapp_stickers_on_blob_id"
+    t.index ["inbox_id", "blob_id"], name: "index_whatsapp_stickers_on_inbox_id_and_blob_id", unique: true
+    t.index ["inbox_id", "last_used_at"], name: "index_whatsapp_stickers_on_inbox_id_and_last_used_at"
+    t.index ["inbox_id"], name: "index_whatsapp_stickers_on_inbox_id"
   end
 
   create_table "working_hours", force: :cascade do |t|

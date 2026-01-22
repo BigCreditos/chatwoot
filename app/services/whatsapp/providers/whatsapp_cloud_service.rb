@@ -213,6 +213,15 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     end
 
     Rails.logger.info("[WHATSAPP] Sending sticker message_id=#{message.id} to=#{phone_number}")
+    Rails.logger.info("[WHATSAPP] Sticker payload message_id=#{message.id} payload=#{{
+      messaging_product: 'whatsapp',
+      context: whatsapp_reply_context(message),
+      to: phone_number,
+      type: 'sticker',
+      sticker: {
+        link: sticker_url
+      }
+    }.to_json}")
     response = HTTParty.post(
       "#{phone_id_path}/messages",
       headers: api_headers,

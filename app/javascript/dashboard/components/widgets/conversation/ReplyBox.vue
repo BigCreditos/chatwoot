@@ -688,9 +688,16 @@ export default {
       this.showContentTemplatesModal = false;
     },
     showStickerPickerModal() {
+      // eslint-disable-next-line no-console
+      console.info('[StickerPicker] open modal', {
+        conversationId: this.currentChat?.id,
+        inboxId: this.inboxId,
+      });
       this.showStickerPicker = true;
     },
     hideStickerPickerModal() {
+      // eslint-disable-next-line no-console
+      console.info('[StickerPicker] close modal');
       this.showStickerPicker = false;
     },
     sendStickerMessage(sticker) {

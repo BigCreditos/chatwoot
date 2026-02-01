@@ -37,9 +37,13 @@ class Whatsapp::OneoffUnoapiCampaignService
   end
 
   def update_audience(audience)
-    audience[:status] = audience[:phone_number].present? ? :scheduled : :error
+    audience[:status] = valid_phone_number?(audience[:phone_number]) ? :scheduled : :error
     audience[:audience_id] = audience[:audience_id] || SecureRandom.uuid
     audience.symbolize_keys
+  end
+
+  def valid_phone_number?(phone_number)
+    phone_number.present? && phone_number.match?(/\A\+[1-9]\d{1,14}\z/)
   end
 
   def expand_label_audience(audience)

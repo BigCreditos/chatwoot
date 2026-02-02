@@ -1,0 +1,89 @@
+en:
+  administrate:
+    search:
+      label: "Search"
+      clear: "Clear search"
+    actions:
+      new_resource: "New %{name}"
+      edit_resource: "Edit %{name}"
+      update_resource: "Update %{name}"
+      create_resource: "Create %{name}"
+      back: "Back"
+      actions: "Actions"
+      show_resource: "Show %{name}"
+      edit: "Edit"
+      destroy: "Delete"
+      confirm: "Are you sure?"
+    form:
+      errors: "Errors"
+      error: "error"
+      required: "Required"
+    attributes:
+      account:
+        id: "ID"
+        name: "Name"
+        locale: "Locale"
+        users: "Users"
+        conversations: "Conversations"
+        status: "Status"
+        created_at: "Created at"
+        updated_at: "Updated at"
+        account_users: "Account users"
+        custom_attributes: "Custom attributes"
+        limits: "Limits"
+        manually_managed_features: "Manually managed features"
+        all_features: "Features"
+      user:
+        id: "ID"
+        avatar_url: "Avatar"
+        avatar: "Avatar"
+        provider: "Provider"
+        uid: "UID"
+        password: "Password"
+        sign_in_count: "Sign in count"
+        current_sign_in_at: "Current sign in at"
+        last_sign_in_at: "Last sign in at"
+        current_sign_in_ip: "Current sign in IP"
+        last_sign_in_ip: "Last sign in IP"
+        confirmation_token: "Confirmation token"
+        confirmed_at: "Confirmed at"
+        confirmation_sent_at: "Confirmation sent at"
+        unconfirmed_email: "Unconfirmed email"
+        name: "Name"
+        display_name: "Display name"
+        email: "Email"
+        tokens: "Tokens"
+        created_at: "Created at"
+        updated_at: "Updated at"
+        pubsub_token: "Pubsub token"
+        type: "Type"
+        accounts: "Accounts"
+        access_token: "Access token"
+    filters:
+      active: "Active"
+      suspended: "Suspended"
+      recent: "Recent"
+      marked_for_deletion: "Marked for deletion"
+      super_admin: "Super admin"
+      confirmed: "Confirmed"
+      unconfirmed: "Unconfirmed"
+      label: "Filter by"
+      all: "All records"
+      clear: "Clear filter"
+    resources:
+      account:
+        name: "Account"
+      accounts:
+        name: "Accounts"
+      user:
+        name: "User"
+      users:
+        name: "Users"
+      agent_bot:
+        name: "Agent bot"
+      agent_bots:
+        name: "Agent bots"
+      installation_config:
+        name: "Installation configuration"
+      installation_configs:
+        name: "Installation configurations"

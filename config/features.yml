@@ -23,21 +23,21 @@
   deprecated: true
 - name: ip_lookup
   display_name: IP Lookup
-  enabled: false
+  enabled: true
 - name: disable_branding
   display_name: Disable Branding
-  enabled: false
+  enabled: true
   premium: true
 - name: email_continuity_on_api_channel
   display_name: Email Continuity on API Channel
-  enabled: false
+  enabled: true
 - name: help_center
   display_name: Help Center
   enabled: true
   help_url: https://chwt.app/hc/help-center
 - name: agent_bots
   display_name: Agent Bots
-  enabled: true
+  enabled: false
   help_url: https://chwt.app/hc/agent-bots
 - name: macros
   display_name: Macros
@@ -94,16 +94,16 @@
   enabled: true
 - name: auto_resolve_conversations
   display_name: Auto Resolve Conversations
-  enabled: true
+  enabled: false
 - name: custom_reply_email
   display_name: Custom Reply Email
-  enabled: false
+  enabled: true
 - name: custom_reply_domain
   display_name: Custom Reply Domain
-  enabled: false
+  enabled: true
 - name: audit_logs
   display_name: Audit Logs
-  enabled: false
+  enabled: true
   premium: true
 - name: response_bot
   display_name: Response Bot
@@ -125,7 +125,7 @@
   chatwoot_internal: true
 - name: sla
   display_name: SLA
-  enabled: false
+  enabled: true
   premium: true
   help_url: https://chwt.app/hc/sla
 - name: help_center_embedding_search
@@ -138,11 +138,11 @@
   enabled: false
 - name: captain_integration
   display_name: Captain
-  enabled: false
+  enabled: true
   premium: true
 - name: custom_roles
   display_name: Custom Roles
-  enabled: false
+  enabled: true
   premium: true
 - name: chatwoot_v4
   display_name: ViperChat V4
@@ -168,7 +168,7 @@
   enabled: true
 - name: crm_integration
   display_name: CRM Integration
-  enabled: false
+  enabled: true
 - name: hide_all_chats_for_agent
   display_name: Hide All Chats For Agent
   enabled: false
@@ -186,7 +186,7 @@
   enabled: false
 - name: disable_whatsapp_messaging_window
   display_name: Disable Whatsapp Messaging Window
-  enabled: false
+  enabled: true
 - name: agent_conversation_viewed
   display_name: Agent Conversation Viewed
   enabled: true
@@ -198,23 +198,23 @@
   enabled: false
 - name: channel_whatsapp
   display_name: Channel Whatsapp
-  enabled: false
+  enabled: true
 - name: channel_api
   display_name: Channel Api
-  enabled: false
+  enabled: true
 - name: channel_notifica_me
   display_name: Channel NotificaMe
-  enabled: false
+  enabled: true
 - name: channel_voice
   display_name: Voice Channel
   enabled: true
   chatwoot_internal: true
 - name: notion_integration
   display_name: Notion Integration
-  enabled: false
+  enabled: true
 - name: captain_integration_v2
   display_name: Captain V2
-  enabled: false
+  enabled: true
   premium: true
 - name: whatsapp_embedded_signup
   display_name: WhatsApp Embedded Signup
@@ -222,7 +222,7 @@
   deprecated: true
 - name: whatsapp_campaign
   display_name: WhatsApp Campaign
-  enabled: false
+  enabled: true
 - name: crm_v2
   display_name: CRM V2
   enabled: false
@@ -265,10 +265,10 @@
   chatwoot_internal: true
 - name: channel_tiktok
   display_name: TikTok Channel
-  enabled: true
+  enabled: false
 - name: csat_review_notes
   display_name: CSAT Review Notes
-  enabled: false
+  enabled: true
   premium: true
 - name: captain_tasks
   display_name: Captain Tasks

@@ -23,8 +23,10 @@ It renders the `_table` partial to display details about the resources.
 [1]: http://www.rubydoc.info/gems/administrate/Administrate/Page/Collection
 %>
 
+<% resource_label = t("administrate.resources.#{page.resource_name}.name", default: display_resource_name(page.resource_name)) %>
+<% resource_label_singular = t("administrate.resources.#{page.resource_name.to_s.singularize}.name", default: resource_label.to_s.singularize) %>
 <% content_for(:title) do %>
-  <%= display_resource_name(page.resource_name) %>
+  <%= resource_label %>
 <% end %>
 
 <header class="main-content__header" role="banner">
@@ -41,7 +43,7 @@ It renders the `_table` partial to display details about the resources.
             <%= render(
               "search",
               search_term: search_term,
-              resource_name: display_resource_name(page.resource_name)
+              resource_name: resource_label
             ) %>
           </div>
         </div>
@@ -51,7 +53,7 @@ It renders the `_table` partial to display details about the resources.
         <%= link_to(
           t(
             "administrate.actions.new_resource",
-            name: page.resource_name.titleize.downcase
+            name: resource_label_singular.to_s.downcase
           ),
           [:new, namespace, page.resource_path.to_sym],
           class: "button",

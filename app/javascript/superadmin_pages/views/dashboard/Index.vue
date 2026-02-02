@@ -33,15 +33,20 @@ const chartData = computed(() => {
   return prepareData(props.componentData.chartData);
 });
 
-const { accountsCount, usersCount, inboxesCount, conversationsCount } =
-  props.componentData;
+const {
+  accountsCount,
+  usersCount,
+  inboxesCount,
+  conversationsCount,
+  labels = {},
+} = props.componentData;
 </script>
 
 <template>
   <div class="w-full h-full">
     <header class="main-content__header" role="banner">
       <h1 id="page-title" class="main-content__page-title">
-        {{ 'Admin Dashboard' }}
+        {{ labels.title || 'Admin Dashboard' }}
       </h1>
     </header>
 
@@ -49,19 +54,19 @@ const { accountsCount, usersCount, inboxesCount, conversationsCount } =
       <div class="report--list">
         <div class="report-card">
           <div class="metric">{{ accountsCount }}</div>
-          <div>{{ 'Accounts' }}</div>
+          <div>{{ labels.accounts || 'Accounts' }}</div>
         </div>
         <div class="report-card">
           <div class="metric">{{ usersCount }}</div>
-          <div>{{ 'Users' }}</div>
+          <div>{{ labels.users || 'Users' }}</div>
         </div>
         <div class="report-card">
           <div class="metric">{{ inboxesCount }}</div>
-          <div>{{ 'Inboxes' }}</div>
+          <div>{{ labels.inboxes || 'Inboxes' }}</div>
         </div>
         <div class="report-card">
           <div class="metric">{{ conversationsCount }}</div>
-          <div>{{ 'Conversations' }}</div>
+          <div>{{ labels.conversations || 'Conversations' }}</div>
         </div>
       </div>
     </section>

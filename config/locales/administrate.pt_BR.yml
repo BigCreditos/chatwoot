@@ -1,0 +1,267 @@
+pt_BR:
+  administrate:
+    search:
+      label: "Buscar"
+      clear: "Limpar busca"
+    actions:
+      new_resource: "Novo %{name}"
+      edit_resource: "Editar %{name}"
+      update_resource: "Atualizar %{name}"
+      create_resource: "Criar %{name}"
+      back: "Voltar"
+      actions: "Ações"
+      show_resource: "Ver %{name}"
+      edit: "Editar"
+      destroy: "Excluir"
+      confirm: "Tem certeza?"
+    form:
+      errors: "Erros"
+      error: "erro"
+      required: "Obrigatório"
+    attributes:
+      account:
+        id: "ID"
+        name: "Nome"
+        locale: "Idioma"
+        users: "Usuários"
+        conversations: "Conversas"
+        status: "Status"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        account_users: "Usuários da conta"
+        custom_attributes: "Atributos personalizados"
+        limits: "Limites"
+        manually_managed_features: "Recursos gerenciados manualmente"
+        all_features: "Recursos"
+      user:
+        id: "ID"
+        avatar_url: "Avatar"
+        avatar: "Avatar"
+        provider: "Provedor"
+        uid: "UID"
+        password: "Senha"
+        sign_in_count: "Quantidade de logins"
+        current_sign_in_at: "Último login atual"
+        last_sign_in_at: "Último login"
+        current_sign_in_ip: "IP do login atual"
+        last_sign_in_ip: "IP do último login"
+        confirmation_token: "Token de confirmação"
+        confirmed_at: "Confirmado em"
+        confirmation_sent_at: "Confirmação enviada em"
+        unconfirmed_email: "Email não confirmado"
+        name: "Nome"
+        display_name: "Nome de exibição"
+        email: "Email"
+        tokens: "Tokens"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        pubsub_token: "Token PubSub"
+        type: "Tipo"
+        accounts: "Contas"
+        access_token: "Token de acesso"
+    filters:
+      active: "Ativas"
+      suspended: "Suspensas"
+      recent: "Recentes"
+      marked_for_deletion: "Marcadas para exclusão"
+      super_admin: "Super admin"
+      confirmed: "Confirmados"
+      unconfirmed: "Não confirmados"
+      label: "Filtrar por"
+      all: "Todos os registros"
+      clear: "Limpar filtro"
+    resources:
+      account:
+        name: "Conta"
+      accounts:
+        name: "Contas"
+      user:
+        name: "Usuário"
+      users:
+        name: "Usuários"
+      agent_bot:
+        name: "Bot de agente"
+      agent_bots:
+        name: "Bots de agente"
+      installation_config:
+        name: "Configuração de instalação"
+      installation_configs:
+        name: "Configurações de instalação"
+pt-BR:
+  administrate:
+    search:
+      label: "Buscar"
+      clear: "Limpar busca"
+    actions:
+      new_resource: "Novo %{name}"
+      edit_resource: "Editar %{name}"
+      update_resource: "Atualizar %{name}"
+      create_resource: "Criar %{name}"
+      back: "Voltar"
+      actions: "Ações"
+      show_resource: "Ver %{name}"
+      edit: "Editar"
+      destroy: "Excluir"
+      confirm: "Tem certeza?"
+    form:
+      errors: "Erros"
+      error: "erro"
+      required: "Obrigatório"
+    attributes:
+      account:
+        id: "ID"
+        name: "Nome"
+        locale: "Idioma"
+        users: "Usuários"
+        conversations: "Conversas"
+        status: "Status"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        account_users: "Usuários da conta"
+        custom_attributes: "Atributos personalizados"
+        limits: "Limites"
+        manually_managed_features: "Recursos gerenciados manualmente"
+        all_features: "Recursos"
+      user:
+        id: "ID"
+        avatar_url: "Avatar"
+        avatar: "Avatar"
+        provider: "Provedor"
+        uid: "UID"
+        password: "Senha"
+        sign_in_count: "Quantidade de logins"
+        current_sign_in_at: "Último login atual"
+        last_sign_in_at: "Último login"
+        current_sign_in_ip: "IP do login atual"
+        last_sign_in_ip: "IP do último login"
+        confirmation_token: "Token de confirmação"
+        confirmed_at: "Confirmado em"
+        confirmation_sent_at: "Confirmação enviada em"
+        unconfirmed_email: "Email não confirmado"
+        name: "Nome"
+        display_name: "Nome de exibição"
+        email: "Email"
+        tokens: "Tokens"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        pubsub_token: "Token PubSub"
+        type: "Tipo"
+        accounts: "Contas"
+        access_token: "Token de acesso"
+    filters:
+      active: "Ativas"
+      suspended: "Suspensas"
+      recent: "Recentes"
+      marked_for_deletion: "Marcadas para exclusão"
+      super_admin: "Super admin"
+      confirmed: "Confirmados"
+      unconfirmed: "Não confirmados"
+      label: "Filtrar por"
+      all: "Todos os registros"
+      clear: "Limpar filtro"
+    resources:
+      account:
+        name: "Conta"
+      accounts:
+        name: "Contas"
+      user:
+        name: "Usuário"
+      users:
+        name: "Usuários"
+      agent_bot:
+        name: "Bot de agente"
+      agent_bots:
+        name: "Bots de agente"
+      installation_config:
+        name: "Configuração de instalação"
+      installation_configs:
+        name: "Configurações de instalação"
+pt:
+  administrate:
+    search:
+      label: "Buscar"
+      clear: "Limpar busca"
+    actions:
+      new_resource: "Novo %{name}"
+      edit_resource: "Editar %{name}"
+      update_resource: "Atualizar %{name}"
+      create_resource: "Criar %{name}"
+      back: "Voltar"
+      actions: "Ações"
+      show_resource: "Ver %{name}"
+      edit: "Editar"
+      destroy: "Excluir"
+      confirm: "Tem certeza?"
+    form:
+      errors: "Erros"
+      error: "erro"
+      required: "Obrigatório"
+    attributes:
+      account:
+        id: "ID"
+        name: "Nome"
+        locale: "Idioma"
+        users: "Usuários"
+        conversations: "Conversas"
+        status: "Status"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        account_users: "Usuários da conta"
+        custom_attributes: "Atributos personalizados"
+        limits: "Limites"
+        manually_managed_features: "Recursos gerenciados manualmente"
+        all_features: "Recursos"
+      user:
+        id: "ID"
+        avatar_url: "Avatar"
+        avatar: "Avatar"
+        provider: "Provedor"
+        uid: "UID"
+        password: "Senha"
+        sign_in_count: "Quantidade de logins"
+        current_sign_in_at: "Último login atual"
+        last_sign_in_at: "Último login"
+        current_sign_in_ip: "IP do login atual"
+        last_sign_in_ip: "IP do último login"
+        confirmation_token: "Token de confirmação"
+        confirmed_at: "Confirmado em"
+        confirmation_sent_at: "Confirmação enviada em"
+        unconfirmed_email: "Email não confirmado"
+        name: "Nome"
+        display_name: "Nome de exibição"
+        email: "Email"
+        tokens: "Tokens"
+        created_at: "Criado em"
+        updated_at: "Atualizado em"
+        pubsub_token: "Token PubSub"
+        type: "Tipo"
+        accounts: "Contas"
+        access_token: "Token de acesso"
+    filters:
+      active: "Ativas"
+      suspended: "Suspensas"
+      recent: "Recentes"
+      marked_for_deletion: "Marcadas para exclusão"
+      super_admin: "Super admin"
+      confirmed: "Confirmados"
+      unconfirmed: "Não confirmados"
+      label: "Filtrar por"
+      all: "Todos os registros"
+      clear: "Limpar filtro"
+    resources:
+      account:
+        name: "Conta"
+      accounts:
+        name: "Contas"
+      user:
+        name: "Usuário"
+      users:
+        name: "Usuários"
+      agent_bot:
+        name: "Bot de agente"
+      agent_bots:
+        name: "Bots de agente"
+      installation_config:
+        name: "Configuração de instalação"
+      installation_configs:
+        name: "Configurações de instalação"

@@ -2,7 +2,16 @@
   <%= f.label field.attribute %>
 </div>
 <div class="field-unit__field feature-container">
-  <% regular_features, premium_features = SuperAdmin::AccountFeaturesHelper.filtered_features(field.data).partition { |key_array, _val| !SuperAdmin::AccountFeaturesHelper.account_premium_features.include?(key_array.first) } %>
+  <% features_data = field.data %>
+  <% if field.resource&.new_record? %>
+    <% default_features = SuperAdmin::AccountFeaturesHelper.account_features.each_with_object({}) do |feature, hash| %>
+      <% feature_name = feature['name'] || feature[:name] %>
+      <% feature_enabled = feature['enabled'] || feature[:enabled] %>
+      <% hash[feature_name] = feature_enabled %>
+    <% end %>
+    <% features_data = features_data.merge(default_features) %>
+  <% end %>
+  <% regular_features, premium_features = SuperAdmin::AccountFeaturesHelper.filtered_features(features_data).partition { |key_array, _val| !SuperAdmin::AccountFeaturesHelper.account_premium_features.include?(key_array.first) } %>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <% regular_features.each do |key_array, val| %>

@@ -1,0 +1,267 @@
+pt_BR:
+  super_admin:
+    navigation:
+      logo_alt: "Painel Admin ViperChat"
+      console: "Console Super Admin"
+      dashboard: "Painel"
+      installation_configs: "Configuração de instalação"
+      settings: "Configurações"
+      sidekiq_dashboard: "Painel do Sidekiq"
+      instance_health: "Saúde da instância"
+      agent_dashboard: "Painel do agente"
+      logout: "Sair"
+    dashboard:
+      title: "Painel do administrador"
+      accounts: "Contas"
+      users: "Usuários"
+      inboxes: "Caixas de entrada"
+      conversations: "Conversas"
+    app_configs:
+      title: "Configurar ajustes - %{config}"
+      true: "Verdadeiro"
+      false: "Falso"
+      submit: "Salvar"
+    instance_statuses:
+      title: "Status da instância"
+      metric: "Métrica"
+      value: "Valor"
+    settings:
+      title: "Configurações"
+      subtitle: "Atualize as configurações da instância e acesse o portal de cobrança"
+      alert:
+        title: "Alerta!"
+        message: "Alterações premium não autorizadas detectadas no ViperChat. Para continuar usando, faça upgrade do seu plano. Contato para ajuda:"
+      installation_identifier: "Identificador da instalação"
+      current_plan: "Plano atual"
+      refresh: "Atualizar"
+      manage: "Gerenciar"
+      license_warning: "Você tem %{count} agentes. Adicione mais licenças para incluir mais usuários."
+      help:
+        title: "Precisa de ajuda?"
+        subtitle: "Está com algum problema? Estamos aqui para ajudar."
+        community_support: "Suporte da comunidade"
+        chat_support: "Suporte por chat"
+      features: "Recursos"
+      upgrade_now: "Fazer upgrade agora"
+      switch_to_enterprise: "Mudar para a edição Enterprise"
+    accounts:
+      seed_data:
+        description: "Clique no botão para gerar dados de demonstração nesta conta."
+        warning: "Nota: isso vai limpar todos os dados existentes nesta conta."
+        submit: "Gerar dados de demonstração"
+      reset_cache:
+        description_html: "Isso vai limpar as chaves do cache IndexedDB no Redis.<br>O próximo carregamento vai buscar os dados do backend."
+        submit: "Limpar cache do frontend"
+    users:
+      impersonate:
+        warning: "Atenção: qualquer ação executada após a personificação aparecerá como se fosse do usuário personificado - [%{name}]"
+        button: "Personificar usuário"
+    auth:
+      title: "SuperAdmin | %{brand}"
+      greeting: "Olá, admin"
+      email_label: "Endereço de e-mail"
+      email_placeholder: "E-mail, ex: alguem@exemplo.com"
+      password_label: "Senha"
+      password_placeholder: "Senha"
+      login: "Entrar"
+      invalid_credentials: "Credenciais inválidas. Tente novamente."
+pt-BR:
+  super_admin:
+    navigation:
+      logo_alt: "Painel Admin ViperChat"
+      console: "Console Super Admin"
+      dashboard: "Painel"
+      installation_configs: "Configuração de instalação"
+      settings: "Configurações"
+      sidekiq_dashboard: "Painel do Sidekiq"
+      instance_health: "Saúde da instância"
+      agent_dashboard: "Painel do agente"
+      logout: "Sair"
+    dashboard:
+      title: "Painel do administrador"
+      accounts: "Contas"
+      users: "Usuários"
+      inboxes: "Caixas de entrada"
+      conversations: "Conversas"
+    app_configs:
+      title: "Configurar ajustes - %{config}"
+      true: "Verdadeiro"
+      false: "Falso"
+      submit: "Salvar"
+    instance_statuses:
+      title: "Status da instância"
+      metric: "Métrica"
+      value: "Valor"
+    settings:
+      title: "Configurações"
+      subtitle: "Atualize as configurações da instância e acesse o portal de cobrança"
+      alert:
+        title: "Alerta!"
+        message: "Alterações premium não autorizadas detectadas no ViperChat. Para continuar usando, faça upgrade do seu plano. Contato para ajuda:"
+      installation_identifier: "Identificador da instalação"
+      current_plan: "Plano atual"
+      refresh: "Atualizar"
+      manage: "Gerenciar"
+      license_warning: "Você tem %{count} agentes. Adicione mais licenças para incluir mais usuários."
+      help:
+        title: "Precisa de ajuda?"
+        subtitle: "Está com algum problema? Estamos aqui para ajudar."
+        community_support: "Suporte da comunidade"
+        chat_support: "Suporte por chat"
+      features: "Recursos"
+      upgrade_now: "Fazer upgrade agora"
+      switch_to_enterprise: "Mudar para a edição Enterprise"
+    accounts:
+      seed_data:
+        description: "Clique no botão para gerar dados de demonstração nesta conta."
+        warning: "Nota: isso vai limpar todos os dados existentes nesta conta."
+        submit: "Gerar dados de demonstração"
+      reset_cache:
+        description_html: "Isso vai limpar as chaves do cache IndexedDB no Redis.<br>O próximo carregamento vai buscar os dados do backend."
+        submit: "Limpar cache do frontend"
+    users:
+      impersonate:
+        warning: "Atenção: qualquer ação executada após a personificação aparecerá como se fosse do usuário personificado - [%{name}]"
+        button: "Personificar usuário"
+    auth:
+      title: "SuperAdmin | %{brand}"
+      greeting: "Olá, admin"
+      email_label: "Endereço de e-mail"
+      email_placeholder: "E-mail, ex: alguem@exemplo.com"
+      password_label: "Senha"
+      password_placeholder: "Senha"
+      login: "Entrar"
+      invalid_credentials: "Credenciais inválidas. Tente novamente."
+pt:
+  super_admin:
+    navigation:
+      logo_alt: "Painel Admin ViperChat"
+      console: "Console Super Admin"
+      dashboard: "Painel"
+      installation_configs: "Configuração de instalação"
+      settings: "Configurações"
+      sidekiq_dashboard: "Painel do Sidekiq"
+      instance_health: "Saúde da instância"
+      agent_dashboard: "Painel do agente"
+      logout: "Sair"
+    dashboard:
+      title: "Painel do administrador"
+      accounts: "Contas"
+      users: "Usuários"
+      inboxes: "Caixas de entrada"
+      conversations: "Conversas"
+    app_configs:
+      title: "Configurar ajustes - %{config}"
+      true: "Verdadeiro"
+      false: "Falso"
+      submit: "Salvar"
+    instance_statuses:
+      title: "Status da instância"
+      metric: "Métrica"
+      value: "Valor"
+    settings:
+      title: "Configurações"
+      subtitle: "Atualize as configurações da instância e acesse o portal de cobrança"
+      alert:
+        title: "Alerta!"
+        message: "Alterações premium não autorizadas detectadas no ViperChat. Para continuar usando, faça upgrade do seu plano. Contato para ajuda:"
+      installation_identifier: "Identificador da instalação"
+      current_plan: "Plano atual"
+      refresh: "Atualizar"
+      manage: "Gerenciar"
+      license_warning: "Você tem %{count} agentes. Adicione mais licenças para incluir mais usuários."
+      help:
+        title: "Precisa de ajuda?"
+        subtitle: "Está com algum problema? Estamos aqui para ajudar."
+        community_support: "Suporte da comunidade"
+        chat_support: "Suporte por chat"
+      features: "Recursos"
+      upgrade_now: "Fazer upgrade agora"
+      switch_to_enterprise: "Mudar para a edição Enterprise"
+    accounts:
+      seed_data:
+        description: "Clique no botão para gerar dados de demonstração nesta conta."
+        warning: "Nota: isso vai limpar todos os dados existentes nesta conta."
+        submit: "Gerar dados de demonstração"
+      reset_cache:
+        description_html: "Isso vai limpar as chaves do cache IndexedDB no Redis.<br>O próximo carregamento vai buscar os dados do backend."
+        submit: "Limpar cache do frontend"
+    users:
+      impersonate:
+        warning: "Atenção: qualquer ação executada após a personificação aparecerá como se fosse do usuário personificado - [%{name}]"
+        button: "Personificar usuário"
+    auth:
+      title: "SuperAdmin | %{brand}"
+      greeting: "Olá, admin"
+      email_label: "Endereço de e-mail"
+      email_placeholder: "E-mail, ex: alguem@exemplo.com"
+      password_label: "Senha"
+      password_placeholder: "Senha"
+      login: "Entrar"
+en:
+  super_admin:
+    navigation:
+      logo_alt: "ViperChat Admin Dashboard"
+      console: "Super Admin Console"
+      dashboard: "Dashboard"
+      installation_configs: "Installation configuration"
+      settings: "Settings"
+      sidekiq_dashboard: "Sidekiq Dashboard"
+      instance_health: "Instance Health"
+      agent_dashboard: "Agent Dashboard"
+      logout: "Logout"
+    dashboard:
+      title: "Admin Dashboard"
+      accounts: "Accounts"
+      users: "Users"
+      inboxes: "Inboxes"
+      conversations: "Conversations"
+    app_configs:
+      title: "Configure Settings - %{config}"
+      true: "True"
+      false: "False"
+      submit: "Submit"
+    instance_statuses:
+      title: "Instance Status"
+      metric: "Metric"
+      value: "Value"
+    settings:
+      title: "Settings"
+      subtitle: "Update your instance settings, access billing portal"
+      alert:
+        title: "Alert!"
+        message: "Unauthorized premium changes detected in ViperChat. To keep using them, please upgrade your plan. Contact for help:"
+      installation_identifier: "Installation Identifier"
+      current_plan: "Current plan"
+      refresh: "Refresh"
+      manage: "Manage"
+      license_warning: "You have %{count} agents. Please add more licenses to add more users."
+      help:
+        title: "Need help?"
+        subtitle: "Do you face any issues? We are here to help."
+        community_support: "Community Support"
+        chat_support: "Chat Support"
+      features: "Features"
+      upgrade_now: "Upgrade now"
+      switch_to_enterprise: "Switch to Enterprise edition"
+    accounts:
+      seed_data:
+        description: "Click the button to generate seed data into this account for demos."
+        warning: "Note: This will clear all the existing data in this account."
+        submit: "Generate Seed Data"
+      reset_cache:
+        description_html: "This will clear the IndexedDB cache keys from redis.<br>The next load will fetch the data from backend."
+        submit: "Reset Frontend Cache"
+    users:
+      impersonate:
+        warning: "Caution: Any actions executed after impersonate will appear as if performed by the impersonated user - [%{name}]"
+        button: "Impersonate user"
+    auth:
+      title: "SuperAdmin | %{brand}"
+      greeting: "Howdy, admin"
+      email_label: "Email Address"
+      email_placeholder: "Email eg: someone@example.com"
+      password_label: "Password"
+      password_placeholder: "Password"
+      login: "Login"
+      invalid_credentials: "Invalid credentials. Please try again."

@@ -184,6 +184,16 @@ const openContextMenu = e => {
   showContextMenu.value = true;
 };
 
+const openContextMenuFromButton = e => {
+  if (!props.enableContextMenu) return;
+  e.preventDefault();
+  emit('contextMenuToggle', true);
+  const rect = e.currentTarget.getBoundingClientRect();
+  contextMenu.value.x = rect.right + window.scrollX;
+  contextMenu.value.y = rect.bottom + window.scrollY;
+  showContextMenu.value = true;
+};
+
 const closeContextMenu = () => {
   emit('contextMenuToggle', false);
   showContextMenu.value = false;
@@ -234,7 +244,7 @@ const deleteConversation = () => {
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 border-t-0 border-b-0 border-l-0 border-r-0 border-transparent border-solid cursor-pointer conversation hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-full max-w-full py-0 border-t-0 border-b-0 border-l-0 border-r-0 border-transparent border-solid cursor-pointer conversation hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group"
     :class="{
       'active animate-card-select bg-n-background border-n-weak': isActiveChat,
       'bg-n-slate-2': selected,
@@ -244,6 +254,14 @@ const deleteConversation = () => {
     @click="onCardClick"
     @contextmenu="openContextMenu($event)"
   >
+    <button
+      v-if="enableContextMenu"
+      type="button"
+      class="absolute sm:hidden ltr:right-2 rtl:left-2 top-2 z-10 rounded-md p-1 text-n-slate-11 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3"
+      @click.stop="openContextMenuFromButton"
+    >
+      <fluent-icon icon="more-vertical" size="16" />
+    </button>
     <div
       class="relative"
       @mouseenter="onThumbnailHover"
@@ -394,3 +412,4 @@ const deleteConversation = () => {
     </ContextMenu>
   </div>
 </template>
+

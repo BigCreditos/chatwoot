@@ -969,10 +969,10 @@ watch(conversationFilters, (newVal, oldVal) => {
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1"
+    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1 w-full max-w-full"
     :class="[
       { hidden: !showConversationList },
-      isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[412px]',
+      isOnExpandedLayout ? 'basis-full' : 'w-full sm:w-[340px] 2xl:w-[412px]',
     ]"
   >
     <slot />
@@ -1043,14 +1043,14 @@ watch(conversationFilters, (newVal, oldVal) => {
     />
     <div
       ref="conversationListRef"
-      class="overflow-hidden flex-1 conversations-list hover:overflow-y-auto"
+      class="flex-1 conversations-list overflow-y-auto overflow-x-hidden w-full max-w-full pr-2 sm:pr-0"
       :class="{ 'overflow-hidden': isContextMenuOpen }"
     >
       <DynamicScroller
         ref="conversationDynamicScroller"
         :items="conversationList"
         :min-item-size="24"
-        class="overflow-auto w-full h-full"
+        class="overflow-y-auto overflow-x-hidden w-full h-full max-w-full pr-2 sm:pr-0"
       >
         <template #default="{ item, index, active }">
           <!--

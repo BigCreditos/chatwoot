@@ -53,8 +53,8 @@ export default {
   <div
     :style="{ transform: `translateX(${dragDistance}px)` }"
     class="will-change-transform"
-    @touchstart="handleTouchStart"
-    @touchmove="handleTouchMove"
+    @touchstart.passive="handleTouchStart"
+    @touchmove.passive="handleTouchMove"
     @touchend="resetPosition"
   >
     <slot />

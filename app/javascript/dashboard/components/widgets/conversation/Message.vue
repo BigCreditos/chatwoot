@@ -90,6 +90,11 @@ export default {
     return {
       showContextMenu: false,
       hasMediaLoadError: false,
+      stickerHasError: false,
+      stickerRetryCount: 0,
+      stickerCacheBust: 0,
+      stickerRetryTimer: null,
+      stickerRetryDelays: [500, 1000, 2000, 4000, 8000, 16000, 32000, 64000],
       contextMenuPosition: {},
       showBackgroundHighlight: false,
       inReplyToMessage: {},
@@ -239,6 +244,13 @@ export default {
         attachment?.thumbUrl ||
         null;
       return url;
+    },
+    stickerSrc() {
+      const url = this.stickerUrl;
+      if (!url) return '';
+      if (!this.stickerCacheBust) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}t=${this.stickerCacheBust}`;
     },
     isStickerMessage() {
       const rawType = this.data?.content_type;
@@ -402,6 +414,13 @@ export default {
   watch: {
     data() {
       this.hasMediaLoadError = false;
+      this.resetStickerRetryState();
+    },
+    stickerUrl() {
+      this.resetStickerRetryState();
+      if (this.stickerUrl) {
+        this.stickerCacheBust = Date.now();
+      }
     },
   },
   async mounted() {
@@ -413,6 +432,7 @@ export default {
   unmounted() {
     emitter.off(BUS_EVENTS.ON_MESSAGE_LIST_SCROLL, this.closeContextMenu);
     clearTimeout(this.higlightTimeout);
+    this.clearStickerRetryTimer();
   },
   methods: {
     isAttachmentImageVideoAudio(fileType) {
@@ -450,6 +470,38 @@ export default {
     },
     onMediaLoadError() {
       this.hasMediaLoadError = true;
+    },
+    clearStickerRetryTimer() {
+      if (this.stickerRetryTimer) {
+        clearTimeout(this.stickerRetryTimer);
+        this.stickerRetryTimer = null;
+      }
+    },
+    resetStickerRetryState() {
+      this.clearStickerRetryTimer();
+      this.stickerHasError = false;
+      this.stickerRetryCount = 0;
+    },
+    handleStickerError() {
+      const hasMoreRetries =
+        this.stickerRetryCount < this.stickerRetryDelays.length;
+      const hasValidUrl = !!this.stickerUrl;
+
+      if (!hasMoreRetries || !hasValidUrl) {
+        this.stickerHasError = true;
+        return;
+      }
+
+      const delay = this.stickerRetryDelays[this.stickerRetryCount];
+      this.stickerRetryCount += 1;
+
+      this.clearStickerRetryTimer();
+      this.stickerRetryTimer = setTimeout(() => {
+        this.stickerCacheBust = Date.now();
+      }, delay);
+    },
+    handleStickerLoad() {
+      this.stickerHasError = false;
     },
     openContextMenu(e) {
       const shouldSkipContextMenu =
@@ -612,10 +664,19 @@ export default {
           class="p-2"
           @contextmenu.prevent="openContextMenu($event)"
         >
+          <div
+            v-if="stickerHasError"
+            class="text-xs text-slate-600 dark:text-slate-200"
+          >
+            {{ $t('COMPONENTS.MEDIA.IMAGE_UNAVAILABLE') }}
+          </div>
           <img
-            :src="stickerUrl"
+            v-else
+            :src="stickerSrc"
             :alt="$t('CONVERSATION.REPLYBOX.STICKERS.ALT')"
             class="max-w-[12rem] max-h-[12rem] object-contain rounded-lg"
+            @load="handleStickerLoad"
+            @error="handleStickerError"
           />
         </div>
         <BubbleIntegration

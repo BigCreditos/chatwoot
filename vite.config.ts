@@ -103,6 +103,8 @@ export default defineConfig({
       widget: path.resolve('./app/javascript/widget'),
       assets: path.resolve('./app/javascript/dashboard/assets'),
     },
+    // Ensure a single Lit instance across bundled web components (e.g., ninja-keys)
+    dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
   },
   test: {
     environment: 'jsdom',

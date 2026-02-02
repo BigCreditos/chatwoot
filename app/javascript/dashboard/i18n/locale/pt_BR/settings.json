@@ -392,7 +392,8 @@
       "INFO_SHORT": "Marcar off-line automaticamente quando não estiver usando o aplicativo."
     },
     "DOCS": "Ler documentos",
-    "SECURITY": "Segurança"
+    "SECURITY": "Segurança",
+    "CONVERSATION_WORKFLOW": "Fluxo de Conversas"
   },
   "BILLING_SETTINGS": {
     "TITLE": "Cobrança",
@@ -517,6 +518,58 @@
       "INFO_SECTION": {
         "TITLE": "Service Provider Information",
         "TOOLTIP": "Copy these values and configure them in your Identity Provider to establish the SAML connection"
+      }
+    }
+  },
+  "CONVERSATION_WORKFLOW": {
+    "INDEX": {
+      "HEADER": {
+        "TITLE": "Fluxos de conversa",
+        "DESCRIPTION": "Configure regras e campos obrigatórios para a resolução de conversas."
+      }
+    },
+    "REQUIRED_ATTRIBUTES": {
+      "TITLE": "Atributos obrigatórios ao resolver",
+      "DESCRIPTION": "Ao resolver uma conversa, os agentes serão solicitados a preencher estes atributos caso ainda não tenham.",
+      "NO_ATTRIBUTES": "Nenhum atributo adicionado",
+      "ADD": {
+        "TITLE": "Adicionar atributos",
+        "SEARCH_PLACEHOLDER": "Buscar atributos"
+      },
+      "SAVE": {
+        "SUCCESS": "Atributos obrigatórios atualizados",
+        "ERROR": "Não foi possível atualizar os atributos obrigatórios, tente novamente"
+      },
+      "MODAL": {
+        "TITLE": "Resolver conversa",
+        "DESCRIPTION": "Preencha os seguintes atributos personalizados antes de resolver esta conversa",
+        "ACTIONS": {
+          "RESOLVE": "Resolver conversa",
+          "CANCEL": "Cancelar"
+        },
+        "PLACEHOLDERS": {
+          "TEXT": "Escreva uma nota...",
+          "NUMBER": "Digite um número",
+          "LINK": "Adicionar um link",
+          "DATE": "Escolha uma data",
+          "LIST": "Selecione uma opção"
+        },
+        "CHECKBOX": {
+          "YES": "Sim",
+          "NO": "Não"
+        }
+      },
+      "PAYWALL": {
+        "TITLE": "Faça upgrade para usar atributos obrigatórios",
+        "AVAILABLE_ON": "O recurso de atributos obrigatórios está disponível nos planos Business e Enterprise.",
+        "UPGRADE_PROMPT": "Faça upgrade do seu plano para solicitar atributos obrigatórios antes de resolver conversas.",
+        "UPGRADE_NOW": "Fazer upgrade",
+        "CANCEL_ANYTIME": "Você pode alterar ou cancelar seu plano a qualquer momento"
+      },
+      "ENTERPRISE_PAYWALL": {
+        "AVAILABLE_ON": "O recurso de atributos obrigatórios está disponível nos planos pagos.",
+        "UPGRADE_PROMPT": "Faça upgrade para um plano pago para exigir atributos obrigatórios antes de resolver conversas.",
+        "ASK_ADMIN": "Entre em contato com o administrador para fazer o upgrade."
       }
     }
   },

@@ -107,8 +107,6 @@ const onResizeStart = event => {
     cursor: 'col-resize',
     userSelect: 'none',
   });
-  // Prevent default to avoid scrolling on touch
-  event.preventDefault();
 };
 
 const onResizeMove = event => {
@@ -142,7 +140,7 @@ const onResizeHandleDoubleClick = () => {
 // Support both mouse and touch events
 useEventListener(document, 'mousemove', onResizeMove);
 useEventListener(document, 'mouseup', onResizeEnd);
-useEventListener(document, 'touchmove', onResizeMove, { passive: false });
+useEventListener(document, 'touchmove', onResizeMove, { passive: true });
 useEventListener(document, 'touchend', onResizeEnd);
 
 const inboxes = useMapGetter('inboxes/getInboxes');
@@ -842,9 +840,9 @@ const menuItems = computed(() => {
     </section>
     <!-- Resize Handle (desktop only) -->
     <div
-      class="hidden md:block absolute top-0 h-full w-1 cursor-col-resize z-40 ltr:right-0 rtl:left-0 group"
+      class="hidden md:block absolute top-0 h-full w-1 cursor-col-resize z-40 ltr:right-0 rtl:left-0 group touch-none"
       @mousedown="onResizeStart"
-      @touchstart="onResizeStart"
+      @touchstart.passive="onResizeStart"
       @dblclick="onResizeHandleDoubleClick"
     >
       <div
@@ -854,3 +852,5 @@ const menuItems = computed(() => {
     </div>
   </aside>
 </template>
+
+

@@ -276,6 +276,8 @@ class Whatsapp::IncomingMessageBaseService
   def create_message(message, source_id: nil)
     timestamp = message[:timestamp] ? Time.at(message[:timestamp].to_i, microsecond, :microsecond, in: 'UTC') : Time.current.utc
     Rails.logger.info("[WHATSAPP] Incoming message type=#{message_type} content_type=#{message_type == 'sticker' ? 'sticker' : 'nil'} source_id=#{message[:id]}")
+    content_attrs = outgoing_echo ? { external_echo: true } : {}
+    content_attrs[:in_reply_to_external_id] = @in_reply_to_external_id if @in_reply_to_external_id.present?
 
     @message = @conversation.messages.build(
       content: message_content(message),
@@ -287,9 +289,8 @@ class Whatsapp::IncomingMessageBaseService
       content_type: message_type == 'sticker' ? 'sticker' : nil,
       sender: outgoing_echo ? nil : @sender,
       source_id: (source_id || message[:id]).to_s,
-      content_attributes: outgoing_echo ? { external_echo: true } : {},
+      content_attributes: content_attrs,
       created_at: timestamp,
-      in_reply_to_external_id: @in_reply_to_external_id
     )
     @message
   end

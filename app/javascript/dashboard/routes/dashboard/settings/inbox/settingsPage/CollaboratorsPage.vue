@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute, useRouter } from 'vue-router';
@@ -10,265 +10,116 @@ import { useConfig } from 'dashboard/composables/useConfig';
 import SettingsFieldSection from 'dashboard/components-next/Settings/SettingsFieldSection.vue';
 import SettingsAccordion from 'dashboard/components-next/Settings/SettingsAccordion.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
-import Input from 'dashboard/components-next/input/Input.vue';
+import SettingsToggleSection from 'dashboard/components-next/Settings/SettingsToggleSection.vue';
+import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
+import Icon from 'dashboard/components-next/icon/Icon.vue';
+import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
+import assignmentPoliciesAPI from 'dashboard/api/assignmentPolicies';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  components: {
-    SettingsSection,
-    NextButton,
-    Input,
+const props = defineProps({
+  inbox: {
+    type: Object,
+    default: () => ({}),
   },
 });
 
-    return { v$: useVuelidate(), isEnterprise };
-  },
-  data() {
-    return {
-      selectedAgents: [],
-      isAgentListUpdating: false,
-      isCredentialsUpdating: false,
-      enableAutoAssignment: false,
-      maxAssignmentLimit: null,
-      agentCredentials: {},
-      initialAgentCredentials: {},
-    };
-  },
-  computed: {
-    ...mapGetters({
-      agentList: 'agents/getAgents',
-    }),
-    isCustomVoiceChannel() {
-      return (
-        this.inbox.channel_type === 'Channel::Voice' &&
-        this.inbox.provider === 'custom'
-      );
-    },
-    maxAssignmentLimitErrors() {
-      if (this.v$.maxAssignmentLimit.$error) {
-        return this.$t(
-          'INBOX_MGMT.AUTO_ASSIGNMENT.MAX_ASSIGNMENT_LIMIT_RANGE_ERROR'
-        );
-      }
-      return '';
-    },
-  },
-  watch: {
-    inbox() {
-      this.setDefaults();
-    },
-    selectedAgents: {
-      handler() {
-        this.ensureCredentialEntries();
-      },
-      deep: true,
-    },
-  },
-  mounted() {
-    this.setDefaults();
-  },
-  methods: {
-    setDefaults() {
-      this.enableAutoAssignment = this.inbox.enable_auto_assignment;
-      this.maxAssignmentLimit =
-        this.inbox?.auto_assignment_config?.max_assignment_limit || null;
-      this.fetchAttachedAgents();
-    },
-    async fetchAttachedAgents() {
-      try {
-        // eslint-disable-next-line no-console
-        console.log('[VoiceCredentials] fetchAttachedAgents', {
-          inboxId: this.inbox.id,
-        });
-        const response = await this.$store.dispatch('inboxMembers/get', {
-          inboxId: this.inbox.id,
-        });
-        const {
-          data: { payload: inboxMembers },
-        } = response;
-        this.selectedAgents = inboxMembers;
-        this.setCredentialDefaults(inboxMembers);
-      } catch (error) {
-        //  Handle error
-      }
-    },
-    setCredentialDefaults(inboxMembers) {
-      const credentials = {};
-      const initialCredentials = {};
-      inboxMembers.forEach(agent => {
-        const member = agent.inbox_member || {};
-        const webrtcUsername = member.webrtc_username || '';
-        credentials[agent.id] = {
-          webrtcUsername,
-          webrtcJwt: '',
-          webrtcPassword: '',
-          hasWebrtcJwt: !!member.has_webrtc_jwt,
-          hasWebrtcPassword: !!member.has_webrtc_password,
-        };
-        initialCredentials[agent.id] = { webrtcUsername };
-      });
-      this.agentCredentials = credentials;
-      this.initialAgentCredentials = initialCredentials;
-    },
-    ensureCredentialEntries() {
-      this.selectedAgents.forEach(agent => {
-        if (!this.agentCredentials[agent.id]) {
-          this.agentCredentials[agent.id] = {
-            webrtcUsername: '',
-            webrtcJwt: '',
-            webrtcPassword: '',
-            hasWebrtcJwt: false,
-            hasWebrtcPassword: false,
-          };
-        }
-        if (!this.initialAgentCredentials[agent.id]) {
-          this.initialAgentCredentials[agent.id] = { webrtcUsername: '' };
-        }
-      });
-    },
-    handleEnableAutoAssignment() {
-      this.updateInbox();
-    },
-    async updateAgents() {
-      const agentList = this.selectedAgents.map(el => el.id);
-      this.isAgentListUpdating = true;
-      try {
-        // eslint-disable-next-line no-console
-        console.log('[VoiceCredentials] updateAgents', {
-          inboxId: this.inbox.id,
-          agentCount: agentList.length,
-        });
-        await this.$store.dispatch('inboxMembers/create', {
-          inboxId: this.inbox.id,
-          agentList,
-        });
-        useAlert(this.$t('AGENT_MGMT.EDIT.API.SUCCESS_MESSAGE'));
-        await this.fetchAttachedAgents();
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[VoiceCredentials] updateAgents error', { error });
-        useAlert(this.$t('AGENT_MGMT.EDIT.API.ERROR_MESSAGE'));
-      }
-      this.isAgentListUpdating = false;
-    },
-    buildMemberAttributesPayload() {
-      return this.selectedAgents
-        .map(agent => {
-          const credentials = this.agentCredentials[agent.id] || {};
-          const initial = this.initialAgentCredentials[agent.id] || {};
-          const payload = { user_id: agent.id };
-          let hasChanges = false;
+const store = useStore();
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
+const { isEnterprise } = useConfig();
 
-          if (credentials.webrtcUsername !== initial.webrtcUsername) {
-            payload.webrtc_username = credentials.webrtcUsername;
-            hasChanges = true;
-          }
+const selectedAgentIds = ref([]);
+const isAgentListUpdating = ref(false);
+const enableAutoAssignment = ref(false);
+const maxAssignmentLimit = ref(null);
+const assignmentPolicy = ref(null);
+const isLoadingPolicy = ref(false);
+const isDeletingPolicy = ref(false);
+const showDeleteConfirmModal = ref(false);
+const availablePolicies = ref([]);
+const isLoadingPolicies = ref(false);
+const showPolicyDropdown = ref(false);
+const isLinkingPolicy = ref(false);
 
-          if (credentials.webrtcJwt) {
-            payload.webrtc_jwt = credentials.webrtcJwt;
-            hasChanges = true;
-          }
+const agentList = computed(() => store.getters['agents/getAgents']);
 
-          if (credentials.webrtcPassword) {
-            payload.webrtc_password = credentials.webrtcPassword;
-            hasChanges = true;
-          }
+const selectedAgentNames = computed(() =>
+  selectedAgentIds.value.map(
+    id => agentList.value.find(a => a.id === id)?.name ?? ''
+  )
+);
 
-          return hasChanges ? payload : null;
-        })
-        .filter(Boolean);
-    },
-    async updateVoiceAgentCredentials() {
-      const memberAttributes = this.buildMemberAttributesPayload();
-      if (!memberAttributes.length) return;
+const agentMenuItems = computed(() =>
+  agentList.value
+    .filter(({ id }) => !selectedAgentIds.value.includes(id))
+    .map(({ id, name, thumbnail, avatar_url }) => ({
+      label: name,
+      value: id,
+      action: 'select',
+      thumbnail: { name, src: thumbnail || avatar_url || '' },
+    }))
+);
 
-      this.isCredentialsUpdating = true;
-      try {
-        // eslint-disable-next-line no-console
-        console.log('[VoiceCredentials] updateCredentials', {
-          inboxId: this.inbox.id,
-          memberAttributesCount: memberAttributes.length,
-        });
-        await this.$store.dispatch('inboxMembers/updateCredentials', {
-          inboxId: this.inbox.id,
-          memberAttributes,
-        });
-        memberAttributes.forEach(
-          ({
-            user_id: userId,
-            webrtc_username: username,
-            webrtc_jwt: jwt,
-            webrtc_password: password,
-          }) => {
-            if (username !== undefined) {
-              this.initialAgentCredentials[userId] = {
-                webrtcUsername: username,
-              };
-            }
-            if (jwt) {
-              const current = this.agentCredentials[userId] || {};
-              this.agentCredentials[userId] = {
-                ...current,
-                webrtcJwt: '',
-                hasWebrtcJwt: true,
-              };
-            }
-            if (password) {
-              const current = this.agentCredentials[userId] || {};
-              this.agentCredentials[userId] = {
-                ...current,
-                webrtcPassword: '',
-                hasWebrtcPassword: true,
-              };
-            }
-          }
-        );
-        useAlert(
-          this.$t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_SUCCESS')
-        );
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[VoiceCredentials] updateCredentials error', { error });
-        useAlert(
-          this.$t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_ERROR')
-        );
-      } finally {
-        this.isCredentialsUpdating = false;
-      }
-    },
-    async updateInbox() {
-      try {
-        const payload = {
-          id: this.inbox.id,
-          formData: false,
-          enable_auto_assignment: this.enableAutoAssignment,
-          auto_assignment_config: {
-            max_assignment_limit: this.maxAssignmentLimit,
-          },
-        };
-        // eslint-disable-next-line no-console
-        console.log('[VoiceCredentials] updateInbox', {
-          inboxId: this.inbox.id,
-          enableAutoAssignment: this.enableAutoAssignment,
-          maxAssignmentLimit: this.maxAssignmentLimit,
-        });
-        await this.$store.dispatch('inboxes/updateInbox', payload);
-        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[VoiceCredentials] updateInbox error', { error });
-        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
-      }
-    },
-  },
-  validations: {
-    selectedAgents: {
-      isEmpty() {
-        return !!this.selectedAgents.length;
-      },
-    },
-    maxAssignmentLimit: {
-      minValue: minValue(1),
-    },
+const handleAgentAdd = ({ value }) => {
+  if (!selectedAgentIds.value.includes(value)) {
+    selectedAgentIds.value.push(value);
+  }
+};
+
+const handleAgentRemove = index => {
+  selectedAgentIds.value.splice(index, 1);
+};
+
+const isFeatureEnabled = feature => {
+  const accountId = Number(route.params.accountId);
+  return store.getters['accounts/isFeatureEnabledonAccount'](
+    accountId,
+    feature
+  );
+};
+
+const hasAdvancedAssignment = computed(() => {
+  return isFeatureEnabled('advanced_assignment');
+});
+
+const hasAssignmentV2 = computed(() => {
+  return isFeatureEnabled('assignment_v2');
+});
+
+const showAdvancedAssignmentUI = computed(() => {
+  return hasAdvancedAssignment.value && hasAssignmentV2.value;
+});
+
+const assignmentOrderLabel = computed(() => {
+  if (!assignmentPolicy.value) return '';
+  const priority = assignmentPolicy.value.conversation_priority;
+  if (priority === 'earliest_created') {
+    return t('INBOX_MGMT.ASSIGNMENT.PRIORITY.EARLIEST_CREATED');
+  }
+  if (priority === 'longest_waiting') {
+    return t('INBOX_MGMT.ASSIGNMENT.PRIORITY.LONGEST_WAITING');
+  }
+  return priority;
+});
+
+const assignmentMethodLabel = computed(() => {
+  if (!assignmentPolicy.value) return '';
+  const order = assignmentPolicy.value.assignment_order;
+  if (order === 'round_robin') {
+    return t('INBOX_MGMT.ASSIGNMENT.METHOD.ROUND_ROBIN');
+  }
+  if (order === 'balanced') {
+    return t('INBOX_MGMT.ASSIGNMENT.METHOD.BALANCED');
+  }
+  return order;
+});
+
+// Vuelidate validation rules
+const rules = {
+  maxAssignmentLimit: {
+    minValue: minValue(1),
   },
 };
 
@@ -531,108 +382,15 @@ onMounted(() => {
         />
       </div>
 
-      <NextButton
-        :label="$t('INBOX_MGMT.SETTINGS_POPUP.UPDATE')"
-        :is-loading="isAgentListUpdating"
-        @click="updateAgents"
-      />
-    </SettingsSection>
-
-    <SettingsSection
-      v-if="isCustomVoiceChannel && selectedAgents.length"
-      :title="$t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_TITLE')"
-      :sub-title="$t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_SUB_TEXT')"
-    >
-      <div class="flex flex-col gap-4">
-        <div
-          v-for="agent in selectedAgents"
-          :key="agent.id"
-          class="flex flex-col gap-2 p-4 rounded-lg border border-n-strong"
-        >
-          <div class="text-sm font-medium text-n-slate-12">
-            {{ agent.name }}
-          </div>
-          <Input
-            v-model="agentCredentials[agent.id].webrtcUsername"
-            :label="
-              $t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_USERNAME_LABEL')
-            "
-            :placeholder="
-              $t(
-                'INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_USERNAME_PLACEHOLDER'
-              )
-            "
-          />
-          <Input
-            v-model="agentCredentials[agent.id].webrtcJwt"
-            type="password"
-            :label="
-              $t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_JWT_LABEL')
-            "
-            :placeholder="
-              $t(
-                'INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_JWT_PLACEHOLDER'
-              )
-            "
-          />
-          <Input
-            v-model="agentCredentials[agent.id].webrtcPassword"
-            type="password"
-            :label="
-              $t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_PASSWORD_LABEL')
-            "
-            :placeholder="
-              $t(
-                'INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_PASSWORD_PLACEHOLDER'
-              )
-            "
-          />
-          <p
-            v-if="agentCredentials[agent.id].hasWebrtcJwt"
-            class="text-xs text-n-slate-11 mb-0"
-          >
-            {{ $t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_TOKEN_SET') }}
-          </p>
-          <p
-            v-if="agentCredentials[agent.id].hasWebrtcPassword"
-            class="text-xs text-n-slate-11 mb-0"
-          >
-            {{
-              $t(
-                'INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_PASSWORD_SET'
-              )
-            }}
-          </p>
-        </div>
-        <div>
-          <NextButton
-            :label="$t('INBOX_MGMT.SETTINGS_POPUP.VOICE_AGENT_CREDENTIALS_SAVE')"
-            :is-loading="isCredentialsUpdating"
-            @click="updateVoiceAgentCredentials"
-          />
-        </div>
-      </div>
-    </SettingsSection>
-
-    <SettingsSection
-      :title="$t('INBOX_MGMT.SETTINGS_POPUP.AGENT_ASSIGNMENT')"
-      :sub-title="$t('INBOX_MGMT.SETTINGS_POPUP.AGENT_ASSIGNMENT_SUB_TEXT')"
-    >
-      <!-- New UI for assignment_v2 -->
-      <template v-if="hasAssignmentV2">
-        <div class="flex items-start gap-3">
-          <Switch
-            v-model="enableAutoAssignment"
-            class="flex-shrink-0 mt-0.5"
-            @change="handleToggleAutoAssignment"
-          />
-          <div class="flex-grow">
-            <label class="text-sm text-n-slate-12 font-medium mb-1">
-              {{ $t('INBOX_MGMT.ASSIGNMENT.ENABLE_AUTO_ASSIGNMENT') }}
-            </label>
-            <p class="text-sm text-n-slate-11">
-              {{ $t('INBOX_MGMT.ASSIGNMENT.DESCRIPTION') }}
-            </p>
+      <template #extra>
+        <div class="grid grid-cols-1 lg:grid-cols-8">
+          <div class="col-span-1 lg:col-span-2" />
+          <div class="col-span-1 lg:col-span-6 mt-4 justify-self-end">
+            <NextButton
+              :label="$t('INBOX_MGMT.SETTINGS_POPUP.UPDATE')"
+              :is-loading="isAgentListUpdating"
+              @click="updateAgents"
+            />
           </div>
         </div>
       </template>

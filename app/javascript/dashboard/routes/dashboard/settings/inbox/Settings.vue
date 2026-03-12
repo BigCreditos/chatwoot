@@ -1129,34 +1129,36 @@ export default {
               />
             </div>
           </div>
+        </div>
 
-      <div v-if="selectedTabKey === 'collaborators'" class="mx-8">
-        <CollaboratorsPage :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'configuration'">
-        <ConfigurationPage :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'csat'">
-        <CustomerSatisfactionPage :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'pre-chat-form'">
-        <PreChatFormSettings :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'business-hours'">
-        <WeeklyAvailability :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'widget-builder'">
-        <WidgetBuilder :inbox="inbox" />
-      </div>
-      <div v-if="selectedTabKey === 'bot-configuration'">
-        <BotConfiguration :inbox="inbox" />
-      </div>
+        <div v-if="selectedTabKey === 'collaborators'" class="mx-8">
+          <CollaboratorsPage :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'configuration'">
+          <ConfigurationPage :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'csat'">
+          <CustomerSatisfactionPage :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'pre-chat-form'">
+          <PreChatFormSettings :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'business-hours'">
+          <WeeklyAvailability :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'widget-builder'">
+          <Widget :inbox="inbox" />
+        </div>
+        <div v-if="selectedTabKey === 'bot-configuration'">
+          <BotConfiguration :inbox="inbox" />
+        </div>
         <div v-if="selectedTabKey === 'unoApiConfiguration'">
           <UnoapiConfiguration :inbox="inbox" />
         </div>
         <div v-if="selectedTabKey === 'whatsappHealth'">
           <AccountHealth :health-data="healthData" />
         </div>
+      </div>
     </section>
   </div>
 </template>

@@ -215,6 +215,14 @@ export const createContactSearcher = () => {
   };
 };
 
+// Backward compatibility for flows still importing `searchContacts`.
+const defaultContactSearcher = createContactSearcher();
+
+export const searchContacts = async ({ query }) => {
+  const result = await defaultContactSearcher(query, { skipMinLength: true });
+  return result || [];
+};
+
 export const createNewContact = async input => {
   const payload = {
     name: input.startsWith('+')

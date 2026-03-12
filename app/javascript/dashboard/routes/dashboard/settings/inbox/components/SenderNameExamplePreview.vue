@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Avatar from 'next/avatar/Avatar.vue';
@@ -34,52 +34,14 @@ const senderNameKeyOptions = computed(() => [
       email: '<support@yourbusiness.com>',
     },
   },
-  emits: ['update'],
-  data() {
-    return {
-      senderNameKeyOptions: [
-        {
-          key: 'friendly',
-          heading: this.$t(
-            'INBOX_MGMT.EDIT.SENDER_NAME_SECTION.FRIENDLY.TITLE'
-          ),
-          content: this.$t(
-            'INBOX_MGMT.EDIT.SENDER_NAME_SECTION.FRIENDLY.SUBTITLE'
-          ),
-          preview: {
-            senderName: 'Smith',
-            businessName: 'ViperChat',
-            email: '<support@yourbusiness.com>',
-          },
-        },
-        {
-          key: 'professional',
-          heading: this.$t(
-            'INBOX_MGMT.EDIT.SENDER_NAME_SECTION.PROFESSIONAL.TITLE'
-          ),
-          content: this.$t(
-            'INBOX_MGMT.EDIT.SENDER_NAME_SECTION.PROFESSIONAL.SUBTITLE'
-          ),
-          preview: {
-            senderName: '',
-            businessName: 'ViperChat   ',
-            email: '<support@yourbusiness.com>',
-          },
-        },
-      ],
-    };
-  },
-  methods: {
-    isKeyOptionFriendly(key) {
-      return key === 'friendly';
-    },
-    userName(keyOption) {
-      return this.isKeyOptionFriendly(keyOption.key)
-        ? keyOption.preview.senderName
-        : keyOption.preview.businessName;
-    },
-    toggleSenderNameType(key) {
-      this.$emit('update', key);
+  {
+    key: 'professional',
+    heading: t('INBOX_MGMT.EDIT.SENDER_NAME_SECTION.PROFESSIONAL.TITLE'),
+    content: t('INBOX_MGMT.EDIT.SENDER_NAME_SECTION.PROFESSIONAL.SUBTITLE'),
+    preview: {
+      senderName: '',
+      businessName: 'Chatwoot',
+      email: '<support@yourbusiness.com>',
     },
   },
 ]);

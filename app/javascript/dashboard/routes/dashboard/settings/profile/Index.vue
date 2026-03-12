@@ -255,7 +255,7 @@ export default {
         @update-user="updateProfile"
       />
     </div>
-    <FormSection
+    <SectionLayout
       :title="$t('PROFILE_SETTINGS.FORM.INTERFACE_SECTION.TITLE')"
       :description="
         replaceInstallationName(

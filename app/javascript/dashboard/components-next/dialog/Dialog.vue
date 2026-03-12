@@ -67,6 +67,7 @@ const { t } = useI18n();
 
 const dialogRef = ref(null);
 const dialogContentRef = ref(null);
+const isOpen = ref(false);
 const attrs = useAttrs();
 
 const maxWidthClass = computed(() => {
@@ -92,12 +93,14 @@ const open = () => {
 };
 
 const close = () => {
+  isOpen.value = false;
   if (dialogRef.value?.open) {
     dialogRef.value.close();
   }
 };
 
 const handleNativeClose = () => {
+  isOpen.value = false;
   emit('close');
 };
 

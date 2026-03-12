@@ -89,7 +89,7 @@ const virtualListRef = ref(null);
 
 provide('contextMenuElementTarget', virtualListRef);
 
-const activeAssigneeTab = ref('waiting');
+const activeAssigneeTab = ref(wootConstants.ASSIGNEE_TYPE.ME);
 const activeStatus = ref(wootConstants.STATUS_TYPE.OPEN);
 const activeSortBy = ref(wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC);
 const showAdvancedFilters = ref(false);
@@ -113,8 +113,6 @@ const chatLists = useMapGetter('getFilteredConversations');
 const mineChatsList = useMapGetter('getMineChats');
 const allChatList = useMapGetter('getAllStatusChats');
 const unAssignedChatsList = useMapGetter('getUnAssignedChats');
-const waitingChatsList = useMapGetter('getWaitingConversations');
-const repliedChatsList = useMapGetter('getRepliedConversations');
 const chatListLoading = useMapGetter('getChatListLoadingStatus');
 const activeInbox = useMapGetter('getSelectedInbox');
 const conversationStats = useMapGetter('conversationStats/getStats');
@@ -231,7 +229,7 @@ const userPermissions = computed(() => {
 });
 
 const assigneeTabItems = computed(() => {
-  const baseItems = filterItemsByPermission(
+  return filterItemsByPermission(
     ASSIGNEE_TYPE_TAB_PERMISSIONS,
     userPermissions.value,
     item => item.permissions
@@ -250,40 +248,7 @@ const assigneeTabItems = computed(() => {
       name: t(`CHAT_LIST.ASSIGNEE_TYPE_TABS.${key}`),
       count: conversationStats.value[countKey] || 0,
     }));
-
-  const orderedKeys = [
-    'me',
-    'waiting',
-    'unassigned',
-    'replied',
-    'all',
-    'internal',
-  ];
-
-  const findBaseItem = key => baseItems.find(item => item.key === key);
-
-  const items = [];
-
-  orderedKeys.forEach(key => {
-    if (key === 'waiting' || key === 'replied') {
-      const allItem = findBaseItem('all');
-      if (!allItem) {
-        return;
-      }
-      items.push({
-        key,
-        name: t(`CHAT_LIST.ASSIGNEE_TYPE_TABS.${key}`),
-        count: allItem.count,
-      });
-    } else {
-      const item = findBaseItem(key);
-      if (item) {
-        items.push(item);
-      }
-    }
-  });
-
-  return items;
+  return baseItems;
 });
 
 const showAssigneeInConversationCard = computed(() => {
@@ -346,18 +311,11 @@ const conversationListPagination = computed(() => {
 });
 
 const conversationFilters = computed(() => {
-  const assigneeType =
-    activeAssigneeTab.value === 'waiting' ||
-    activeAssigneeTab.value === 'replied'
-      ? wootConstants.ASSIGNEE_TYPE.ALL
-      : activeAssigneeTab.value;
-
-  const isInternalTab = assigneeType === wootConstants.ASSIGNEE_TYPE.INTERNAL;
+  const isInternalTab =
+    activeAssigneeTab.value === wootConstants.ASSIGNEE_TYPE.INTERNAL;
   const selectedInbox = inbox.value || {};
 
-  const normalizedPage = Number.isFinite(
-    Number(conversationListPagination.value)
-  )
+  const normalizedPage = Number.isFinite(Number(conversationListPagination.value))
     ? Number(conversationListPagination.value)
     : 1;
 
@@ -368,7 +326,7 @@ const conversationFilters = computed(() => {
 
   return {
     inboxId,
-    assigneeType,
+    assigneeType: activeAssigneeTab.value,
     status: activeStatus.value,
     sortBy: activeSortBy.value,
     page: normalizedPage,
@@ -423,12 +381,8 @@ const conversationList = computed(() => {
     const filters = conversationFilters.value;
     if (activeAssigneeTab.value === 'me') {
       localConversationList = [...mineChatsList.value(filters)];
-    } else if (activeAssigneeTab.value === 'waiting') {
-      localConversationList = [...waitingChatsList.value(filters)];
     } else if (activeAssigneeTab.value === 'unassigned') {
       localConversationList = [...unAssignedChatsList.value(filters)];
-    } else if (activeAssigneeTab.value === 'replied') {
-      localConversationList = [...repliedChatsList.value(filters)];
     } else if (
       activeAssigneeTab.value === wootConstants.ASSIGNEE_TYPE.INTERNAL
     ) {

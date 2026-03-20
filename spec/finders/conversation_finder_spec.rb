@@ -10,6 +10,11 @@ describe ConversationFinder do
   let!(:inbox) { create(:inbox, account: account, enable_auto_assignment: false) }
   let!(:contact_inbox) { create(:contact_inbox, inbox: inbox, source_id: 'testing_source_id') }
   let!(:restricted_inbox) { create(:inbox, account: account) }
+  let!(:internal_channel) { create(:channel_internal, account: account) }
+  let!(:internal_inbox) { create(:inbox, account: account, channel: internal_channel, name: 'Internal Chat') }
+  let!(:internal_contact_inbox) do
+    create(:contact_inbox, inbox: internal_inbox, source_id: 'internal_source_id')
+  end
 
   before do
     create(:inbox_member, user: user_1, inbox: inbox)
@@ -20,6 +25,12 @@ describe ConversationFinder do
     create(:conversation, account: account, inbox: inbox, assignee: user_2, contact_inbox: contact_inbox)
     # unassigned conversation
     create(:conversation, account: account, inbox: inbox)
+    create(
+      :conversation,
+      account: account,
+      inbox: internal_inbox,
+      contact_inbox: internal_contact_inbox
+    )
     Current.account = account
   end
 
@@ -213,6 +224,20 @@ describe ConversationFinder do
         meta_result = conversation_finder.perform_meta_only
         full_result = conversation_finder.perform
         expect(meta_result[:count]).to eq(full_result[:count])
+      end
+    end
+
+    context 'with internal conversations' do
+      it 'hides internal conversations from default tabs' do
+        result = described_class.new(user_1, { assignee_type: 'all' }).perform
+
+        expect(result[:conversations].map(&:inbox_id)).not_to include(internal_inbox.id)
+      end
+
+      it 'returns internal conversations only for the internal tab' do
+        result = described_class.new(user_1, { assignee_type: 'internal' }).perform
+
+        expect(result[:conversations].map(&:inbox_id)).to contain_exactly(internal_inbox.id)
       end
     end
 

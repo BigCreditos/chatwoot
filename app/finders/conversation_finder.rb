@@ -44,6 +44,7 @@ class ConversationFinder
     assigned_count = all_count - unassigned_count
 
     filter_by_assignee_type
+    filter_internal_conversations unless internal_request?
 
     {
       conversations: conversations,
@@ -153,6 +154,15 @@ class ConversationFinder
                                      .where(inboxes: { channel_type: 'Channel::Internal' })
     end
     @conversations
+  end
+
+  def filter_internal_conversations
+    @conversations = @conversations.joins(:inbox)
+                                   .where.not(inboxes: { channel_type: 'Channel::Internal' })
+  end
+
+  def internal_request?
+    @params[:conversation_type] == 'internal' || @assignee_type == 'internal'
   end
 
   def filter_by_query

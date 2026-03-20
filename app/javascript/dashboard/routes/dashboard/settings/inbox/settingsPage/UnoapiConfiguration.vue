@@ -31,6 +31,7 @@ export default {
       groupOnlyDeliveredStatus: true,
       ignoreHistoryMessages: true,
       webhookSendNewMessages: true,
+      sendAgentName: true,
       readOnReceipt: false,
       readOnReply: true,
       ignoreBroadcastStatuses: true,
@@ -59,6 +60,7 @@ export default {
     groupOnlyDeliveredStatus: { required },
     ignoreHistoryMessages: { required },
     webhookSendNewMessages: { required },
+    sendAgentName: { required },
     readOnReceipt: { required },
     readOnReply: { required },
     url: { required },
@@ -92,6 +94,7 @@ export default {
       this.groupOnlyDeliveredStatus = this.inbox.provider_config.group_only_delivered_status;
       this.ignoreHistoryMessages = this.inbox.provider_config.ignore_history_messages;
       this.webhookSendNewMessages = this.inbox.provider_config.webhook_send_new_messages;
+      this.sendAgentName = this.inbox.provider_config.send_agent_name;
       this.readOnReceipt = this.inbox.provider_config.read_on_receipt;
       this.readOnReply = this.inbox.provider_config.read_on_reply;
       this.ignoreBroadcastStatuses = this.inbox.provider_config.ignore_broadcast_statuses;
@@ -168,7 +171,6 @@ export default {
         };
 
         delete providerConfig.wavoip_token;
-        delete providerConfig.send_agent_name;
         delete providerConfig.reject_calls;
         delete providerConfig.message_calls_webhook;
 
@@ -185,6 +187,7 @@ export default {
               ignore_history_messages: this.ignoreHistoryMessages,
               ignore_group_messages: this.ignoreGroupMessages,
               webhook_send_new_messages: this.webhookSendNewMessages,
+              send_agent_name: this.sendAgentName,
               url: this.url,
               read_on_receipt: this.readOnReceipt,
               read_on_reply: this.readOnReply,
@@ -245,6 +248,19 @@ export default {
           />
           <span v-if="v$.apiKey.$error" class="message">
             {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
+          </span>
+        </label>
+      </div>
+
+      <div class="w-3/4 pb-4 config-helptext">
+        <label :class="{ error: v$.sendAgentName.$error }" style="display: flex; align-items: center;">
+          <Switch
+            v-model="sendAgentName"
+            style="flex: 0 0 auto; margin-right: 10px;"
+          />
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.SEND_AGENT_NAME.LABEL') }}
+          <span v-if="v$.sendAgentName.$error" class="message">
+            {{ $t('INBOX_MGMT.ADD.WHATSAPP.SEND_AGENT_NAME.ERROR') }}
           </span>
         </label>
       </div>

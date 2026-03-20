@@ -280,11 +280,65 @@ describe Whatsapp::IncomingMessageService do
         m1 = whatsapp_channel.inbox.messages.first
         expect(m1.content).to eq('Apple Inc.')
         expect(m1.attachments.first.fallback_title).to eq('+911800')
-        expect(m1.attachments.first.meta).to eq({})
+        expect(m1.attachments.first.meta).to eq({ 'formattedName' => 'Apple Inc.' })
 
         m2 = whatsapp_channel.inbox.messages.last
         expect(m2.content).to eq('Chatwoot')
-        expect(m2.attachments.first.meta).to eq({ 'firstName' => 'Chatwoot' })
+        expect(m2.attachments.first.meta).to eq({
+                                                  'formattedName' => 'Chatwoot',
+                                                  'firstName' => 'Chatwoot'
+                                                })
+      end
+
+      it 'stores formatted name in attachment metadata even when first and last names are missing' do
+        params = {
+          'contacts' => [{ 'profile' => { 'name' => 'Kedar' }, 'wa_id' => '919746334593' }],
+          'messages' => [{
+            'from' => '919446284490',
+            'id' => 'wamid.SDFADSf23sfasdafasdfb',
+            'timestamp' => '1675823266',
+            'type' => 'contacts',
+            'contacts' => [{
+              'name' => { 'formatted_name' => 'Maria Clara Santos' },
+              'phones' => [{ 'phone' => '+55 11 99999-0000' }]
+            }]
+          }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
+
+        message = whatsapp_channel.inbox.messages.last
+        expect(message.content).to eq('Maria Clara Santos')
+        expect(message.attachments.first.meta).to eq({
+                                                       'formattedName' => 'Maria Clara Santos'
+                                                     })
+      end
+
+      it 'updates an existing contact when the shared contact payload has a better name' do
+        shared_contact = create(
+          :contact,
+          account: whatsapp_channel.account,
+          name: '+55 11 99999-0000',
+          phone_number: '+5511999990000'
+        )
+
+        params = {
+          'contacts' => [{ 'profile' => { 'name' => 'Kedar' }, 'wa_id' => '919746334593' }],
+          'messages' => [{
+            'from' => '919446284490',
+            'id' => 'wamid.SDFADSf23sfasdafasdfc',
+            'timestamp' => '1675823267',
+            'type' => 'contacts',
+            'contacts' => [{
+              'name' => { 'formatted_name' => 'Maria Clara Santos' },
+              'phones' => [{ 'phone' => '+55 11 99999-0000' }]
+            }]
+          }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: params).perform
+
+        expect(shared_contact.reload.name).to eq('Maria Clara Santos')
       end
     end
 

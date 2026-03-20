@@ -36,6 +36,17 @@ const conversationList = [
     meta: { team: { id: 5 } },
     labels: ['sales'],
   },
+  {
+    id: 33,
+    inbox_id: 5,
+    status: 'open',
+    meta: {
+      inbox: {
+        channel_type: 'Channel::Internal',
+      },
+    },
+    labels: [],
+  },
 ];
 
 describe('#findPendingMessageIndex', () => {
@@ -120,6 +131,23 @@ describe('#applyPageFilters', () => {
         status: 'all',
       };
       expect(applyPageFilters(conversationList[1], filters)).toEqual(true);
+    });
+  });
+
+  describe('#filter-internal', () => {
+    it('returns false for internal conversations outside the internal tab', () => {
+      const filters = {
+        status: 'open',
+      };
+      expect(applyPageFilters(conversationList[4], filters)).toEqual(false);
+    });
+
+    it('returns true for internal conversations inside the internal tab', () => {
+      const filters = {
+        status: 'open',
+        conversationType: 'internal',
+      };
+      expect(applyPageFilters(conversationList[4], filters)).toEqual(true);
     });
   });
 });

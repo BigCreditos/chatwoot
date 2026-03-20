@@ -58,10 +58,6 @@ const filterByInternal = (
   conversationType,
   conversation = {}
 ) => {
-  if (conversationType !== 'internal') {
-    return shouldFilter;
-  }
-
   const inbox = conversation.inbox || {};
   const metaInbox = conversation.meta?.inbox || {};
   const channelType =
@@ -72,11 +68,16 @@ const filterByInternal = (
     conversation.channelType;
 
   if (!channelType) {
-    // Without channel metadata we cannot reliably decide; hide non-internal by default.
-    return false;
+    return shouldFilter;
   }
 
-  return channelType === 'Channel::Internal' && shouldFilter;
+  const isInternalConversation = channelType === 'Channel::Internal';
+
+  if (conversationType === 'internal') {
+    return isInternalConversation && shouldFilter;
+  }
+
+  return !isInternalConversation && shouldFilter;
 };
 
 export const applyPageFilters = (conversation, filters) => {

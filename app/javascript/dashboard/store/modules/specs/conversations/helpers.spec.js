@@ -47,6 +47,14 @@ const conversationList = [
     },
     labels: [],
   },
+  {
+    id: 44,
+    inbox_id: 6,
+    status: 'open',
+    channel: 'Channel::Internal',
+    meta: {},
+    labels: [],
+  },
 ];
 
 describe('#findPendingMessageIndex', () => {
@@ -140,6 +148,13 @@ describe('#applyPageFilters', () => {
         status: 'open',
       };
       expect(applyPageFilters(conversationList[4], filters)).toEqual(false);
+    });
+
+    it('returns false for socket internal conversations outside the internal tab', () => {
+      const filters = {
+        status: 'open',
+      };
+      expect(applyPageFilters(conversationList[5], filters)).toEqual(false);
     });
 
     it('returns true for internal conversations inside the internal tab', () => {

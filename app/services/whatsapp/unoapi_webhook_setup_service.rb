@@ -84,8 +84,6 @@ class Whatsapp::UnoapiWebhookSetupService
       sendConnectionStatus: provider_config['send_connection_status'],
       notifyFailedMessages: provider_config['notify_failed_messages'],
       composingMessage: provider_config['composing_message'],
-      rejectCalls: provider_config['reject_calls'],
-      messageCallsWebhook: provider_config['message_calls_webhook'],
       readOnReceipt: false,
       readOnReply: false,
       openaiApiKey: '',
@@ -114,7 +112,6 @@ class Whatsapp::UnoapiWebhookSetupService
       sendReactionAsReply: provider_config['send_reaction_as_reply'],
       sendProfilePicture: provider_config['send_profile_picture'],
       authToken: provider_config['api_key'],
-      wavoipToken: provider_config['wavoip_token']
     }
   end
   # rubocop:enable Metrics/MethodLength

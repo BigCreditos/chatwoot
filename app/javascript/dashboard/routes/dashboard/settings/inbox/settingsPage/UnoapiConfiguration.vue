@@ -24,7 +24,6 @@ export default {
   data() {
     return {
       apiKey: '',
-      wavoipToken: '',
       url: 'https://unoapi.cloud',
       ignoreGroupMessages: true,
       ignoreHistoryMessages: true,
@@ -43,8 +42,6 @@ export default {
       disconnect: false,
       qrcode: '',
       notice: '',
-      rejectCalls: '',
-      messageCallsWebhook: '',
     };
   },
   computed: {
@@ -66,9 +63,6 @@ export default {
     composingMessage: { required },
     sendReactionAsReply: { required },
     sendProfilePicture: { required },
-    rejectCalls: { required },
-    messageCallsWebhook: { required },
-    wavoipToken: { required },
   },
   watch: {
     inbox() {
@@ -82,7 +76,6 @@ export default {
   methods: {
     setDefaults() {
       this.apiKey = this.inbox.provider_config.api_key;
-      this.wavoipToken = this.inbox.provider_config.wavoip_token;
       this.url = this.inbox.provider_config.url;
       this.ignoreGroupMessages = this.inbox.provider_config.ignore_group_messages;
       this.ignoreHistoryMessages = this.inbox.provider_config.ignore_history_messages;
@@ -97,8 +90,6 @@ export default {
       this.composingMessage = this.inbox.provider_config.composing_message;
       this.sendReactionAsReply = this.inbox.provider_config.send_reaction_as_reply;
       this.sendProfilePicture = this.inbox.provider_config.send_profile_picture;
-      this.rejectCalls = this.inbox.provider_config.reject_calls;
-      this.messageCallsWebhook = this.inbox.provider_config.message_calls_webhook;
       this.connect = false;
       this.disconnect = false;
     },
@@ -159,14 +150,21 @@ export default {
     },
     async updateInbox() {
       try {
+        const providerConfig = {
+          ...(this.inbox.provider_config || {}),
+        };
+
+        delete providerConfig.wavoip_token;
+        delete providerConfig.reject_calls;
+        delete providerConfig.message_calls_webhook;
+
         const payload = {
           id: this.inbox.id,
           formData: false,
           channel: {
             provider_config: {
-              ...this.inbox.provider_config,
+              ...providerConfig,
               api_key: this.apiKey,
-              wavoip_token: this.wavoipToken,
               ignore_history_messages: this.ignoreHistoryMessages,
               ignore_group_messages: this.ignoreGroupMessages,
               send_agent_name: this.sendAgentName,
@@ -181,8 +179,6 @@ export default {
               composing_message: this.composingMessage,
               send_reaction_as_reply: this.sendReactionAsReply,
               send_profile_picture: this.sendProfilePicture,
-              reject_calls: this.rejectCalls,
-              message_calls_webhook: this.messageCallsWebhook,
               connect: this.connect,
               disconnect: this.disconnect,
             },
@@ -231,57 +227,6 @@ export default {
           />
           <span v-if="v$.apiKey.$error" class="message">
             {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-          </span>
-        </label>
-      </div>
-
-      <div class="w-1/4">
-        <label :class="{ error: v$.wavoipToken.$error }">
-          <span>
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.WAVOIP_TOKEN.LABEL') }}
-          </span>
-          <input
-            v-model.trim="wavoipToken"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.WAVOIP_TOKEN.PLACEHOLDER')"
-            @blur="v$.wavoipToken.$touch"
-          />
-          <span v-if="v$.wavoipToken.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.WAVOIP_TOKEN.ERROR') }}
-          </span>
-        </label>
-      </div>
-
-      <div class="w-1/4">
-        <label :class="{ error: v$.rejectCalls.$error }">
-          <span>
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.REJECT_CALLS.LABEL') }}
-          </span>
-          <input
-            v-model.trim="rejectCalls"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.REJECT_CALLS.PLACEHOLDER')"
-            @blur="v$.rejectCalls.$touch"
-          />
-          <span v-if="v$.rejectCalls.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.REJECT_CALLS.ERROR') }}
-          </span>
-        </label>
-      </div>
-
-      <div class="w-1/4">
-        <label :class="{ error: v$.messageCallsWebhook.$error }">
-          <span>
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.MESSAGE_CALLS_WEBHOOK.LABEL') }}
-          </span>
-          <input
-            v-model.trim="messageCallsWebhook"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.MESSAGE_CALLS_WEBHOOK.PLACEHOLDER')"
-            @blur="v$.messageCallsWebhook.$touch"
-          />
-          <span v-if="v$.messageCallsWebhook.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.MESSAGE_CALLS_WEBHOOK.ERROR') }}
           </span>
         </label>
       </div>

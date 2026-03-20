@@ -127,10 +127,6 @@ json.bot_name resource.channel.try(:bot_name) if resource.telegram?
 if resource.whatsapp?
   json.message_templates resource.channel.try(:message_templates)
   json.provider_config resource.channel.try(:provider_config) if Current.account_user&.administrator?
-  unless Current.account_user&.administrator?
-    provider_config = { wavoip_token: (resource.channel.try(:provider_config) || {})['wavoip_token'] }
-    json.provider_config provider_config
-  end
   json.reauthorization_required resource.channel.try(:reauthorization_required?)
 end
 

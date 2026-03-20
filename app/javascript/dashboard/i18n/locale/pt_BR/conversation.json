@@ -207,7 +207,10 @@
       "DISMISS_REPLY": "Dispensar resposta",
       "REPLYING_TO": "Respondendo a:",
       "TIP_EMOJI_ICON": "Mostrar seletor de emoji",
+      "TIP_STICKER_ICON": "Abrir figurinhas",
+      "TIP_ATTACH_CONTACT_ICON": "Anexar contatos",
       "TIP_ATTACH_ICON": "Anexar arquivos",
+      "TIP_ATTACH_SINGLE": "Você não pode anexar mais arquivos a esta mensagem",
       "TIP_AUDIORECORDER_ICON": "Gravar áudio",
       "TIP_AUDIORECORDER_PERMISSION": "Permitir acesso ao áudio",
       "TIP_AUDIORECORDER_ERROR": "Não foi possível abrir o áudio",
@@ -242,7 +245,32 @@
         "DISABLE_TOOLTIP": "Não incluir o encadeamento de e-mails citado",
         "REMOVE_PREVIEW": "Remover o encadeamento de e-mails citado",
         "COLLAPSE": "Recolher a prévia",
-        "EXPAND": "Expandir a prévia"
+      "EXPAND": "Expandir a prévia"
+      },
+      "STICKERS": {
+        "TITLE": "Figurinhas",
+        "SUBTITLE": "Escolha uma figurinha para enviar",
+        "RECENT": "Recentes",
+        "ALL": "Todas",
+        "EMPTY": "Ainda não há figurinhas disponíveis",
+        "ADD": "Adicionar figurinha",
+        "SELECT": "Selecionar",
+        "CANCEL_SELECTION": "Cancelar seleção",
+        "DELETE": "Excluir",
+        "ALT": "Figurinha",
+        "LOADING": "Carregando figurinhas...",
+        "LOAD_ERROR": "Não foi possível carregar as figurinhas. Tente novamente.",
+        "UPLOAD_ERROR": "Não foi possível enviar a figurinha. Tente novamente.",
+        "DELETE_ERROR": "Não foi possível excluir as figurinhas. Tente novamente."
+      },
+      "CONTACT_ATTACHER": {
+        "TITLE": "Anexar contatos",
+        "SUBTITLE": "Pesquise e selecione um ou mais contatos para enviar no WhatsApp.",
+        "SEARCH_PLACEHOLDER": "Pesquisar contatos por nome, e-mail ou telefone",
+        "EMPTY": "Nenhum contato encontrado",
+        "SELECTED_COUNT": "{count} contatos selecionados",
+        "CANCEL": "Cancelar",
+        "ATTACH": "Anexar contatos"
       }
     },
     "VISIBLE_TO_AGENTS": "Mensagem Privada: Apenas visível para você e seu time",
@@ -272,6 +300,8 @@
     "CONTEXT_MENU": {
       "COPY": "Copiar",
       "REPLY_TO": "Responder mensagem",
+      "REACTION": "Reagir",
+      "FORWARD_MESSAGES": "Encaminhar mensagens",
       "DELETE": "Excluir",
       "CREATE_A_CANNED_RESPONSE": "Adicionar às respostas prontas",
       "TRANSLATE": "Traduzir",
@@ -283,6 +313,19 @@
         "DELETE": "Excluir",
         "CANCEL": "Cancelar"
       }
+    },
+    "REACTION": {
+      "TITLE": "Reagir à mensagem",
+      "ERROR": "Não foi possível enviar a reação. Tente novamente."
+    },
+    "FORWARD_MESSAGES": {
+      "TITLE": "Encaminhar mensagens",
+      "DESCRIPTION": "Escolha um contato e uma caixa de entrada para encaminhar as mensagens selecionadas.",
+      "SELECTED_COUNT": "{count} mensagens selecionadas",
+      "ACTION_LABEL": "Encaminhar",
+      "CANCEL": "Cancelar",
+      "ERROR_NO_CONTENT": "As mensagens selecionadas não contêm conteúdo para encaminhar.",
+      "ERROR_API": "Não foi possível encaminhar as mensagens. Tente novamente."
     },
     "SIDEBAR": {
       "CONTACT": "Contatos",
@@ -312,7 +355,22 @@
       "HANDLED_IN_ANOTHER_TAB": "Sendo atendida em outra aba",
       "REJECT_CALL": "Recusar",
       "JOIN_CALL": "Entrar na chamada",
-      "END_CALL": "Encerrar chamada"
+      "END_CALL": "Encerrar chamada",
+      "TRANSFER": "Transferir",
+      "TRANSFER_TITLE": "Transferir chamada",
+      "TRANSFER_SEARCH_PLACEHOLDER": "Buscar agentes",
+      "TRANSFER_CONFIRM": "Transferir",
+      "TRANSFER_CANCEL": "Cancelar",
+      "TRANSFER_SUCCESS": "Transferência solicitada",
+      "TRANSFER_ERROR": "Não foi possível transferir a chamada",
+      "INTERNAL_CALL_BUTTON": "Ligar para agente",
+      "INTERNAL_CALL_TITLE": "Ligar para agente",
+      "INTERNAL_CALL_PICK_AGENT": "Selecione um agente",
+      "INTERNAL_CALL_PICK_INBOX": "Selecione uma caixa de entrada de voz",
+      "INTERNAL_CALL_PICK_INTERNAL_INBOX": "Selecione uma caixa de entrada interna",
+      "INTERNAL_CALL_START": "Iniciar chamada",
+      "INTERNAL_CALL_INITIATED": "Chamada iniciada",
+      "INTERNAL_CALL_FAILED": "Não foi possível iniciar a chamada"
     },
     "INTERNAL_CHAT": {
       "TITLE": "Nova conversa interna",
@@ -336,14 +394,33 @@
       "GO_TO_CONVERSATION": "Abrir conversa",
       "ERROR": "Não foi possível criar a conversa interna"
     },
-    "CONTACT_ATTACHER": {
-      "TITLE": "Anexar contatos",
-      "SUBTITLE": "Pesquise e selecione um ou mais contatos para enviar no WhatsApp.",
-      "SEARCH_PLACEHOLDER": "Pesquisar contatos por nome, e-mail ou telefone",
-      "EMPTY": "Nenhum contato encontrado",
-      "SELECTED_COUNT": "{count} contatos selecionados",
-      "CANCEL": "Cancelar",
-      "ATTACH": "Anexar contatos"
+    "MEDIA_LIBRARY": {
+      "BUTTON": "Mídia",
+      "TITLE": "Mídia, documentos e links",
+      "TAB_MEDIA": "Mídia",
+      "TAB_DOCS": "Documentos",
+      "TAB_LINKS": "Links",
+      "MEDIA_SUMMARY": "{photos} fotos | {videos} vídeos | {audios} áudios",
+      "ALL_LABEL": "todos",
+      "DELETE_ACTION": "Excluir",
+      "DELETE_ALL_ACTION": "Excluir tudo",
+      "DELETE_SELECTED_ACTION": "Excluir selecionados",
+      "DELETE_CONFIRM_TITLE": "Excluir anexos",
+      "DELETE_CONFIRM_MESSAGE": "Você está prestes a excluir {count} arquivos desta conversa. Deseja continuar?",
+      "DELETE_BACKGROUND_TITLE": "Exclusão em andamento",
+      "DELETE_BACKGROUND_MESSAGE": "{count} arquivos estão sendo excluídos em segundo plano.",
+      "DELETE_BACKGROUND_HINT": "Você verá uma nota do sistema quando terminar.",
+      "DELETE_ERROR": "Não foi possível excluir os anexos. Tente novamente.",
+      "PHOTOS_LABEL": "fotos",
+      "VIDEOS_LABEL": "vídeos",
+      "AUDIOS_LABEL": "áudios",
+      "DOC_COUNT": "{count} documentos",
+      "LINK_COUNT": "{count} links",
+      "EMPTY": "Nada por aqui ainda",
+      "LOADING": "Carregando itens",
+      "LOAD_ERROR": "Não foi possível carregar os anexos. Tente novamente.",
+      "LOAD_MORE": "Carregar mais",
+      "THIS_MONTH": "Este mês"
     }
   },
   "EMAIL_TRANSCRIPT": {

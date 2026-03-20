@@ -72,6 +72,8 @@ class Whatsapp::UnoapiWebhookSetupService
 
   # rubocop:disable Metrics/MethodLength
   def params(provider_config, phone_number)
+    callback_url = webhook_callback_url(phone_number)
+
     {
       ignoreGroupMessages: provider_config['ignore_group_messages'],
       ignoreBroadcastStatuses: provider_config['ignore_broadcast_statuses'],
@@ -95,7 +97,8 @@ class Whatsapp::UnoapiWebhookSetupService
         {
           sendNewMessages: provider_config['webhook_send_new_messages'],
           id: 'default',
-          urlAbsolute: "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{phone_number}",
+          urlAbsolute: callback_url,
+          url: callback_url,
           token: provider_config['webhook_verify_token'],
           header: :Authorization,
           sendGroupMessages: true,
@@ -105,7 +108,6 @@ class Whatsapp::UnoapiWebhookSetupService
           sendUpdateMessages: true,
           sendTranscribeAudio: true,
           addToBlackListOnOutgoingMessageWithTtl: '',
-          url: '',
           timeoutMs: 360_000
         }
       ],
@@ -116,4 +118,8 @@ class Whatsapp::UnoapiWebhookSetupService
     }
   end
   # rubocop:enable Metrics/MethodLength
+
+  def webhook_callback_url(phone_number)
+    "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{phone_number}"
+  end
 end

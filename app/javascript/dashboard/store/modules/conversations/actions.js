@@ -385,7 +385,7 @@ const actions = {
     dispatch('sendMessageWithData', pendingMessage);
   },
 
-  sendMessageWithData: async ({ commit }, pendingMessage) => {
+  sendMessageWithData: async ({ commit, dispatch, state }, pendingMessage) => {
     const { conversation_id: conversationId, id } = pendingMessage;
     try {
       commit(types.ADD_MESSAGE, {
@@ -403,6 +403,12 @@ const actions = {
         ...response.data,
         status: MESSAGE_STATUS.SENT,
       });
+      if (state.conversationFilters?.assigneeType === 'waiting') {
+        dispatch('conversationStats/get', state.conversationFilters, {
+          root: true,
+        });
+        dispatch('fetchAllConversations');
+      }
     } catch (error) {
       const errorMessage = error.response
         ? error.response.data.error

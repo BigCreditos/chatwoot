@@ -717,6 +717,8 @@ RSpec.describe 'Conversations API', type: :request do
       end
 
       it 'enqueues update last seen job when last seen is updated' do
+        conversation.update!(agent_last_seen_at: nil)
+
         expect do
           post "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/update_last_seen",
                headers: agent.create_new_auth_token,

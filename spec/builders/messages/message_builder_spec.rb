@@ -228,6 +228,10 @@ describe Messages::MessageBuilder do
         let(:contact) { create(:contact, name: 'John', email: 'john@example.com') }
         let(:conversation) { create(:conversation, inbox: channel_email.inbox, account: account, contact: contact) }
 
+        before do
+          account.enable_features('quoted_email_reply')
+        end
+
         it 'processes liquid variables in email content' do
           params = ActionController::Parameters.new({
                                                       content: 'Hello {{contact.name}}, your email is {{contact.email}}'

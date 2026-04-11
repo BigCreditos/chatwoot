@@ -345,14 +345,21 @@ RSpec.describe V2::Reports::LabelSummaryBuilder do
           perform_enqueued_jobs do
             conversation = create(:conversation, account: account2,
                                                  inbox: inbox, assignee: user,
-                                                 created_at: test_date)
+                                                 created_at: test_date.noon)
             conversation.update_labels(unique_label_name)
             conversation.label_list
             conversation.save!
 
-            conversation.resolved!
-            conversation.open!
-            conversation.resolved!
+            2.times do
+              create(:reporting_event,
+                     account: account2,
+                     conversation: conversation,
+                     inbox: inbox,
+                     user: user,
+                     name: 'conversation_resolved',
+                     value: 3600,
+                     created_at: test_date.noon)
+            end
           end
         end
       end

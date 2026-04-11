@@ -152,8 +152,8 @@ RSpec.describe 'Campaigns API', type: :request do
       end
 
       it 'creates a new oneoff unoapi campaign' do
-        unoapi_channel = create(:channel_whatsapp, provider: 'unoapi', sync_templates: false, validate_provider_config: false)
-        unoapi_inbox = create(:inbox, channel: unoapi_channel)
+        unoapi_channel = create(:channel_whatsapp, account: account, provider: 'unoapi', sync_templates: false, validate_provider_config: false)
+        unoapi_inbox = create(:inbox, account: account, channel: unoapi_channel)
         phone_number = Faker::PhoneNumber.cell_phone_in_e164
         audience = [
           { phone_number: phone_number, name: Faker::Name.name, identifier: rand(1000...1100) }

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { debounce } from '@chatwoot/utils';
 import { useI18n } from 'vue-i18n';
 import { ARTICLE_EDITOR_MENU_OPTIONS } from 'dashboard/constants/editor';
@@ -31,6 +31,7 @@ const emit = defineEmits([
   'setAuthor',
   'setCategory',
   'previewArticle',
+  'createArticle',
 ]);
 
 const { t } = useI18n();
@@ -56,16 +57,10 @@ const quickSave = debounce(
 // Only use to save for existing articles
 const saveAndSyncDebounced = debounce(saveAndSync, 2500, false);
 
-// Debounced save for new articles
-const quickSaveNewArticle = debounce(saveAndSync, 400, false);
-
 const handleSave = value => {
-  if (isNewArticle.value) {
-    quickSaveNewArticle(value);
-  } else {
-    quickSave(value);
-    saveAndSyncDebounced(value);
-  }
+  if (isNewArticle.value) return;
+  quickSave(value);
+  saveAndSyncDebounced(value);
 };
 
 const articleTitle = computed({
@@ -75,9 +70,12 @@ const articleTitle = computed({
   },
 });
 
+const localContent = ref(props.article.content || '');
+
 const articleContent = computed({
   get: () => props.article.content,
   set: content => {
+    localContent.value = content;
     handleSave({ content });
   },
 });
@@ -96,6 +94,14 @@ const setCategoryId = categoryId => {
 
 const previewArticle = () => {
   emit('previewArticle');
+};
+
+const handleCreateArticle = event => {
+  if (!isNewArticle.value) return;
+  const title = event?.target?.value || '';
+  if (title.trim()) {
+    emit('createArticle', { title, content: localContent.value });
+  }
 };
 </script>
 
@@ -121,6 +127,7 @@ const previewArticle = () => {
           custom-text-area-wrapper-class="border-0 !bg-transparent dark:!bg-transparent !py-0 !px-0"
           placeholder="Title"
           autofocus
+          @blur="handleCreateArticle"
         />
         <ArticleEditorControls
           :article="article"

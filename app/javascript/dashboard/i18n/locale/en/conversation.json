@@ -71,7 +71,8 @@
     "REPLY_MESSAGE_NOT_FOUND": "Message not available",
     "CARD": {
       "SHOW_LABELS": "Show labels",
-      "HIDE_LABELS": "Hide labels"
+      "HIDE_LABELS": "Hide labels",
+      "LABELS_COUNT": "{count} labels"
     },
     "VOICE_CALL": {
       "INCOMING_CALL": "Incoming call",
@@ -83,41 +84,6 @@
       "NOT_ANSWERED_YET": "Not answered yet",
       "THEY_ANSWERED": "They answered",
       "YOU_ANSWERED": "You answered"
-    },
-    "VOICE_WIDGET": {
-      "INCOMING_CALL": "Incoming call",
-      "OUTGOING_CALL": "Outgoing call",
-      "DIALPAD_TITLE": "Keypad",
-      "DIALPAD_CLEAR": "Clear",
-      "DIALPAD_CLOSE": "Close",
-      "DIALER_TITLE": "New call",
-      "DIALER_NUMBER_LABEL": "Phone number",
-      "DIALER_NUMBER_PLACEHOLDER": "Enter a number",
-      "DIALER_PICK_INBOX": "Select a voice inbox",
-      "DIALER_CALL": "Call",
-      "DIALER_CANCEL": "Cancel",
-      "DIALER_BACKSPACE": "Backspace",
-      "DIALER_CLEAR": "Clear",
-      "DIALER_EMPTY_NUMBER": "Enter a number to call",
-      "DIALER_INVALID_NUMBER": "Enter a valid phone number",
-      "DIALER_FAILED": "Could not start the call",
-      "DIALER_MOVE": "Reset position",
-      "DIALER_HIDE": "Hide",
-      "TRANSFER": "Transfer",
-      "TRANSFER_TITLE": "Transfer call",
-      "TRANSFER_SEARCH_PLACEHOLDER": "Search agents",
-      "TRANSFER_CONFIRM": "Transfer",
-      "TRANSFER_CANCEL": "Cancel",
-      "TRANSFER_SUCCESS": "Transfer requested",
-      "TRANSFER_ERROR": "Could not transfer call",
-      "INTERNAL_CALL_BUTTON": "Call agent",
-      "INTERNAL_CALL_TITLE": "Call agent",
-      "INTERNAL_CALL_PICK_AGENT": "Select an agent",
-      "INTERNAL_CALL_PICK_INBOX": "Select a voice inbox",
-      "INTERNAL_CALL_PICK_INTERNAL_INBOX": "Select an internal inbox",
-      "INTERNAL_CALL_START": "Start call",
-      "INTERNAL_CALL_INITIATED": "Call initiated",
-      "INTERNAL_CALL_FAILED": "Could not start call"
     },
     "HEADER": {
       "RESOLVE_ACTION": "Resolve",
@@ -242,10 +208,7 @@
       "DISMISS_REPLY": "Dismiss reply",
       "REPLYING_TO": "Replying to:",
       "TIP_EMOJI_ICON": "Show emoji selector",
-      "TIP_STICKER_ICON": "Open stickers",
-      "TIP_ATTACH_CONTACT_ICON": "Attach contacts",
       "TIP_ATTACH_ICON": "Attach files",
-      "TIP_ATTACH_SINGLE": "You cannot attach more files to this message",
       "TIP_AUDIORECORDER_ICON": "Record audio",
       "TIP_AUDIORECORDER_PERMISSION": "Allow access to audio",
       "TIP_AUDIORECORDER_ERROR": "Could not open the audio",
@@ -281,31 +244,6 @@
         "REMOVE_PREVIEW": "Remove quoted email thread",
         "COLLAPSE": "Collapse preview",
         "EXPAND": "Expand preview"
-      },
-      "STICKERS": {
-        "TITLE": "Stickers",
-        "SUBTITLE": "Pick a sticker to send",
-        "RECENT": "Recent",
-        "ALL": "All",
-        "EMPTY": "No stickers available yet",
-        "ADD": "Add sticker",
-        "SELECT": "Select",
-        "CANCEL_SELECTION": "Cancel selection",
-        "DELETE": "Delete",
-        "ALT": "Sticker",
-        "LOADING": "Loading stickers...",
-        "LOAD_ERROR": "Could not load stickers. Please try again.",
-        "UPLOAD_ERROR": "Could not upload the sticker. Please try again.",
-        "DELETE_ERROR": "Could not delete the stickers. Please try again."
-      },
-      "CONTACT_ATTACHER": {
-        "TITLE": "Attach contacts",
-        "SUBTITLE": "Search and select one or more contacts to send in WhatsApp.",
-        "SEARCH_PLACEHOLDER": "Search contacts by name, email or phone number",
-        "EMPTY": "No contacts found",
-        "SELECTED_COUNT": "{count} contacts selected",
-        "CANCEL": "Cancel",
-        "ATTACH": "Attach contacts"
       }
     },
     "VISIBLE_TO_AGENTS": "Private Note: Only visible to you and your team",
@@ -335,8 +273,6 @@
     "CONTEXT_MENU": {
       "COPY": "Copy",
       "REPLY_TO": "Reply to this message",
-      "REACTION": "React",
-      "FORWARD_MESSAGES": "Forward messages",
       "DELETE": "Delete",
       "CREATE_A_CANNED_RESPONSE": "Add to canned responses",
       "TRANSLATE": "Translate",
@@ -349,72 +285,19 @@
         "CANCEL": "Cancel"
       }
     },
-    "REACTION": {
-      "TITLE": "React to message",
-      "ERROR": "Could not send reaction. Please try again."
-    },
-    "FORWARD_MESSAGES": {
-      "TITLE": "Forward messages",
-      "DESCRIPTION": "Choose a contact and inbox to forward the selected messages to.",
-      "SELECTED_COUNT": "{count} messages selected",
-      "ACTION_LABEL": "Forward",
-      "CANCEL": "Cancel",
-      "ERROR_NO_CONTENT": "Selected messages do not contain any content to forward.",
-      "ERROR_API": "Unable to forward messages. Please try again."
-    },
     "SIDEBAR": {
       "CONTACT": "Contact",
       "COPILOT": "Copilot"
     },
-    "INTERNAL_CHAT": {
-      "TITLE": "Nova conversa interna",
-      "DESCRIPTION": "Inicie um chat entre agentes usando uma caixa de entrada interna.",
-      "NO_INBOX": "Crie uma caixa de entrada interna em Configurações -> Caixas de entrada para iniciar um chat.",
-      "INBOX_LABEL": "Caixa de entrada interna",
-      "INBOX_PLACEHOLDER": "Selecione uma caixa de entrada interna",
-      "TITLE_LABEL": "Título",
-      "TITLE_PLACEHOLDER": "Assunto opcional para esta conversa",
-      "OPTIONAL": "opcional",
-      "PARTICIPANTS_LABEL": "Participantes",
-      "ADD_PARTICIPANTS": "Adicionar participantes",
-      "ADD_ME": "Adicionar eu",
-      "NO_PARTICIPANT_SELECTED": "Nenhum participante selecionado ainda",
-      "SEARCH_PARTICIPANTS": "Buscar agentes",
-      "MESSAGE_LABEL": "Mensagem",
-      "MESSAGE_PLACEHOLDER": "Digite sua mensagem",
-      "CANCEL": "Cancelar",
-      "SUBMIT": "Iniciar conversa",
-      "SUCCESS": "Conversa interna criada",
-      "GO_TO_CONVERSATION": "Abrir conversa",
-      "ERROR": "Não foi possível criar a conversa interna"
-    },
-    "MEDIA_LIBRARY": {
-      "BUTTON": "Media",
-      "TITLE": "Media, documents and links",
-      "TAB_MEDIA": "Media",
-      "TAB_DOCS": "Docs",
-      "TAB_LINKS": "Links",
-      "MEDIA_SUMMARY": "{photos} photos | {videos} videos | {audios} audios",
-      "ALL_LABEL": "all",
-      "DELETE_ACTION": "Delete",
-      "DELETE_ALL_ACTION": "Delete all",
-      "DELETE_SELECTED_ACTION": "Delete selected",
-      "DELETE_CONFIRM_TITLE": "Delete attachments",
-      "DELETE_CONFIRM_MESSAGE": "You are about to delete {count} files from this conversation. Do you want to continue?",
-      "DELETE_BACKGROUND_TITLE": "Deletion in progress",
-      "DELETE_BACKGROUND_MESSAGE": "{count} files are being deleted in the background.",
-      "DELETE_BACKGROUND_HINT": "You will see a system note when it finishes.",
-      "DELETE_ERROR": "Could not delete attachments. Please try again.",
-      "PHOTOS_LABEL": "photos",
-      "VIDEOS_LABEL": "videos",
-      "AUDIOS_LABEL": "audios",
-      "DOC_COUNT": "{count} documents",
-      "LINK_COUNT": "{count} links",
-      "EMPTY": "Nothing here yet",
-      "LOADING": "Loading items",
-      "LOAD_ERROR": "Could not load attachments. Please try again.",
-      "LOAD_MORE": "Load more",
-      "THIS_MONTH": "This month"
+    "VOICE_WIDGET": {
+      "INCOMING_CALL": "Incoming call",
+      "OUTGOING_CALL": "Outgoing call",
+      "CALL_IN_PROGRESS": "Call in progress",
+      "NOT_ANSWERED_YET": "Not answered yet",
+      "HANDLED_IN_ANOTHER_TAB": "Being handled in another tab",
+      "REJECT_CALL": "Reject",
+      "JOIN_CALL": "Join call",
+      "END_CALL": "End call"
     }
   },
   "EMAIL_TRANSCRIPT": {

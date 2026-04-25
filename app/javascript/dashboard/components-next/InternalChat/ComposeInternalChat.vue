@@ -2,7 +2,6 @@
 import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { vOnClickOutside } from '@vueuse/components';
 import { useMapGetter, useStore } from 'dashboard/composables/store';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { frontendURL, conversationUrl } from 'dashboard/helper/URLHelper';
@@ -12,21 +11,18 @@ import Avatar from 'next/avatar/Avatar.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import MultiselectDropdownItems from 'shared/components/ui/MultiselectDropdownItems.vue';
 import TeleportWithDirection from 'dashboard/components-next/TeleportWithDirection.vue';
-import { useWindowSize } from '@vueuse/core';
-import wootConstants from 'dashboard/constants/globals';
 import FileUpload from 'vue-upload-component';
 import { DirectUpload } from 'activestorage';
-import { ALLOWED_FILE_TYPES, MAXIMUM_FILE_UPLOAD_SIZE } from 'shared/constants/messages';
+import {
+  ALLOWED_FILE_TYPES,
+  MAXIMUM_FILE_UPLOAD_SIZE,
+} from 'shared/constants/messages';
 import { checkFileSizeLimit } from 'shared/helpers/FileHelper';
 
 const props = defineProps({
   alignPosition: {
     type: String,
     default: 'left',
-  },
-  isModal: {
-    type: Boolean,
-    default: false,
   },
 });
 
@@ -41,7 +37,6 @@ const globalConfig = useMapGetter('globalConfig/get');
 const agents = useMapGetter('agents/getVerifiedAgents');
 const currentUser = useMapGetter('getCurrentUser');
 const inboxes = useMapGetter('inboxes/getInboxes');
-const { width: windowWidth } = useWindowSize();
 
 const showCompose = ref(false);
 const showParticipantsDropdown = ref(false);
@@ -58,7 +53,9 @@ const internalInboxes = computed(() =>
 );
 
 const selectedInbox = computed(() =>
-  internalInboxes.value.find(inbox => inbox.id === Number(selectedInboxId.value))
+  internalInboxes.value.find(
+    inbox => inbox.id === Number(selectedInboxId.value)
+  )
 );
 
 const canSubmit = computed(
@@ -122,8 +119,10 @@ const onSelfAdd = user => {
   }
 };
 
-const maxUploadSize = computed(() =>
-  Number(globalConfig.value?.maxFileUploadSizeInMb) || MAXIMUM_FILE_UPLOAD_SIZE
+const maxUploadSize = computed(
+  () =>
+    Number(globalConfig.value?.maxFileUploadSizeInMb) ||
+    MAXIMUM_FILE_UPLOAD_SIZE
 );
 
 const onFileUpload = file => {
@@ -145,7 +144,10 @@ const onFileUpload = file => {
     {
       directUploadWillCreateBlobWithXHR: xhr => {
         if (currentUser.value?.access_token) {
-          xhr.setRequestHeader('api_access_token', currentUser.value.access_token);
+          xhr.setRequestHeader(
+            'api_access_token',
+            currentUser.value.access_token
+          );
         }
       },
     }
@@ -171,7 +173,9 @@ const onFileUpload = file => {
 };
 
 const removeAttachment = signedId => {
-  attachments.value = attachments.value.filter(file => file.signedId !== signedId);
+  attachments.value = attachments.value.filter(
+    file => file.signedId !== signedId
+  );
 };
 
 const buildMessagePayload = () => {
@@ -238,7 +242,7 @@ onMounted(() => {
       >
         <div
           :class="[{ 'mt-2': !viewInModal }, composePopoverClass]"
-          class="w-[42rem] max-w-full min-w-0 bg-n-alpha-3 border border-n-strong shadow-sm backdrop-blur-[100px] rounded-xl divide-y divide-n-strong overflow-visible transition-all duration-300 ease-in-out flex flex-col"
+          class="w-[42rem] max-w-full min-w-0 max-h-[min(92vh,48rem)] bg-n-alpha-3 border border-n-strong shadow-sm backdrop-blur-[100px] rounded-xl divide-y divide-n-strong overflow-hidden transition-all duration-300 ease-in-out flex flex-col"
         >
           <div class="p-4 md:p-6 flex items-start justify-between gap-3">
             <div>
@@ -259,7 +263,7 @@ onMounted(() => {
             />
           </div>
 
-          <div class="p-4 md:p-6">
+          <div class="p-4 md:p-6 overflow-y-auto min-h-0">
             <div
               v-if="!internalInboxes.length"
               class="p-3 bg-n-alpha-2 rounded-lg"
@@ -295,14 +299,16 @@ onMounted(() => {
                 <label class="text-sm font-medium text-n-slate-12">
                   {{ $t('CONVERSATION.INTERNAL_CHAT.TITLE_LABEL') }}
                   <span class="text-n-slate-9">
-                    ({{ $t('CONVERSATION.INTERNAL_CHAT.OPTIONAL') }})
+                    {{ `(${$t('CONVERSATION.INTERNAL_CHAT.OPTIONAL')})` }}
                   </span>
                 </label>
                 <input
                   v-model="title"
                   type="text"
                   class="w-full px-3 py-2 rounded-lg border border-n-strong bg-n-solid-1 text-sm text-n-slate-12 focus:outline-none focus:ring-2 focus:ring-woot-500"
-                  :placeholder="$t('CONVERSATION.INTERNAL_CHAT.TITLE_PLACEHOLDER')"
+                  :placeholder="
+                    $t('CONVERSATION.INTERNAL_CHAT.TITLE_PLACEHOLDER')
+                  "
                 />
               </div>
 
@@ -356,7 +362,9 @@ onMounted(() => {
                     v-if="!selectedParticipants.length"
                     class="m-0 text-sm text-n-slate-10"
                   >
-                    {{ $t('CONVERSATION.INTERNAL_CHAT.NO_PARTICIPANT_SELECTED') }}
+                    {{
+                      $t('CONVERSATION.INTERNAL_CHAT.NO_PARTICIPANT_SELECTED')
+                    }}
                   </p>
                 </div>
                 <div
@@ -436,7 +444,7 @@ onMounted(() => {
                 <FileUpload
                   input-id="composeInternalAttachment"
                   :accept="ALLOWED_FILE_TYPES"
-                  :multiple="true"
+                  multiple
                   :drop-directory="false"
                   :data="{
                     direct_upload_url: '/rails/active_storage/direct_uploads',

@@ -178,6 +178,66 @@ describe Whatsapp::SendOnWhatsappService do
         expect(message.reload.source_id).to eq('123456789')
       end
 
+      it 'prefixes the agent name for whatsapp group messages even when the agent name setting is disabled' do
+        whatsapp_cloud_channel = create(
+          :channel_whatsapp,
+          provider: 'whatsapp_cloud',
+          provider_config: { 'send_agent_name' => false },
+          sync_templates: false,
+          validate_provider_config: false
+        )
+        allow(whatsapp_cloud_channel.inbox.account).to receive(:feature_enabled?).and_call_original
+        allow(whatsapp_cloud_channel.inbox.account).to receive(:feature_enabled?)
+          .with('send_agent_name_in_whatsapp_message')
+          .and_return(false)
+
+        group_contact = create(:contact, account: whatsapp_cloud_channel.account, email: '120363040468224422@g.us')
+        group_contact_inbox = create(
+          :contact_inbox,
+          inbox: whatsapp_cloud_channel.inbox,
+          contact: group_contact,
+          source_id: '120363040468224422@g.us'
+        )
+        group_conversation = create(
+          :conversation,
+          account: whatsapp_cloud_channel.account,
+          inbox: whatsapp_cloud_channel.inbox,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox,
+          group: true,
+          group_source_id: '120363040468224422@g.us'
+        )
+        create(:message, message_type: :incoming, content: 'test', conversation: group_conversation, account: group_conversation.account)
+        agent = create(
+          :user,
+          account: whatsapp_cloud_channel.account,
+          name: 'Agent Smith',
+          display_name: 'Agent Smith',
+          email: 'agent.smith@example.com'
+        )
+        message = create(
+          :message,
+          message_type: :outgoing,
+          content: 'test',
+          conversation: group_conversation,
+          account: group_conversation.account,
+          sender: agent
+        )
+
+        url = "https://graph.facebook.com/v13.0/#{whatsapp_cloud_channel.provider_config['phone_number_id']}/messages"
+        stub_request(:post, url).to_return(status: 200, body: success_response, headers: { 'content-type' => 'application/json' })
+
+        described_class.new(message: message).perform
+
+        expect(WebMock).to have_requested(:post, url).with { |request|
+          body = JSON.parse(request.body)
+          body['recipient_type'] == 'group' &&
+            body['to'] == '120363040468224422@g.us' &&
+            body.dig('text', 'body') == '*Agent Smith*: test'
+        }
+        expect(message.reload.source_id).to eq('123456789')
+      end
+
       it 'calls channel.send_template when template has regexp characters' do
         regexp_template_params = build_template_params('customer_yes_no', '2342384942_32423423_23423fdsdaf23', 'ar', {})
         arabic_content = 'عميلنا العزيز الرجاء الرد على هذه الرسالة بكلمة *نعم* للرد على إستفساركم من قبل خدمة العملاء.'

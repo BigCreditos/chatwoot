@@ -32,7 +32,8 @@ class Notification::PushNotificationService
 
   def push_message
     {
-      title: notification.push_message_title,
+      title: notification.browser_push_title,
+      body: notification.browser_push_body,
       tag: "#{notification.notification_type}_#{conversation.display_id}_#{notification.id}",
       url: push_url
     }
@@ -119,7 +120,7 @@ class Notification::PushNotificationService
     if JSON.parse(response[:body])['results']&.first&.keys&.include?('error')
       subscription.destroy!
     else
-      Rails.logger.info("FCM push sent to #{user.email} with title #{push_message[:title]}")
+      Rails.logger.info("FCM push sent to #{user.email} with title #{notification.push_message_title}")
     end
   end
 

@@ -168,6 +168,30 @@ has been assigned to you"
     end
   end
 
+  context 'when browser push data is called' do
+    it 'uses the contact name as browser push title and message content as body' do
+      contact = create(:contact, name: 'Breno Duraes')
+      conversation = create(:conversation, contact: contact)
+      message = create(:message, sender: contact, content: 'Mensagem importante para validar o preview', conversation: conversation)
+      notification = create(:notification, notification_type: 'assigned_conversation_new_message', primary_actor: conversation,
+                                           secondary_actor: message)
+
+      expect(notification.browser_push_title).to eq 'Breno Duraes'
+      expect(notification.browser_push_body).to eq 'Mensagem importante para validar o preview'
+    end
+
+    it 'uses the group title as browser push title and keeps sender name in the body' do
+      contact = create(:contact, name: 'Breno Duraes')
+      conversation = create(:conversation, group: true, group_title: 'Grupo Comercial')
+      message = create(:message, sender: contact, content: 'Mensagem do grupo para validar o preview', conversation: conversation)
+      notification = create(:notification, notification_type: 'assigned_conversation_new_message', primary_actor: conversation,
+                                           secondary_actor: message)
+
+      expect(notification.browser_push_title).to eq 'Grupo Comercial'
+      expect(notification.browser_push_body).to eq 'Breno Duraes: Mensagem do grupo para validar o preview'
+    end
+  end
+
   context 'when fcm push data' do
     it 'returns correct data for primary actor conversation' do
       notification = create(:notification, notification_type: 'conversation_creation')

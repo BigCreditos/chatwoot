@@ -7,6 +7,25 @@ describe AgentBotListener do
   let!(:agent_bot) { create(:agent_bot) }
   let!(:conversation) { create(:conversation, account: account, inbox: inbox, assignee: user) }
 
+  describe '#conversation_created' do
+    let(:event_name) { 'conversation.created' }
+    let!(:event) { Events::Base.new(event_name, Time.zone.now, conversation: conversation) }
+
+    context 'when agent bot is configured' do
+      it 'sends webhook to the inbox agent bot' do
+        create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+
+        expect(AgentBots::WebhookJob).to receive(:perform_later).with(
+          agent_bot.outgoing_url,
+          conversation.webhook_data.merge(event: 'conversation_created'),
+          :agent_bot_webhook, secret: agent_bot.secret, delivery_id: instance_of(String)
+        ).once
+
+        listener.conversation_created(event)
+      end
+    end
+  end
+
   describe '#message_created' do
     let(:event_name) { 'message.created' }
     let!(:event) { Events::Base.new(event_name, Time.zone.now, message: message) }

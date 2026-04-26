@@ -34,6 +34,26 @@ describe WebhookListener do
         ).once
         listener.message_created(message_created_event)
       end
+
+      it 'triggers the webhook event for bot messages' do
+        agent_bot = create(:agent_bot, account: account)
+        bot_message = create(
+          :message,
+          message_type: 'outgoing',
+          account: account,
+          inbox: inbox,
+          conversation: conversation,
+          sender: agent_bot
+        )
+        webhook = create(:webhook, inbox: inbox, account: account)
+        bot_event = Events::Base.new(event_name, Time.zone.now, message: bot_message)
+
+        expect(WebhookJob).to receive(:perform_later).with(
+          webhook.url, bot_message.webhook_data.merge(event: 'message_created'), :account_webhook,
+          secret: webhook.secret, delivery_id: instance_of(String)
+        ).once
+        listener.message_created(bot_event)
+      end
     end
 
     context 'when webhook is configured and event is not subscribed' do

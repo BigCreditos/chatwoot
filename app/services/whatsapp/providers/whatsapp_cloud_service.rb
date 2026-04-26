@@ -188,12 +188,18 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   end
 
   def format_content(message)
-    feature = whatsapp_channel.inbox.account.feature_enabled?('send_agent_name_in_whatsapp_message')
-    config = whatsapp_channel.provider_config['send_agent_name']
     normalized_content = message.outgoing_content&.rstrip
-    return normalized_content if !feature && !config
+    return normalized_content unless should_prefix_sender_name?(message)
 
     message.sender_name&.present? ? "*#{message&.sender_name}*: #{normalized_content}" : normalized_content
+  end
+
+  def should_prefix_sender_name?(message)
+    return true if message.conversation.group?
+
+    feature = whatsapp_channel.inbox.account.feature_enabled?('send_agent_name_in_whatsapp_message')
+    config = whatsapp_channel.provider_config['send_agent_name']
+    feature || config
   end
 
   def send_attachment_message(phone_number, message, attachment, include_caption: true)

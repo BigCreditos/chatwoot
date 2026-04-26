@@ -127,11 +127,38 @@ class Notification < ApplicationRecord
     end
   end
 
+  def browser_push_title
+    conversation_display_name.presence || push_message_title
+  end
+
+  def browser_push_body
+    return push_message_body if conversation.group?
+
+    message_content(notification_message_actor)
+  end
+
   def conversation
     primary_actor
   end
 
   private
+
+  def conversation_display_name
+    return conversation.group_title if conversation.group?
+
+    conversation.contact&.name || conversation.contact&.phone_number || conversation.contact&.email
+  end
+
+  def notification_message_actor
+    case notification_type
+    when 'conversation_creation', 'sla_missed_first_response'
+      conversation.messages.first
+    when 'assigned_conversation_new_message', 'participating_conversation_new_message', 'conversation_mention'
+      secondary_actor
+    when 'conversation_assignment', 'sla_missed_next_response', 'sla_missed_resolution'
+      conversation.messages.incoming.last || conversation.messages.outgoing.last
+    end
+  end
 
   def message_body(actor)
     sender_name = sender_name(actor)

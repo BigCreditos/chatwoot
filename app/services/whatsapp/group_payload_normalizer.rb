@@ -35,7 +35,7 @@ class Whatsapp::GroupPayloadNormalizer
   end
 
   def sender_identifier
-    sender_phone.presence || sender_bsuid
+    sender_bsuid.presence || sender_phone
   end
 
   def sender_phone

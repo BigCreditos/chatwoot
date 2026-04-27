@@ -139,6 +139,41 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(participant_contact.whatsapp_username).to eq('@legado')
   end
 
+  it 'merges duplicated phone and lid participant contacts preferring the phone contact' do
+    phone_contact = create(:contact, account: whatsapp_channel.account, name: 'ViperTec')
+    phone_contact.update_columns(phone_number: '+5566996222471', email: '5566996222471') # rubocop:disable Rails/SkipsModelValidations
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: phone_contact, source_id: '5566996222471')
+    phone_group_contact = create(:group_contact, conversation: conversation, contact: phone_contact)
+
+    lid_contact = create(:contact, account: whatsapp_channel.account, name: 'Viper Tec', bsuid: '11343495192601@lid')
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: lid_contact, source_id: '11343495192601@lid')
+    create(:group_contact, conversation: conversation, contact: lid_contact, metadata: { jid: '11343495192601@lid' })
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '5566996222471@s.whatsapp.net',
+            wa_id: '5566996222471',
+            user_id: '11343495192601@lid',
+            name: 'ViperTec'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+
+    expect(phone_contact.reload.bsuid).to eq('11343495192601@lid')
+    expect(phone_contact.email).to be_nil
+    expect(Contact.exists?(lid_contact.id)).to be(false)
+    expect(conversation.group_contacts.where(contact: phone_contact).count).to eq(1)
+    expect(conversation.group_contacts.where(contact_id: lid_contact.id)).to be_blank
+    expect(phone_group_contact.reload.metadata).to include('user_id' => '11343495192601@lid')
+  end
+
   it 'returns cache_miss when Uno API does not have cached participants' do
     stub_request(:get, participants_url).to_return(status: 404, body: {}.to_json, headers: { 'Content-Type' => 'application/json' })
 

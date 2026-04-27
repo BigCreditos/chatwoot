@@ -70,6 +70,14 @@ const filterTypes = [
     attribute_type: 'standard',
   },
   {
+    attributeKey: 'company_name',
+    attributeI18nKey: 'COMPANY',
+    inputType: 'plain_text',
+    dataType: 'text',
+    filterOperators: OPERATOR_TYPES_3,
+    attributeModel: 'standard',
+  },
+  {
     attributeKey: 'created_at',
     attributeI18nKey: 'CREATED_AT',
     inputType: 'date',
@@ -147,6 +155,10 @@ export const filterAttributeGroups = [
       {
         key: 'city',
         i18nKey: 'CITY',
+      },
+      {
+        key: 'company_name',
+        i18nKey: 'COMPANY',
       },
       {
         key: 'created_at',

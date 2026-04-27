@@ -111,6 +111,132 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(conversation.reload.group_session_admin).to be(false)
   end
 
+  it 'uses the merged participant contact to identify the connected session admin' do
+    session_contact = create(:contact, account: whatsapp_channel.account, name: 'Sessao')
+    session_contact.update_columns(phone_number: '+556600000000', bsuid: '94047083475061@lid') # rubocop:disable Rails/SkipsModelValidations
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: session_contact, source_id: '556600000000')
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: session_contact, source_id: '94047083475061@lid')
+    create(:group_contact, conversation: conversation, contact: session_contact)
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '94047083475061@lid',
+            user_id: '94047083475061@lid',
+            name: 'Sessao',
+            is_admin: true,
+            role: 'admin'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+    expect(conversation.reload.group_session_admin).to be(true)
+  end
+
+  it 'recalculates the connected session admin flag when the session member is demoted' do
+    conversation.update!(group_session_admin: true)
+    session_contact = create(:contact, account: whatsapp_channel.account, name: 'Sessao')
+    session_contact.update_columns(phone_number: '+556600000000', bsuid: '94047083475061@lid') # rubocop:disable Rails/SkipsModelValidations
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: session_contact, source_id: '556600000000')
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: session_contact, source_id: '94047083475061@lid')
+    create(:group_contact, conversation: conversation, contact: session_contact)
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '94047083475061@lid',
+            user_id: '94047083475061@lid',
+            name: 'Sessao',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+    expect(conversation.reload.group_session_admin).to be(false)
+  end
+
+  it 'adds a system message when the connected session is no longer in the group' do
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699554300',
+            wa_id: '556699554300',
+            user_id: '11343495192601@lid',
+            name: 'Rodrigo',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.to change { conversation.messages.activity.count }.by(1)
+
+    activity_message = conversation.messages.activity.last
+    expect(activity_message.content).to eq(I18n.t('conversations.activity.whatsapp.group_session_removed'))
+    expect(conversation.reload.additional_attributes['group_session_removed_at']).to be_present
+  end
+
+  it 'does not duplicate the system message while the connected session remains out of the group' do
+    conversation.update!(additional_attributes: { 'group_session_removed_at' => Time.current.iso8601 })
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699554300',
+            wa_id: '556699554300',
+            user_id: '11343495192601@lid',
+            name: 'Rodrigo',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.not_to(change { conversation.messages.activity.count })
+  end
+
+  it 'clears the session removal marker when the connected session returns to the group' do
+    conversation.update!(additional_attributes: { 'group_session_removed_at' => Time.current.iso8601 })
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556600000000@s.whatsapp.net',
+            wa_id: '556600000000',
+            name: 'Sessao',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+    expect(conversation.reload.additional_attributes).not_to have_key('group_session_removed_at')
+  end
+
   it 'clears invalid legacy participant email before updating the contact' do
     participant_contact = create(:contact, account: whatsapp_channel.account, name: 'Contato legado')
     participant_contact.update_columns(email: '47017208377581') # rubocop:disable Rails/SkipsModelValidations
@@ -172,6 +298,35 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(conversation.group_contacts.where(contact: phone_contact).count).to eq(1)
     expect(conversation.group_contacts.where(contact_id: lid_contact.id)).to be_blank
     expect(phone_group_contact.reload.metadata).to include('user_id' => '11343495192601@lid')
+  end
+
+  it 'removes group contacts that are no longer returned by Uno API' do
+    stale_contact = create(:contact, account: whatsapp_channel.account, name: 'Membro removido')
+    stale_contact.update_columns(phone_number: '+5566996222471') # rubocop:disable Rails/SkipsModelValidations
+    stale_group_contact = create(:group_contact, conversation: conversation, contact: stale_contact)
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699554300',
+            wa_id: '556699554300',
+            user_id: '11343495192601@lid',
+            name: 'Rodrigo',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+
+    expect(conversation.group_contacts.exists?(stale_group_contact.id)).to be(false)
+    current_group_contact = conversation.group_contacts.joins(:contact).find_by!(contacts: { bsuid: '11343495192601@lid' })
+    expect(current_group_contact.metadata).to include('wa_id' => '556699554300')
   end
 
   it 'returns cache_miss when Uno API does not have cached participants' do

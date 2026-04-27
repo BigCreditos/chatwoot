@@ -1,16 +1,15 @@
 class Whatsapp::Unoapi::GroupParticipantContactMerger
-  def initialize(account:, inbox:)
+  def initialize(account:, inbox:, conversation: nil)
     @account = account
     @inbox = inbox
+    @conversation = conversation
   end
 
   def perform(participant:, source_id:)
-    return unless phone_source?(source_id)
-
     bsuid = participant_bsuid(participant)
     return if bsuid.blank?
 
-    phone_contact = participant_phone_contact(participant, source_id)
+    phone_contact = phone_source?(source_id) ? participant_phone_contact(participant, source_id) : compatible_group_phone_contact(participant)
     lid_contact = Contact.find_by(account_id: @account.id, bsuid: bsuid)
     return if contacts_not_mergeable?(phone_contact, lid_contact)
 
@@ -70,8 +69,43 @@ class Whatsapp::Unoapi::GroupParticipantContactMerger
   end
 
   def participant_phone_number(participant, source_id)
+    return if source_id.to_s.include?('@') && participant[:wa_id].blank?
+
     phone = normalized_phone((participant[:wa_id].presence || source_id).to_s.gsub(/\D/, ''))
     "+#{phone}" if phone.present?
+  end
+
+  def compatible_group_phone_contact(participant)
+    return if @conversation.blank?
+
+    participant_name = participant_name(participant)
+    return if participant_name.blank?
+
+    candidates = @conversation.group_contacts.includes(:contact).filter_map(&:contact).select do |contact|
+      contact.phone_number.present? && contact.bsuid.blank? && compatible_name?(participant_name, contact.name)
+    end.uniq
+
+    candidates.one? ? candidates.first : nil
+  end
+
+  def participant_name(participant)
+    participant[:name].presence || participant[:pushname].presence || participant[:username].presence
+  end
+
+  def compatible_name?(left, right)
+    left = normalize_name(left)
+    right = normalize_name(right)
+    return false if left.blank? || right.blank?
+    return true if left == right
+
+    shorter, longer = [left, right].sort_by(&:length)
+    return false if shorter.length < 5
+
+    longer.start_with?(shorter) || longer.end_with?(shorter) || longer.include?(shorter)
+  end
+
+  def normalize_name(value)
+    I18n.transliterate(value.to_s).downcase.gsub(/[^a-z0-9]/, '')
   end
 
   def lid_contact_attributes(phone_contact, lid_contact)

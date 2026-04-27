@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class Whatsapp::Unoapi::GroupParticipantsSyncService
   def initialize(inbox:, conversation:, group_source_id: nil)
     @inbox = inbox
@@ -33,7 +34,10 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     participants = Array(payload[:participants]).map(&:with_indifferent_access)
 
     update_group_metadata(payload[:group] || {})
-    participants.each { |participant| sync_participant(participant) }
+    synced_contact_ids = participants.filter_map { |participant| sync_participant(participant) }
+    session_in_group = participants.any? { |participant| session_participant?(participant) }
+    remove_stale_group_contacts(synced_contact_ids) if participants.present?
+    sync_session_membership_activity(session_in_group) if participants.present?
     @conversation.group_session_admin = session_admin?(participants)
     @conversation.update!(group_contacts_synced_at: Time.current)
   end
@@ -61,7 +65,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     source_id = participant_source_id(participant)
     return if source_id.blank?
 
-    Whatsapp::Unoapi::GroupParticipantContactMerger.new(account: @conversation.account, inbox: @inbox).perform(
+    Whatsapp::Unoapi::GroupParticipantContactMerger.new(account: @conversation.account, inbox: @inbox, conversation: @conversation).perform(
       participant: participant,
       source_id: source_id
     )
@@ -77,6 +81,29 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     group_contact.account_id = @conversation.account_id
     group_contact.metadata = participant_metadata(participant, source_id)
     group_contact.save!
+    group_contact.contact_id
+  end
+
+  def remove_stale_group_contacts(synced_contact_ids)
+    @conversation.group_contacts.where.not(contact_id: synced_contact_ids).destroy_all
+  end
+
+  def sync_session_membership_activity(session_in_group)
+    @conversation.additional_attributes ||= {}
+    return clear_session_removed_marker if session_in_group
+    return if @conversation.additional_attributes['group_session_removed_at'].present?
+
+    @conversation.messages.create!(
+      account_id: @conversation.account_id,
+      inbox_id: @conversation.inbox_id,
+      message_type: :activity,
+      content: I18n.t('conversations.activity.whatsapp.group_session_removed')
+    )
+    @conversation.additional_attributes['group_session_removed_at'] = Time.current.iso8601
+  end
+
+  def clear_session_removed_marker
+    @conversation.additional_attributes.delete('group_session_removed_at')
   end
 
   def sanitize_existing_contact_email(source_id, participant)
@@ -98,9 +125,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
       Contact.find_by(account_id: @conversation.account_id, bsuid: participant_bsuid(participant))
   end
 
-  def valid_contact_email?(email)
-    email.match?(Devise.email_regexp) || email.end_with?('@lid') || email.end_with?('@g.us')
-  end
+  def valid_contact_email?(email) = email.match?(Devise.email_regexp) || email.end_with?('@lid') || email.end_with?('@g.us')
 
   def contact_attributes(participant, source_id)
     attrs = {
@@ -148,9 +173,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     participant[:jid].to_s.gsub(/\D/, '').presence
   end
 
-  def participant_bsuid(participant)
-    participant[:user_id].presence || participant[:lid].presence
-  end
+  def participant_bsuid(participant) = participant[:user_id].presence || participant[:lid].presence
 
   def session_admin?(participants)
     session_participant = participants.find { |participant| session_participant?(participant) }
@@ -162,6 +185,14 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
   end
 
   def session_participant?(participant)
+    identifiers = participant_identifiers(participant)
+
+    session_identifiers.any? do |session_identifier|
+      identifiers.any? { |identifier| identifier == session_identifier || identifier.gsub(/\D/, '') == session_identifier.gsub(/\D/, '') }
+    end
+  end
+
+  def participant_identifiers(participant)
     identifiers = [
       participant[:wa_id],
       participant[:jid],
@@ -170,9 +201,18 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
       participant_source_id(participant)
     ].compact.map(&:to_s)
 
-    session_identifiers.any? do |session_identifier|
-      identifiers.any? { |identifier| identifier == session_identifier || identifier.gsub(/\D/, '') == session_identifier.gsub(/\D/, '') }
-    end
+    participant_contact = participant_contact(participant, identifiers)
+    identifiers.concat(contact_identifiers(participant_contact)) if participant_contact.present?
+    identifiers.uniq
+  end
+
+  def participant_contact(participant, identifiers)
+    @inbox.contact_inboxes.includes(:contact).find_by(source_id: identifiers)&.contact ||
+      Contact.find_by(account_id: @conversation.account_id, bsuid: participant_bsuid(participant))
+  end
+
+  def contact_identifiers(contact)
+    [contact.phone_number, contact.bsuid, *contact.contact_inboxes.where(inbox: @inbox).pluck(:source_id)].compact.map(&:to_s)
   end
 
   def session_identifiers
@@ -195,9 +235,6 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     nil
   end
 
-  def normalized_phone(phone)
-    return phone unless phone.start_with?('55') && phone.length == 12
-
-    "#{phone[0..3]}9#{phone[4..]}"
-  end
+  def normalized_phone(phone) = phone.start_with?('55') && phone.length == 12 ? "#{phone[0..3]}9#{phone[4..]}" : phone
 end
+# rubocop:enable Metrics/ClassLength

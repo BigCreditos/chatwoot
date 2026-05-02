@@ -1,5 +1,5 @@
 class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService
-  GROUP_CONTACT_MENTION_PATTERN = %r{\[@[^\]]+\]\(mention://group_contact/(\d+)/[^)]+\)|mention://group_contact/(\d+)/[^\s)]+}.freeze
+  GROUP_CONTACT_MENTION_PATTERN = %r{\[@[^\]]+\]\(mention://group[_-]contact/(\d+)/[^)]+\)|mention://group[_-]contact/(\d+)/[^\s)]+}
 
   def send_message(phone_number, message)
     @message = message
@@ -397,7 +397,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
 
   def group_mentions_from_content(message)
     message.content.to_s.scan(GROUP_CONTACT_MENTION_PATTERN).filter_map do |match|
-      mention_id = (match[1] || match[3]).presence
+      mention_id = (match[0] || match[1]).presence
       next if mention_id.blank?
 
       group_mention_from_id(message, mention_id)

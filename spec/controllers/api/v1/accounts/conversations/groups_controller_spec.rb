@@ -23,7 +23,7 @@ RSpec.describe 'Conversation Groups API', type: :request do
   end
 
   it 'creates a provider group and local group conversation' do
-    participants = [{ 'wa_id' => '5566999999999', 'user_id' => '123456789012345@lid' }]
+    participants = [{ wa_id: '5566999999999', user_id: '123456789012345@lid' }]
     provider_response = instance_double(
       HTTParty::Response,
       success?: true,
@@ -31,6 +31,7 @@ RSpec.describe 'Conversation Groups API', type: :request do
         'id' => '120363040468224422@g.us',
         'subject' => 'Equipe Comercial',
         'description' => 'Canal comercial',
+        'picture' => 'https://cdn.example.com/group.jpg',
         'invite_link' => 'https://chat.whatsapp.com/example',
         'participants' => [{ 'wa_id' => '5566999999999', 'user_id' => '123456789012345@lid', 'status' => 'invited' }]
       }
@@ -58,11 +59,11 @@ RSpec.describe 'Conversation Groups API', type: :request do
     expect(conversation.group_title).to eq('Equipe Comercial')
     expect(conversation.group_description).to eq('Canal comercial')
     expect(conversation.group_invite_link).to eq('https://chat.whatsapp.com/example')
+    expect(conversation.additional_attributes['group_picture']).to eq('https://cdn.example.com/group.jpg')
     expect(conversation.contact.email).to eq('120363040468224422@g.us')
   end
 
-  it 'does not forward internal contact ids to the provider' do
-    contact = create(:contact, account: account, bsuid: '123456789012345@lid')
+  it 'does not forward internal contact ids or lid values as wa_id to the provider' do
     provider_response = instance_double(
       HTTParty::Response,
       success?: true,
@@ -75,14 +76,14 @@ RSpec.describe 'Conversation Groups API', type: :request do
 
     allow(provider_service)
       .to receive(:create_group)
-      .with(subject: 'Equipe Comercial', description: '', participants: [{ 'user_id' => '123456789012345@lid' }], join_approval_mode: '')
+      .with(subject: 'Equipe Comercial', description: nil, participants: [{ user_id: '123456789012345@lid' }], join_approval_mode: nil)
       .and_return(provider_response)
 
     post path,
          params: {
            inbox_id: inbox.id,
            subject: 'Equipe Comercial',
-           participants: [{ id: contact.id, user_id: '123456789012345@lid' }]
+           participants: [{ wa_id: '123456789012345@lid' }]
          },
          headers: agent.create_new_auth_token,
          as: :json

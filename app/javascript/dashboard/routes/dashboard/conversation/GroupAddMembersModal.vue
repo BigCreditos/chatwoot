@@ -45,6 +45,12 @@ const contactSubtitle = contact =>
 
 const digitsOnly = value => value?.toString().replace(/\D/g, '') || '';
 
+const phoneIdentifier = value => {
+  const sourceId = value || '';
+  if (sourceId.endsWith('@lid')) return '';
+  return digitsOnly(sourceId);
+};
+
 const sourceParticipantId = contact => {
   const sourceId =
     contact.sourceId ||
@@ -65,8 +71,10 @@ const sourceParticipantId = contact => {
 
 const participantPayload = contact => {
   const waId =
-    digitsOnly(contact.phoneNumber) || digitsOnly(sourceParticipantId(contact));
-  const userId = contact.bsuid;
+    digitsOnly(contact.phoneNumber) ||
+    phoneIdentifier(sourceParticipantId(contact));
+  const sourceId = sourceParticipantId(contact);
+  const userId = contact.bsuid || (sourceId.endsWith('@lid') ? sourceId : '');
 
   return {
     ...(waId ? { wa_id: waId } : {}),
@@ -76,7 +84,7 @@ const participantPayload = contact => {
 
 const canAddContact = contact => {
   const payload = participantPayload(contact);
-  return !!payload.wa_id;
+  return !!(payload.wa_id || payload.user_id);
 };
 
 const selectedCountLabel = computed(() =>

@@ -106,6 +106,8 @@ class Api::V1::Accounts::Conversations::GroupContactsController < Api::V1::Accou
 
   def participant_phone_identifier(attrs)
     [attrs[:wa_id], attrs[:phone_number], attrs[:phoneNumber], attrs[:pn], attrs[:jid], attrs[:id]].filter_map do |value|
+      next if value.to_s.strip.end_with?('@lid')
+
       digits = value.to_s.gsub(/\D/, '')
       digits if digits.length >= 8
     end.first

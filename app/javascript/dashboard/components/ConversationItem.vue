@@ -60,9 +60,21 @@ const chatMetadata = computed(() => props.source.meta || {});
 const assignee = computed(() => chatMetadata.value.assignee || {});
 const senderId = computed(() => chatMetadata.value.sender?.id);
 
-const currentContact = computed(() =>
-  senderId.value ? store.getters['contacts/getContact'](senderId.value) : {}
-);
+const currentContact = computed(() => {
+  const contact = senderId.value
+    ? store.getters['contacts/getContact'](senderId.value)
+    : {};
+  if (!props.source.group) return contact;
+
+  return {
+    ...contact,
+    name: props.source.group_title || contact.name,
+    thumbnail:
+      props.source.group_picture ||
+      props.source.additional_attributes?.group_picture ||
+      contact.thumbnail,
+  };
+});
 
 const isActiveChat = computed(() => currentChat.value.id === props.source.id);
 

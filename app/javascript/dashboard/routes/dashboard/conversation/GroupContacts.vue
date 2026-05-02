@@ -330,9 +330,7 @@ const updateGroupTitle = async () => {
 };
 
 const handleJoinRequestProcessed = async () => {
-  await fetchGroupContacts({ reset: true });
-  await fetchGroupInfo();
-  await fetchJoinRequestsCount();
+  await syncGroupContacts();
 };
 </script>
 

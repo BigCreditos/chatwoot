@@ -64,6 +64,12 @@ const contactSubtitle = contact =>
 
 const digitsOnly = value => value?.toString().replace(/\D/g, '') || '';
 
+const phoneIdentifier = value => {
+  const sourceId = value || '';
+  if (sourceId.endsWith('@lid')) return '';
+  return digitsOnly(sourceId);
+};
+
 const sourceParticipantId = contact => {
   const sourceId =
     contact.sourceId ||
@@ -83,8 +89,9 @@ const sourceParticipantId = contact => {
 };
 
 const participantPayload = contact => {
-  const waId = digitsOnly(contact.phoneNumber) || sourceParticipantId(contact);
-  const userId = contact.bsuid;
+  const sourceId = sourceParticipantId(contact);
+  const waId = digitsOnly(contact.phoneNumber) || phoneIdentifier(sourceId);
+  const userId = contact.bsuid || (sourceId.endsWith('@lid') ? sourceId : '');
 
   return {
     ...(waId ? { wa_id: waId } : {}),

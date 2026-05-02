@@ -64,7 +64,7 @@ import { LocalStorage } from 'shared/helpers/localStorage';
 import { emitter } from 'shared/helpers/mitt';
 
 const GROUP_CONTACT_MENTION_REGEX =
-  /\[@([^\]]+)\]\(mention:\/\/group_contact\/(\d+)\/([^)]+)\)|mention:\/\/group_contact\/(\d+)\/([^\s)]+)/g;
+  /\[@([^\]]+)\]\(mention:\/\/group[_-]contact\/(\d+)\/([^)]+)\)|mention:\/\/group[_-]contact\/(\d+)\/([^\s)]+)/g;
 
 const EmojiInput = defineAsyncComponent(
   () => import('shared/components/emoji/EmojiInput.vue')

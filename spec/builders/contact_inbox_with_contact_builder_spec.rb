@@ -130,6 +130,20 @@ describe ContactInboxWithContactBuilder do
       expect(contact.reload.bsuid).to eq('123456789012345@lid')
     end
 
+    it 'does not enqueue avatar import when avatar url is blank' do
+      expect do
+        described_class.new(
+          source_id: '556699999998',
+          inbox: inbox,
+          contact_attributes: {
+            name: 'Maria',
+            phone_number: '+1556699999998',
+            avatar_url: ''
+          }
+        ).perform
+      end.not_to have_enqueued_job(Avatar::AvatarFromUrlJob)
+    end
+
     it 'clears invalid legacy email before enriching an existing contact' do
       contact.update_columns(email: '123456789012345') # rubocop:disable Rails/SkipsModelValidations
 

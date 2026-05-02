@@ -4,7 +4,15 @@ describe Whatsapp::Providers::WhatsappCloudService do
   subject(:service) { described_class.new(whatsapp_channel: whatsapp_channel) }
 
   let(:conversation) { create(:conversation, inbox: whatsapp_channel.inbox) }
-  let(:whatsapp_channel) { create(:channel_whatsapp, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false) }
+  let(:whatsapp_channel) do
+    create(
+      :channel_whatsapp,
+      phone_number: "+1555#{SecureRandom.random_number(1_000_000_000).to_s.rjust(9, '0')}",
+      provider: 'whatsapp_cloud',
+      validate_provider_config: false,
+      sync_templates: false
+    )
+  end
 
   let(:message) do
     create(

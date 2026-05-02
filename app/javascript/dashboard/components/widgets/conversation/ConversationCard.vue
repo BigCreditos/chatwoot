@@ -43,6 +43,15 @@ const conversationTitle = computed(
 const conversationAvatarName = computed(
   () => props.chat.group_title || props.currentContact.name
 );
+const conversationAvatarSrc = computed(() => {
+  if (!props.chat.group) return props.currentContact.thumbnail;
+
+  return (
+    props.chat.group_picture ||
+    props.chat.additional_attributes?.group_picture ||
+    props.currentContact.thumbnail
+  );
+});
 
 const voiceCallData = computed(() => ({
   status: props.chat.additional_attributes?.call_status,
@@ -121,7 +130,7 @@ watch(
       <Avatar
         v-if="!hideThumbnail"
         :name="conversationAvatarName"
-        :src="currentContact.thumbnail"
+        :src="conversationAvatarSrc"
         :size="32"
         :status="currentContact.availability_status"
         :class="!showInboxName ? 'mt-4' : 'mt-8'"

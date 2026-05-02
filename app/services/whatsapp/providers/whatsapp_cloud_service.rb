@@ -1,4 +1,6 @@
 class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService
+  GROUP_CONTACT_MENTION_PATTERN = %r{\[@[^\]]+\]\(mention://group_contact/(\d+)/[^)]+\)|mention://group_contact/(\d+)/[^\s)]+}.freeze
+
   def send_message(phone_number, message)
     @message = message
 
@@ -362,8 +364,9 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
   def replace_group_mentions(content, message)
     mentions_by_contact_id = whatsapp_group_mentions(message).index_by { |mention| mention[:contact_id].to_s }
 
-    content.gsub(%r{\[@[^\]]+\]\(mention://group_contact/(\d+)/[^)]+\)}) do
-      bsuid = mentions_by_contact_id[Regexp.last_match(1)]&.dig(:bsuid)
+    content.gsub(GROUP_CONTACT_MENTION_PATTERN) do
+      contact_id = Regexp.last_match(1) || Regexp.last_match(2)
+      bsuid = mentions_by_contact_id[contact_id]&.dig(:bsuid)
       bsuid.present? ? "@#{bsuid}" : Regexp.last_match(0)
     end
   end

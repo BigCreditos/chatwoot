@@ -24,7 +24,15 @@ const isLoading = ref(false);
 const processingParticipant = ref('');
 const hasLoadedOnce = ref(false);
 
-const requestIdentifier = request => request.wa_id || request.user_id || '';
+const requestIdentifier = request =>
+  request.wa_id ||
+  request.phone_number ||
+  request.phoneNumber ||
+  request.pn ||
+  request.jid ||
+  request.user_id ||
+  request.lid ||
+  '';
 
 const requestName = request =>
   request.name || request.username || request.wa_id || request.user_id;
@@ -66,14 +74,16 @@ const processJoinRequest = async (request, action) => {
 
   processingParticipant.value = participant;
   try {
-    const apiCall =
+    const { data } =
       action === 'approve'
-        ? conversationApi.approveGroupJoinRequests
-        : conversationApi.rejectGroupJoinRequests;
-    const { data } = await apiCall({
-      conversationId: props.conversationId,
-      participants: [participant],
-    });
+        ? await conversationApi.approveGroupJoinRequests({
+            conversationId: props.conversationId,
+            participants: [participant],
+          })
+        : await conversationApi.rejectGroupJoinRequests({
+            conversationId: props.conversationId,
+            participants: [participant],
+          });
     if (data.failed?.length) {
       useAlert(data.error || data.message || data.failed.join(', '));
       return;

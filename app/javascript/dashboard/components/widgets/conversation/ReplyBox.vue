@@ -62,6 +62,10 @@ import { isFileTypeAllowedForChannel } from 'shared/helpers/FileHelper';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { emitter } from 'shared/helpers/mitt';
+
+const GROUP_CONTACT_MENTION_REGEX =
+  /\[@([^\]]+)\]\(mention:\/\/group_contact\/(\d+)\/([^)]+)\)|mention:\/\/group_contact\/(\d+)\/([^\s)]+)/g;
+
 const EmojiInput = defineAsyncComponent(
   () => import('shared/components/emoji/EmojiInput.vue')
 );
@@ -608,11 +612,18 @@ export default {
     normalizeGroupMentionContact(member = {}) {
       const contact = member.contact || {};
       const metadata = member.metadata || {};
+      const phoneNumber =
+        contact.phone_number?.replace(/\D/g, '') ||
+        metadata.wa_id?.replace(/\D/g, '') ||
+        (!member.participant_identifier?.includes('@')
+          ? member.participant_identifier?.replace(/\D/g, '')
+          : '');
       const bsuid =
         contact.bsuid ||
+        metadata.user_id ||
         metadata.lid ||
-        metadata.jid ||
-        member.participant_identifier;
+        (metadata.jid?.endsWith('@lid') ? metadata.jid : '') ||
+        phoneNumber;
       const name =
         contact.name ||
         contact.whatsapp_username ||
@@ -640,20 +651,20 @@ export default {
         ])
       );
 
-      return Array.from(
-        message.matchAll(
-          /\[@([^\]]+)\]\(mention:\/\/group_contact\/(\d+)\/([^)]+)\)/g
-        )
-      ).flatMap(match => {
-        const contact = mentionsByContactId.get(match[2]);
-        if (!contact?.bsuid) return [];
+      return Array.from(message.matchAll(GROUP_CONTACT_MENTION_REGEX)).flatMap(
+        match => {
+          const contactId = match[2] || match[4];
+          const mentionName = match[3] || match[5] || match[1];
+          const contact = mentionsByContactId.get(contactId);
+          if (!contact?.bsuid) return [];
 
-        return {
-          contact_id: contact.id,
-          name: decodeURIComponent(match[3] || match[1]),
-          bsuid: contact.bsuid,
-        };
-      });
+          return {
+            contact_id: contact.id,
+            name: decodeURIComponent(mentionName || ''),
+            bsuid: contact.bsuid,
+          };
+        }
+      );
     },
     withGroupMentionsInPayload(payload, message = payload.message) {
       const groupMentions = this.groupMentionAttributesFor(message);

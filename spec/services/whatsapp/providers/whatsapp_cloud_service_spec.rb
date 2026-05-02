@@ -107,6 +107,70 @@ describe Whatsapp::Providers::WhatsappCloudService do
         expect(service.send_message('120363040468224422@g.us', message)).to eq 'message_id'
       end
 
+      it 'replaces bare group contact mention urls before sending to UnoAPI' do
+        whatsapp_channel.update!(provider: 'unoapi')
+        whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.save!
+        conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
+        message.update!(
+          content: 'mention://group_contact/10031/Equipe%20Tecnica oi',
+          content_attributes: {
+            group_mentions: [
+              { contact_id: 10031, name: 'Equipe Tecnica', bsuid: '11343495192601@lid' }
+            ]
+          }
+        )
+        expected_body = "*#{message.sender_name}*: @11343495192601@lid oi"
+
+        stub_request(:post, 'https://graph.facebook.com/v13.0/123456789/messages')
+          .with(
+            body: {
+              messaging_product: 'whatsapp',
+              recipient_type: 'group',
+              context: nil,
+              to: '120363040468224422@g.us',
+              text: { body: expected_body },
+              type: 'text',
+              mentions: ['11343495192601@lid']
+            }.to_json
+          )
+          .to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+        expect(service.send_message('120363040468224422@g.us', message)).to eq 'message_id'
+      end
+
+      it 'uses phone number as group mention fallback when bsuid is unavailable' do
+        whatsapp_channel.update!(provider: 'unoapi')
+        whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.save!
+        conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
+        message.update!(
+          content: 'Oi [@Equipe Tecnica](mention://group_contact/10031/Equipe%20Tecnica)',
+          content_attributes: {
+            group_mentions: [
+              { contact_id: 10031, name: 'Equipe Tecnica', bsuid: '5566996222471' }
+            ]
+          }
+        )
+        expected_body = "*#{message.sender_name}*: Oi @5566996222471"
+
+        stub_request(:post, 'https://graph.facebook.com/v13.0/123456789/messages')
+          .with(
+            body: {
+              messaging_product: 'whatsapp',
+              recipient_type: 'group',
+              context: nil,
+              to: '120363040468224422@g.us',
+              text: { body: expected_body },
+              type: 'text',
+              mentions: ['5566996222471']
+            }.to_json
+          )
+          .to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+        expect(service.send_message('120363040468224422@g.us', message)).to eq 'message_id'
+      end
+
       it 'calls message endpoints for a reply to messages' do
         stub_request(:post, 'https://graph.facebook.com/v13.0/123456789/messages')
           .with(

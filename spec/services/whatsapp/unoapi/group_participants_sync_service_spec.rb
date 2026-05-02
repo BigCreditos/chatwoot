@@ -87,7 +87,7 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
       headers: { 'Content-Type' => 'application/json' }
     )
 
-    expect(service.perform).to eq(:ok)
+    expect { service.perform }.to have_enqueued_job(Avatar::AvatarFromUrlJob).with(group_contact, 'https://cdn.example.com/groups/group.jpg')
 
     conversation.reload
     expect(conversation.group_title).to eq('Equipe Comercial VIP')
@@ -131,6 +131,39 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
 
     expect(service.perform).to eq(:ok)
     expect(conversation.reload.group_session_admin).to be(false)
+  end
+
+  it 'preserves the existing group picture when Uno API returns an empty picture' do
+    conversation.update!(additional_attributes: { 'group_picture' => 'https://cdn.example.com/groups/current.jpg' })
+    stub_request(:get, details_url).to_return(
+      status: 200,
+      body: {
+        subject: 'Equipe Comercial VIP',
+        picture: ''
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        group: {
+          picture: ''
+        },
+        participants: [
+          {
+            jid: '556600000000@s.whatsapp.net',
+            wa_id: '556600000000',
+            name: 'Sessao',
+            is_admin: false,
+            role: 'member'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.not_to have_enqueued_job(Avatar::AvatarFromUrlJob).with(group_contact, '')
+    expect(conversation.reload.additional_attributes['group_picture']).to eq('https://cdn.example.com/groups/current.jpg')
   end
 
   it 'uses the merged participant contact to identify the connected session admin' do
@@ -294,6 +327,11 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     phone_group_contact = create(:group_contact, conversation: conversation, contact: phone_contact)
 
     lid_contact = create(:contact, account: whatsapp_channel.account, name: 'Viper Tec', bsuid: '11343495192601@lid')
+    lid_contact.avatar.attach(
+      io: Rails.root.join('spec/assets/avatar.png').open,
+      filename: 'avatar.png',
+      content_type: 'image/png'
+    )
     create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: lid_contact, source_id: '11343495192601@lid')
     create(:group_contact, conversation: conversation, contact: lid_contact, metadata: { jid: '11343495192601@lid' })
 
@@ -315,6 +353,7 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(service.perform).to eq(:ok)
 
     expect(phone_contact.reload.bsuid).to eq('11343495192601@lid')
+    expect(phone_contact.avatar).to be_attached
     expect(phone_contact.email).to be_nil
     expect(Contact.exists?(lid_contact.id)).to be(false)
     expect(conversation.group_contacts.where(contact: phone_contact).count).to eq(1)

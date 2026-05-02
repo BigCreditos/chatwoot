@@ -99,6 +99,26 @@ RSpec.describe 'Conversation Group Contacts API', type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body['added']).to eq(['5566999999999'])
     end
+
+    it 'does not forward the internal contact id as provider participant id' do
+      provider_response = instance_double(
+        HTTParty::Response,
+        success?: true,
+        parsed_response: { 'group_id' => conversation.group_source_id, 'added' => ['123456789012345'], 'failed' => [] }
+      )
+
+      allow(provider_service)
+        .to receive(:add_group_participants)
+        .with(group_id: conversation.group_source_id, participants: [{ 'user_id' => '123456789012345@lid' }])
+        .and_return(provider_response)
+
+      post path,
+           params: { participants: [{ id: contact.id, user_id: '123456789012345@lid' }] },
+           headers: agent.create_new_auth_token,
+           as: :json
+
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   describe 'DELETE /api/v1/accounts/{account.id}/conversations/{conversation.id}/group_contacts' do

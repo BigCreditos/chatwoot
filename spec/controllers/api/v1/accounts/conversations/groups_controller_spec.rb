@@ -60,4 +60,33 @@ RSpec.describe 'Conversation Groups API', type: :request do
     expect(conversation.group_invite_link).to eq('https://chat.whatsapp.com/example')
     expect(conversation.contact.email).to eq('120363040468224422@g.us')
   end
+
+  it 'does not forward internal contact ids to the provider' do
+    contact = create(:contact, account: account, bsuid: '123456789012345@lid')
+    provider_response = instance_double(
+      HTTParty::Response,
+      success?: true,
+      parsed_response: {
+        'id' => '120363040468224422@g.us',
+        'subject' => 'Equipe Comercial',
+        'participants' => [{ 'user_id' => '123456789012345@lid', 'status' => 'invited' }]
+      }
+    )
+
+    allow(provider_service)
+      .to receive(:create_group)
+      .with(subject: 'Equipe Comercial', description: '', participants: [{ 'user_id' => '123456789012345@lid' }], join_approval_mode: '')
+      .and_return(provider_response)
+
+    post path,
+         params: {
+           inbox_id: inbox.id,
+           subject: 'Equipe Comercial',
+           participants: [{ id: contact.id, user_id: '123456789012345@lid' }]
+         },
+         headers: agent.create_new_auth_token,
+         as: :json
+
+    expect(response).to have_http_status(:ok)
+  end
 end

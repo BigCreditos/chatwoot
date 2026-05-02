@@ -27,12 +27,12 @@ class Api::V1::Accounts::Conversations::GroupsController < Api::V1::Accounts::Ba
   end
 
   def group_params
-    params.permit(:inbox_id, :subject, :description, :join_approval_mode, participants: [:wa_id, :user_id, :phone_number, :phoneNumber, :pn, :jid, :id, :lid])
+    params.permit(:inbox_id, :subject, :description, :join_approval_mode, participants: [:wa_id, :user_id, :phone_number, :phoneNumber, :pn, :jid, :lid])
   end
 
   def participant_payloads
     @participant_payloads ||= Array(group_params[:participants]).filter_map do |participant|
-      participant.to_h.compact_blank.presence
+      participant.to_h.slice('wa_id', 'user_id', 'phone_number', 'phoneNumber', 'pn', 'jid', 'lid').compact_blank.presence
     end
   end
 

@@ -43,8 +43,28 @@ const contactSubtitle = contact =>
     .filter(Boolean)
     .join(' · ');
 
+const digitsOnly = value => value?.toString().replace(/\D/g, '') || '';
+
+const sourceParticipantId = contact => {
+  const sourceId =
+    contact.sourceId ||
+    contact.source_id ||
+    contact.contactInboxes?.find(inbox => inbox.sourceId || inbox.source_id)
+      ?.sourceId ||
+    contact.contactInboxes?.find(inbox => inbox.sourceId || inbox.source_id)
+      ?.source_id;
+
+  if (!sourceId) return '';
+  if (sourceId.endsWith('@lid') || sourceId.endsWith('@s.whatsapp.net')) {
+    return sourceId;
+  }
+
+  const digits = digitsOnly(sourceId);
+  return digits.length >= 8 ? digits : '';
+};
+
 const participantPayload = contact => {
-  const waId = contact.phoneNumber?.replace(/\D/g, '');
+  const waId = digitsOnly(contact.phoneNumber) || sourceParticipantId(contact);
   const userId = contact.bsuid;
 
   return {

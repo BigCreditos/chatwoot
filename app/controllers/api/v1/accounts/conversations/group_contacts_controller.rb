@@ -1,6 +1,7 @@
 class Api::V1::Accounts::Conversations::GroupContactsController < Api::V1::Accounts::Conversations::BaseController
   RESULTS_PER_PAGE = 25
   PARTICIPANT_IDENTIFIER_KEYS = [:wa_id, :phone_number, :phoneNumber, :pn, :jid, :id, :user_id, :lid].freeze
+  PARTICIPANT_PAYLOAD_KEYS = [:wa_id, :phone_number, :phoneNumber, :pn, :jid, :user_id, :lid].freeze
   before_action :ensure_session_group_admin, only: [:create, :destroy]
 
   def index
@@ -17,6 +18,10 @@ class Api::V1::Accounts::Conversations::GroupContactsController < Api::V1::Accou
     )
     return render json: response.parsed_response if response.success?
 
+    Rails.logger.warn(
+      "[WHATSAPP][GROUP] add participants failed conversation_id=#{@conversation.id} group_source_id=#{@conversation.group_source_id} " \
+      "participants=#{participants.inspect} status=#{response.code} response=#{response.parsed_response.inspect}"
+    )
     render json: { error: provider_error(response, 'Provider failed to add participants') }, status: :unprocessable_entity
   end
 
@@ -89,7 +94,7 @@ class Api::V1::Accounts::Conversations::GroupContactsController < Api::V1::Accou
 
     attrs = participant.respond_to?(:to_unsafe_h) ? participant.to_unsafe_h : participant
     attrs = attrs.with_indifferent_access
-    payload = PARTICIPANT_IDENTIFIER_KEYS.each_with_object({}) do |key, result|
+    payload = PARTICIPANT_PAYLOAD_KEYS.each_with_object({}) do |key, result|
       result[key.to_s] = attrs[key] if attrs[key].present?
     end
 

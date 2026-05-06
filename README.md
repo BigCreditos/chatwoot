@@ -4,7 +4,7 @@
 ___
 
 
-# Chatwoot Uno
+# Chatwoot Uno 
   - essa versão do chatwoot que esta sendo usada aqui tem algumas customizações que ainda não foram aceitas pelo time do chatwoot e para um melhor uso com a unoapi(http://github.com/clairton/unoapi-cloud):
     - funciona as conversas em grupo
     - trata a mensagem enviadas por outras conexões, inclusive o aplicativo

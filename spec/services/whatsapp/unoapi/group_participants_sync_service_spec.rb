@@ -166,6 +166,66 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(conversation.reload.additional_attributes['group_picture']).to eq('https://cdn.example.com/groups/current.jpg')
   end
 
+  it 'preserves an existing participant profile picture when sync returns an empty profile_url' do
+    participant_contact = create(:contact, account: whatsapp_channel.account, name: 'Maria')
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: participant_contact, source_id: '556699999999')
+    create(
+      :group_contact,
+      conversation: conversation,
+      contact: participant_contact,
+      metadata: {
+        jid: '556699999999@s.whatsapp.net',
+        wa_id: '556699999999',
+        picture: 'https://cdn.example.com/profile/current.jpg'
+      }
+    )
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699999999@s.whatsapp.net',
+            wa_id: '556699999999',
+            name: 'Maria',
+            profile_url: ''
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.not_to have_enqueued_job(Avatar::AvatarFromUrlJob).with(participant_contact, '')
+
+    group_contact = conversation.reload.group_contacts.find_by!(contact: participant_contact)
+    expect(group_contact.metadata['picture']).to eq('https://cdn.example.com/profile/current.jpg')
+  end
+
+  it 'uses participant profile_url as the profile picture when present' do
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699999999@s.whatsapp.net',
+            wa_id: '556699999999',
+            name: 'Maria',
+            profile_url: 'https://cdn.example.com/profile/new.jpg'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.to have_enqueued_job(Avatar::AvatarFromUrlJob).with(
+      instance_of(Contact),
+      'https://cdn.example.com/profile/new.jpg'
+    )
+
+    group_contact = conversation.reload.group_contacts.joins(:contact).find_by!(contacts: { name: 'Maria' })
+    expect(group_contact.metadata['picture']).to eq('https://cdn.example.com/profile/new.jpg')
+  end
+
   it 'uses the merged participant contact to identify the connected session admin' do
     session_contact = create(:contact, account: whatsapp_channel.account, name: 'Sessao')
     session_contact.update_columns(phone_number: '+556600000000', bsuid: '94047083475061@lid') # rubocop:disable Rails/SkipsModelValidations

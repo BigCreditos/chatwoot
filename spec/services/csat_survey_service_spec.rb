@@ -217,6 +217,18 @@ describe CsatSurveyService do
           csat_message = whatsapp_conversation.messages.where(content_type: :input_csat).last
           expect(csat_message.content).to eq('Please rate this conversation')
         end
+
+        it 'uses localized default message when not configured' do
+          setup_approved_template('test', { 'template' => { 'name' => 'test' } })
+          mock_successful_template_send('msg_id')
+
+          I18n.with_locale(:pt_BR) do
+            whatsapp_service.perform
+          end
+
+          csat_message = whatsapp_conversation.messages.where(content_type: :input_csat).last
+          expect(csat_message.content).to eq('Por favor, classifique esta conversa')
+        end
       end
 
       context 'when template is not available or not approved' do

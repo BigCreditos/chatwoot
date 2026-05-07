@@ -47,7 +47,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     {
       subject: details[:subject].presence,
       description: details[:description].presence,
-      picture: details[:picture].presence,
+      picture: group_picture_url(details),
       join_approval_mode: details[:join_approval_mode].presence,
       created_at: details[:created_at].presence || details[:creation_timestamp].presence,
       suspended: details[:suspended]
@@ -92,10 +92,11 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
     }.compact
     attrs[:group_suspended] = group[:suspended] unless group[:suspended].nil?
 
-    if group[:picture].present?
+    picture_url = group_picture_url(group)
+    if picture_url.present?
       @conversation.additional_attributes ||= {}
-      @conversation.additional_attributes['group_picture'] = group[:picture]
-      Avatar::AvatarFromUrlJob.perform_later(@conversation.contact, group[:picture])
+      @conversation.additional_attributes['group_picture'] = picture_url
+      Avatar::AvatarFromUrlJob.perform_later(@conversation.contact, picture_url)
     end
 
     @conversation.assign_attributes(attrs)
@@ -120,7 +121,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
 
     group_contact = @conversation.group_contacts.find_or_initialize_by(contact: contact_inbox.contact)
     group_contact.account_id = @conversation.account_id
-    group_contact.metadata = participant_metadata(participant, source_id)
+    group_contact.metadata = participant_metadata(participant, source_id, group_contact.metadata || {})
     group_contact.save!
     group_contact.contact_id
   end
@@ -171,7 +172,7 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
   def contact_attributes(participant, source_id)
     attrs = {
       name: participant_name(participant, source_id),
-      avatar_url: participant[:picture].presence,
+      avatar_url: participant_picture_url(participant),
       bsuid: participant_bsuid(participant),
       whatsapp_username: participant[:username].presence
     }.compact
@@ -193,7 +194,9 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
       source_id
   end
 
-  def participant_metadata(participant, source_id)
+  def participant_metadata(participant, source_id, current_metadata = {})
+    picture_url = participant_picture_url(participant).presence || current_metadata['picture'].presence
+
     {
       jid: participant[:jid].presence || source_id,
       wa_id: participant[:wa_id].presence,
@@ -202,8 +205,25 @@ class Whatsapp::Unoapi::GroupParticipantsSyncService
       username: participant[:username].presence,
       role: participant[:role].presence,
       is_admin: participant[:is_admin],
-      picture: participant[:picture].presence
+      picture: picture_url
     }.compact
+  end
+
+  def group_picture_url(group)
+    group[:picture].presence ||
+      group[:profile_url].presence ||
+      group[:profile_picture_url].presence ||
+      group[:group_picture].presence ||
+      group.dig(:profile, :picture).presence ||
+      group.dig(:profile, :profile_url).presence
+  end
+
+  def participant_picture_url(participant)
+    participant[:picture].presence ||
+      participant[:profile_url].presence ||
+      participant[:profile_picture_url].presence ||
+      participant.dig(:profile, :picture).presence ||
+      participant.dig(:profile, :profile_url).presence
   end
 
   def participant_source_id(participant)

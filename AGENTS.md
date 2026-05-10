@@ -105,6 +105,10 @@
 
 - **Frontend**:
   - Use `components-next/` for message bubbles (the rest is being deprecated)
+- **Uno premium features health check**:
+  - Operational runbook: `docs/uno-premium-features-health-check.md`
+  - Manual check: `bundle exec rails chatwoot:ops:check_uno_premium_features`
+  - Scheduled check: `Internal::CheckUnoPremiumFeaturesJob` via `config/schedule.yml`
 
 ## Ruby Best Practices
 

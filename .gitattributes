@@ -1,0 +1,15 @@
+# Enforce LF for all text files
+* text=auto eol=lf
+
+# Force LF for shell scripts and binaries
+bin/* text eol=lf
+docker/entrypoints/*.sh text eol=lf
+docker/entrypoints/helpers/*.rb text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf

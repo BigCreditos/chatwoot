@@ -375,6 +375,8 @@ class Message < ApplicationRecord
   end
 
   def clear_waiting_since_on_outgoing_response
+    return if conversation.blank?
+    return unless outgoing?
     if human_response?
       Rails.configuration.dispatcher.dispatch(
         REPLY_CREATED, Time.zone.now, waiting_since: conversation.waiting_since, message: self
@@ -388,6 +390,8 @@ class Message < ApplicationRecord
   end
 
   def set_waiting_since_on_incoming_message
+    return if conversation.blank?
+
     # Set waiting_since when customer sends a message (if currently blank)
     conversation.update(waiting_since: created_at) if incoming? && conversation.waiting_since.blank?
   end

@@ -2,6 +2,8 @@ class Sla::EvaluateAppliedSlaService
   pattr_initialize [:applied_sla!]
 
   def perform
+    return if applied_sla.conversation.blank?
+
     check_sla_thresholds
 
     # We will calculate again in the next iteration

@@ -56,16 +56,23 @@ const parsedLastMessage = computed(() => {
 });
 
 const lastMessageFileType = computed(() => {
-  const [{ file_type: fileType } = {}] = props.message.attachments;
-  return fileType;
+  const { attachments = [] } = props.message;
+  if (attachments.length > 0) {
+    return attachments[0].file_type;
+  }
+  return props.message.content_type;
 });
 
 const attachmentIcon = computed(() => {
-  return attachmentIcons[lastMessageFileType.value];
+  return attachmentIcons[lastMessageFileType.value] || 'i-lucide-paperclip';
 });
 
 const attachmentMessageContent = computed(() => {
-  return `CHAT_LIST.ATTACHMENTS.${lastMessageFileType.value}.CONTENT`;
+  const type = lastMessageFileType.value;
+  if (['image', 'audio', 'video', 'file', 'location'].includes(type)) {
+    return `CHAT_LIST.ATTACHMENTS.${type}.CONTENT`;
+  }
+  return null;
 });
 
 const isMessageSticker = computed(() => {
@@ -135,7 +142,7 @@ const isMessageSticker = computed(() => {
       </template>
 
       <span
-        v-else-if="message.attachments"
+        v-else-if="attachmentMessageContent"
         class="inline-block align-middle truncate"
       >
         <Icon

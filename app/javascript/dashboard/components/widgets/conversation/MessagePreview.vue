@@ -44,14 +44,21 @@ export default {
       return this.getPlainText(subject || this.message.content);
     },
     lastMessageFileType() {
-      const [{ file_type: fileType } = {}] = this.message.attachments;
-      return fileType;
+      const { attachments = [] } = this.message;
+      if (attachments.length > 0) {
+        return attachments[0].file_type;
+      }
+      return this.message.content_type;
     },
     attachmentIcon() {
-      return ATTACHMENT_ICONS[this.lastMessageFileType];
+      return ATTACHMENT_ICONS[this.lastMessageFileType] || 'attach';
     },
     attachmentMessageContent() {
-      return `CHAT_LIST.ATTACHMENTS.${this.lastMessageFileType}.CONTENT`;
+      const type = this.lastMessageFileType;
+      if (['image', 'audio', 'video', 'file', 'location'].includes(type)) {
+        return `CHAT_LIST.ATTACHMENTS.${type}.CONTENT`;
+      }
+      return null;
     },
     isMessageSticker() {
       return this.message && this.message.content_type === 'sticker';
@@ -93,14 +100,14 @@ export default {
     <span v-else-if="message.content">
       {{ parsedLastMessage }}
     </span>
-    <span v-else-if="message.attachments">
+    <span v-else-if="attachmentMessageContent">
       <fluent-icon
         v-if="attachmentIcon && showMessageType"
         size="16"
         class="-mt-0.5 align-middle inline-block text-n-slate-11"
         :icon="attachmentIcon"
       />
-      {{ $t(`${attachmentMessageContent}`) }}
+      {{ $t(attachmentMessageContent) }}
     </span>
     <span v-else>
       {{ defaultEmptyMessage || $t('CHAT_LIST.NO_CONTENT') }}

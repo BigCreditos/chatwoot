@@ -20,9 +20,25 @@ const lastNonActivityMessageContent = computed(() => {
   const { lastNonActivityMessage = {}, customAttributes = {} } =
     props.conversation;
   const { email: { subject } = {} } = customAttributes;
-  return getPlainText(
-    subject || lastNonActivityMessage?.content || t('CHAT_LIST.NO_CONTENT')
-  );
+
+  const content = subject || lastNonActivityMessage?.content;
+  if (content) return getPlainText(content);
+
+  const attachments = lastNonActivityMessage?.attachments || [];
+  if (attachments.length > 0) {
+    const fileType = attachments[0].file_type;
+    const attachmentKeys = ['image', 'audio', 'video', 'file', 'location'];
+    if (attachmentKeys.includes(fileType)) {
+      return t(`CHAT_LIST.ATTACHMENTS.${fileType}.CONTENT`);
+    }
+  }
+
+  const contentType = lastNonActivityMessage?.content_type;
+  if (['image', 'audio', 'video', 'file', 'location'].includes(contentType)) {
+    return t(`CHAT_LIST.ATTACHMENTS.${contentType}.CONTENT`);
+  }
+
+  return t('CHAT_LIST.NO_CONTENT');
 });
 
 const assignee = computed(() => {

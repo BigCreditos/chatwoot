@@ -140,8 +140,8 @@ class Campaign < ApplicationRecord
     return unless media.attached?
 
     content_type = media.blob&.content_type.to_s
-    is_media = content_type.start_with?('image/', 'video/')
-    errors.add(:media, 'must be an image or video') unless is_media
+    is_media = content_type.start_with?('image/', 'video/', 'audio/')
+    errors.add(:media, 'must be an image, video or audio') unless is_media
   end
 
   # creating db triggers

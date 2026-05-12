@@ -1,44 +1,14 @@
 <script setup>
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
 
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
+import MessagePreview from 'dashboard/components-next/Conversation/ConversationCard/MessagePreview.vue';
 
 const props = defineProps({
   conversation: {
     type: Object,
     required: true,
   },
-});
-
-const { t } = useI18n();
-
-const { getPlainText } = useMessageFormatter();
-
-const lastNonActivityMessageContent = computed(() => {
-  const { lastNonActivityMessage = {}, customAttributes = {} } =
-    props.conversation;
-  const { email: { subject } = {} } = customAttributes;
-
-  const content = subject || lastNonActivityMessage?.content;
-  if (content) return getPlainText(content);
-
-  const attachments = lastNonActivityMessage?.attachments || [];
-  if (attachments.length > 0) {
-    const fileType = attachments[0].file_type;
-    const attachmentKeys = ['image', 'audio', 'video', 'file', 'location'];
-    if (attachmentKeys.includes(fileType)) {
-      return t(`CHAT_LIST.ATTACHMENTS.${fileType}.CONTENT`);
-    }
-  }
-
-  const contentType = lastNonActivityMessage?.content_type;
-  if (['image', 'audio', 'video', 'file', 'location'].includes(contentType)) {
-    return t(`CHAT_LIST.ATTACHMENTS.${contentType}.CONTENT`);
-  }
-
-  return t('CHAT_LIST.NO_CONTENT');
 });
 
 const assignee = computed(() => {
@@ -58,9 +28,13 @@ const unreadMessagesCount = computed(() => {
 
 <template>
   <div class="flex items-end w-full gap-2 pb-1">
-    <p class="w-full mb-0 text-sm leading-7 text-n-slate-12 line-clamp-2">
-      {{ lastNonActivityMessageContent }}
-    </p>
+    <div class="w-full mb-0 text-sm leading-7 text-n-slate-12 line-clamp-2">
+      <MessagePreview
+        v-if="conversation.lastNonActivityMessage"
+        :message="conversation.lastNonActivityMessage"
+        multi-line
+      />
+    </div>
     <div class="flex items-center flex-shrink-0 gap-2 pb-2">
       <Avatar
         v-if="assignee.name"

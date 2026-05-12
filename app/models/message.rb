@@ -370,13 +370,13 @@ class Message < ApplicationRecord
   end
 
   def update_waiting_since
-    clear_waiting_since_on_outgoing_response if conversation.waiting_since.present? && !private
+    clear_waiting_since_on_response if conversation.waiting_since.present? && !private
     set_waiting_since_on_incoming_message
   end
 
-  def clear_waiting_since_on_outgoing_response
+  def clear_waiting_since_on_response
     return if conversation.blank?
-    return unless outgoing?
+    return unless outgoing? || template? || content_attributes['external_echo'].present?
     if human_response?
       Rails.configuration.dispatcher.dispatch(
         REPLY_CREATED, Time.zone.now, waiting_since: conversation.waiting_since, message: self
@@ -393,6 +393,9 @@ class Message < ApplicationRecord
     return if conversation.blank?
 
     # Set waiting_since when customer sends a message (if currently blank)
+    # Exclude external echoes (replies from phone) from setting waiting_since
+    return if content_attributes['external_echo'].present?
+
     conversation.update(waiting_since: created_at) if incoming? && conversation.waiting_since.blank?
   end
 
@@ -401,15 +404,14 @@ class Message < ApplicationRecord
     # if automation rule id is present, it's not a human response
     # if campaign id is present, it's not a human response
     # external echo messages are responses sent from the native app (WhatsApp Business, Instagram)
-    outgoing? &&
+    (outgoing? || template? || content_attributes['external_echo'].present?) &&
       content_attributes['automation_rule_id'].blank? &&
-      additional_attributes['campaign_id'].blank? &&
       (sender.is_a?(User) || content_attributes['external_echo'].present?)
   end
 
   def bot_response?
     # Check if this is a response from AgentBot or Captain::Assistant
-    outgoing? && sender_type.in?(['AgentBot', 'Captain::Assistant'])
+    (outgoing? || template?) && sender_type.in?(['AgentBot', 'Captain::Assistant'])
   end
 
   def dispatch_create_events

@@ -24,6 +24,7 @@ class CampaignMessageJob < ApplicationJob
       inbox_id: inbox_id,
       message_type: :outgoing,
       status: :progress,
+      sender: campaign.sender,
       additional_attributes: {
         campaign_id: campaign_id,
         audience_id: audience[:audience_id]

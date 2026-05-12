@@ -75,6 +75,8 @@ const attachmentMessageContent = computed(() => {
   return null;
 });
 
+const isAudio = computed(() => lastMessageFileType.value === 'audio');
+
 const isMessageSticker = computed(() => {
   return props.message && props.message.content_type === 'sticker';
 });
@@ -144,6 +146,7 @@ const isMessageSticker = computed(() => {
       <span
         v-else-if="attachmentMessageContent"
         class="inline-block align-middle truncate"
+        :class="{ 'text-n-blue-11': isAudio }"
       >
         <Icon
           v-if="attachmentIcon && showMessageType"

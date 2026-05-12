@@ -166,6 +166,66 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(conversation.reload.additional_attributes['group_picture']).to eq('https://cdn.example.com/groups/current.jpg')
   end
 
+  it 'preserves an existing participant profile picture when sync returns an empty profile_url' do
+    participant_contact = create(:contact, account: whatsapp_channel.account, name: 'Maria')
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: participant_contact, source_id: '556699999999')
+    create(
+      :group_contact,
+      conversation: conversation,
+      contact: participant_contact,
+      metadata: {
+        jid: '556699999999@s.whatsapp.net',
+        wa_id: '556699999999',
+        picture: 'https://cdn.example.com/profile/current.jpg'
+      }
+    )
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699999999@s.whatsapp.net',
+            wa_id: '556699999999',
+            name: 'Maria',
+            profile_url: ''
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.not_to have_enqueued_job(Avatar::AvatarFromUrlJob).with(participant_contact, '')
+
+    group_contact = conversation.reload.group_contacts.find_by!(contact: participant_contact)
+    expect(group_contact.metadata['picture']).to eq('https://cdn.example.com/profile/current.jpg')
+  end
+
+  it 'uses participant profile_url as the profile picture when present' do
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699999999@s.whatsapp.net',
+            wa_id: '556699999999',
+            name: 'Maria',
+            profile_url: 'https://cdn.example.com/profile/new.jpg'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect { service.perform }.to have_enqueued_job(Avatar::AvatarFromUrlJob).with(
+      instance_of(Contact),
+      'https://cdn.example.com/profile/new.jpg'
+    )
+
+    group_contact = conversation.reload.group_contacts.joins(:contact).find_by!(contacts: { name: 'Maria' })
+    expect(group_contact.metadata['picture']).to eq('https://cdn.example.com/profile/new.jpg')
+  end
+
   it 'uses the merged participant contact to identify the connected session admin' do
     session_contact = create(:contact, account: whatsapp_channel.account, name: 'Sessao')
     session_contact.update_columns(phone_number: '+556600000000', bsuid: '94047083475061@lid') # rubocop:disable Rails/SkipsModelValidations
@@ -359,6 +419,41 @@ describe Whatsapp::Unoapi::GroupParticipantsSyncService do
     expect(conversation.group_contacts.where(contact: phone_contact).count).to eq(1)
     expect(conversation.group_contacts.where(contact_id: lid_contact.id)).to be_blank
     expect(phone_group_contact.reload.metadata).to include('user_id' => '11343495192601@lid')
+  end
+
+  it 'syncs participants when legacy contacts already have a duplicated normalized phone number' do
+    phone_contact = create(:contact, account: whatsapp_channel.account, name: 'Clara Souza')
+    phone_contact.update_columns(phone_number: '+5566999139289') # rubocop:disable Rails/SkipsModelValidations
+    create(:contact_inbox, inbox: whatsapp_channel.inbox, contact: phone_contact, source_id: '5566999139289')
+
+    duplicate_contact = create(:contact, account: whatsapp_channel.account, name: 'Clara duplicada')
+    duplicate_contact.update_columns(phone_number: '+5566999139289') # rubocop:disable Rails/SkipsModelValidations
+
+    stub_request(:get, participants_url).to_return(
+      status: 200,
+      body: {
+        participants: [
+          {
+            jid: '556699139289@s.whatsapp.net',
+            wa_id: '556699139289',
+            user_id: '224566693630048@lid',
+            name: 'Clara Souza',
+            username: '@clara'
+          }
+        ]
+      }.to_json,
+      headers: { 'Content-Type' => 'application/json' }
+    )
+
+    expect(service.perform).to eq(:ok)
+
+    expect(phone_contact.reload.bsuid).to eq('224566693630048@lid')
+    expect(phone_contact.whatsapp_username).to eq('@clara')
+    expect(phone_contact.contact_inboxes.find_by!(inbox: whatsapp_channel.inbox, source_id: '556699139289')).to be_present
+    expect(conversation.group_contacts.find_by!(contact: phone_contact).metadata).to include(
+      'wa_id' => '556699139289',
+      'user_id' => '224566693630048@lid'
+    )
   end
 
   it 'removes group contacts that are no longer returned by Uno API' do

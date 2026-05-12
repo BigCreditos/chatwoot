@@ -304,6 +304,7 @@ pt_BR:
       email_subject: 'Novas mensagens nesta conversa'
       transcript_subject: 'Transcrição da conversa'
     survey:
+      response_without_link: 'Por favor, classifique esta conversa'
       response: 'Por favor, classifique esta conversa, %{link}'
   contacts:
     online:

@@ -139,7 +139,7 @@ class CsatSurveyService
       account: conversation.account,
       inbox: inbox,
       message_type: :outgoing,
-      content: inbox.csat_config&.dig('message') || 'Please rate this conversation',
+      content: inbox.csat_config&.dig('message') || I18n.t('conversations.survey.response_without_link'),
       content_type: :input_csat
     )
   end

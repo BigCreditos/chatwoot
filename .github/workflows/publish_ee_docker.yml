@@ -5,6 +5,9 @@ on:
       - '**'        # Isso aqui diz: "Monitore QUALQUER branch que existir"
   workflow_dispatch: # Mantém o botão manual por segurança
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

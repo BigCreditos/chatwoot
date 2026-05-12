@@ -60,6 +60,8 @@ const getters = {
   getSelectedChatAttachmentsMeta: ({ selectedChatId, attachmentsMeta }) => {
     return attachmentsMeta[selectedChatId] || {};
   },
+  getSelectedChatAttachmentsLoaded: ({ selectedChatId, attachments }) =>
+    selectedChatId !== null && attachments[selectedChatId] !== undefined,
   getChatListFilters: ({ conversationFilters }) => conversationFilters,
   getLastEmailInSelectedChat: (stage, _getters) => {
     const selectedChat = _getters.getSelectedChat;

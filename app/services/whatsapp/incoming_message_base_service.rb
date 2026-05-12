@@ -14,6 +14,7 @@ class Whatsapp::IncomingMessageBaseService
     processed_params
 
     if processed_params.try(:[], :statuses).present?
+      sync_contacts if processed_params.try(:[], :contacts).present?
       process_statuses
     elsif contact_sync_payload?
       sync_contacts
@@ -300,7 +301,7 @@ class Whatsapp::IncomingMessageBaseService
 
   def set_conversation
     # if lock to single conversation is disabled, we will create a new conversation if previous conversation is resolved
-    merge_contact_conversation_aliases if @inbox.lock_to_single_conversation
+    merge_contact_conversation_aliases if single_conversation_for_contact_aliases?
     @conversation = existing_contact_conversation
     return if @conversation
 
@@ -320,7 +321,7 @@ class Whatsapp::IncomingMessageBaseService
 
   def existing_contact_conversation
     conversations = contact_conversation_aliases
-    return conversations.last if @inbox.lock_to_single_conversation
+    return conversations.last if single_conversation_for_contact_aliases?
 
     conversations.where.not(status: :resolved).last
   end
@@ -337,6 +338,16 @@ class Whatsapp::IncomingMessageBaseService
 
   def contact_inbox_aliases
     @contact.contact_inboxes.where(inbox_id: @inbox.id)
+  end
+
+  def single_conversation_for_contact_aliases?
+    @inbox.lock_to_single_conversation || unoapi_bsuid_contact?
+  end
+
+  def unoapi_bsuid_contact?
+    @inbox.channel_type == 'Channel::Whatsapp' &&
+      @inbox.channel.provider == 'unoapi' &&
+      @contact.bsuid.present?
   end
 
   def attach_files

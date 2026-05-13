@@ -45,8 +45,6 @@ class Attachment < ApplicationRecord
                     :contact => 8, :ig_reel => 9, :ig_post => 10, :ig_story => 11, :embed => 12 }
 
   def push_event_data
-    return unless file_type
-
     base_data.merge(metadata_for_file_type)
   end
 
@@ -79,7 +77,7 @@ class Attachment < ApplicationRecord
   private
 
   def metadata_for_file_type
-    case file_type.to_sym
+    case file_type&.to_sym
     when :location
       location_metadata
     when :fallback
@@ -145,7 +143,7 @@ class Attachment < ApplicationRecord
     {
       id: id,
       message_id: message_id,
-      file_type: file_type,
+      file_type: file_type || 'file',
       account_id: account_id
     }
   end

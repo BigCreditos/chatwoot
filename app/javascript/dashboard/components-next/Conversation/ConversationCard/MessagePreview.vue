@@ -35,18 +35,20 @@ const attachmentIcons = {
 };
 
 const messageByAgent = computed(() => {
-  const { message_type: messageType } = props.message;
-  return messageType === MESSAGE_TYPE.OUTGOING;
+  const { message_type: messageType, messageType: mType } = props.message;
+  const type = messageType ?? mType;
+  return type === MESSAGE_TYPE.OUTGOING;
 });
 
 const isMessageAnActivity = computed(() => {
-  const { message_type: messageType } = props.message;
-  return messageType === MESSAGE_TYPE.ACTIVITY;
+  const { message_type: messageType, messageType: mType } = props.message;
+  const type = messageType ?? mType;
+  return type === MESSAGE_TYPE.ACTIVITY;
 });
 
 const isMessagePrivate = computed(() => {
-  const { private: isPrivate } = props.message;
-  return isPrivate;
+  const { private: isPrivate, private: p } = props.message;
+  return isPrivate ?? p;
 });
 
 const parsedLastMessage = computed(() => {
@@ -56,11 +58,14 @@ const parsedLastMessage = computed(() => {
 });
 
 const lastMessageFileType = computed(() => {
-  const { attachments = [] } = props.message;
+  const attachments = props.message.attachments || [];
   if (attachments.length > 0) {
-    return attachments[0].file_type;
+    const attachment = attachments[0];
+    const type = attachment.file_type || attachment.fileType;
+    return type ? type.toString().toLowerCase() : null;
   }
-  return props.message.content_type;
+  const contentType = props.message.content_type || props.message.contentType;
+  return contentType ? contentType.toString().toLowerCase() : null;
 });
 
 const attachmentIcon = computed(() => {
@@ -69,13 +74,30 @@ const attachmentIcon = computed(() => {
 
 const attachmentMessageContent = computed(() => {
   const type = lastMessageFileType.value;
-  if (['image', 'audio', 'video', 'file', 'location'].includes(type)) {
-    return `CHAT_LIST.ATTACHMENTS.${type}.CONTENT`;
+  if (
+    [
+      'image',
+      'audio',
+      'video',
+      'file',
+      'location',
+      'voice',
+      '1', // Audio enum value as string
+      'contact',
+      'fallback',
+    ].includes(type)
+  ) {
+    const isVoiceOrAudio = type === 'voice' || type === 'audio' || type === '1';
+    const translationType = isVoiceOrAudio ? 'audio' : type;
+    return `CHAT_LIST.ATTACHMENTS.${translationType}.CONTENT`;
   }
   return null;
 });
 
-const isAudio = computed(() => lastMessageFileType.value === 'audio');
+const isAudio = computed(() => {
+  const type = lastMessageFileType.value;
+  return type === 'audio' || type === 'voice' || type === '1';
+});
 
 const isMessageSticker = computed(() => {
   return props.message && props.message.content_type === 'sticker';

@@ -44,21 +44,42 @@ export default {
       return this.getPlainText(subject || this.message.content);
     },
     lastMessageFileType() {
-      const { attachments = [] } = this.message;
+      const attachments = this.message.attachments || [];
       if (attachments.length > 0) {
-        return attachments[0].file_type;
+        const attachment = attachments[0];
+        const type = attachment.file_type || attachment.fileType;
+        return type ? type.toString().toLowerCase() : null;
       }
-      return this.message.content_type;
+      const contentType = this.message.content_type || this.message.contentType;
+      return contentType ? contentType.toString().toLowerCase() : null;
     },
     attachmentIcon() {
       return ATTACHMENT_ICONS[this.lastMessageFileType] || 'attach';
     },
     attachmentMessageContent() {
       const type = this.lastMessageFileType;
-      if (['image', 'audio', 'video', 'file', 'location'].includes(type)) {
-        return `CHAT_LIST.ATTACHMENTS.${type}.CONTENT`;
+      if (
+        [
+          'image',
+          'audio',
+          'video',
+          'file',
+          'location',
+          'voice',
+          '1', // Audio enum value as string
+          'contact',
+          'fallback',
+        ].includes(type)
+      ) {
+        const isVoiceOrAudio = type === 'voice' || type === 'audio' || type === '1';
+        const translationType = isVoiceOrAudio ? 'audio' : type;
+        return `CHAT_LIST.ATTACHMENTS.${translationType}.CONTENT`;
       }
       return null;
+    },
+    isAudio() {
+      const type = this.lastMessageFileType;
+      return type === 'audio' || type === 'voice' || type === '1';
     },
     isMessageSticker() {
       return this.message && this.message.content_type === 'sticker';
@@ -100,11 +121,15 @@ export default {
     <span v-else-if="message.content">
       {{ parsedLastMessage }}
     </span>
-    <span v-else-if="attachmentMessageContent">
+    <span
+      v-else-if="attachmentMessageContent"
+      :class="{ 'text-n-blue-11': isAudio }"
+    >
       <fluent-icon
         v-if="attachmentIcon && showMessageType"
         size="16"
-        class="-mt-0.5 align-middle inline-block text-n-slate-11"
+        class="-mt-0.5 align-middle inline-block"
+        :class="isAudio ? 'text-n-blue-11' : 'text-n-slate-11'"
         :icon="attachmentIcon"
       />
       {{ $t(attachmentMessageContent) }}

@@ -160,7 +160,7 @@ class Message < ApplicationRecord
       conversation: conversation.present? ? conversation_push_event_data : nil
     )
     data[:echo_id] = echo_id if echo_id.present?
-    data[:attachments] = attachments.map(&:push_event_data) if attachments.present?
+    data[:attachments] = attachments.map(&:push_event_data).compact
     merge_sender_attributes(data)
   end
 

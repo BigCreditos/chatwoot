@@ -136,6 +136,16 @@ const closeContactPanel = () => {
   });
 };
 
+const onToggleNotes = () => {
+  toggleSidebarUIState('is_contact_notes_open', true);
+  setTimeout(() => {
+    const element = document.getElementById('contact-notes-accordion');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, 100);
+};
+
 onMounted(() => {
   conversationSidebarItems.value = conversationSidebarItemsOrder.value;
   getContactDetails();
@@ -159,7 +169,12 @@ onMounted(() => {
       v-if="isGroupConversation"
       :conversation-id="conversationId"
     />
-    <ContactInfo v-else :contact="contact" :channel-type="channelType" />
+    <ContactInfo
+      v-else
+      :contact="contact"
+      :channel-type="channelType"
+      @on-toggle-notes="onToggleNotes"
+    />
     <div class="px-2 pb-8 list-group">
       <Draggable
         :list="conversationSidebarItems"
@@ -338,6 +353,7 @@ onMounted(() => {
             v-else-if="
               shouldShowSidebarItem(element) && element.name === 'contact_notes'
             "
+            id="contact-notes-accordion"
           >
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONTACT_NOTES')"

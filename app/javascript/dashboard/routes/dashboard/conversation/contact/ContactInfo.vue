@@ -43,7 +43,7 @@ export default {
       default: true,
     },
   },
-  emits: ['panelClose'],
+  emits: ['panelClose', 'onToggleNotes'],
   setup() {
     const { isAdmin } = useAdmin();
     return {
@@ -384,6 +384,14 @@ export default {
           faded
           sm
           @click="toggleEditModal"
+        />
+        <NextButton
+          v-tooltip.top-end="$t('CONVERSATION_SIDEBAR.ACCORDION.CONTACT_NOTES')"
+          icon="i-ph-note-pencil"
+          slate
+          faded
+          sm
+          @click="$emit('onToggleNotes')"
         />
         <ContactMergeModal :primary-contact="contact">
           <template #trigger>

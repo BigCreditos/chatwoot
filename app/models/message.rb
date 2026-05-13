@@ -172,6 +172,7 @@ class Message < ApplicationRecord
       group_title: conversation.group_title,
       unread_count: conversation.unread_incoming_messages.count,
       last_activity_at: conversation.last_activity_at.to_i,
+      waiting_since: conversation.waiting_since.to_i,
       contact_inbox: { source_id: conversation.contact_inbox.source_id }
     }
   end
@@ -377,16 +378,14 @@ class Message < ApplicationRecord
   def clear_waiting_since_on_response
     return if conversation.blank?
     return unless outgoing? || template? || content_attributes['external_echo'].present?
-    if human_response?
-      Rails.configuration.dispatcher.dispatch(
-        REPLY_CREATED, Time.zone.now, waiting_since: conversation.waiting_since, message: self
-      )
-      conversation.update(waiting_since: nil)
-      return
-    end
+    # Clear waiting_since for ANY outgoing message to ensure the 'Waiting' tab is updated
+    conversation.update(waiting_since: nil) unless preserve_waiting_since
 
-    # Bot responses also clear waiting_since (simpler than checking on next customer message)
-    conversation.update(waiting_since: nil) if bot_response? && !preserve_waiting_since
+    return unless human_response?
+
+    Rails.configuration.dispatcher.dispatch(
+      REPLY_CREATED, Time.zone.now, waiting_since: conversation.waiting_since, message: self
+    )
   end
 
   def set_waiting_since_on_incoming_message

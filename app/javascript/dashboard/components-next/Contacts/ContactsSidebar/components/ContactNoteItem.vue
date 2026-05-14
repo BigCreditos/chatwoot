@@ -9,7 +9,9 @@ import Button from 'dashboard/components-next/button/Button.vue';
 import { emitter } from 'shared/helpers/mitt';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import { useMapGetter } from 'dashboard/composables/store';
+import { useAlert } from 'dashboard/composables';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
+import { copyTextToClipboard } from 'shared/helpers/clipboard';
 
 const props = defineProps({
   note: {
@@ -56,6 +58,11 @@ const handleUseNote = () => {
   }
 };
 
+const handleCopy = async () => {
+  await copyTextToClipboard(props.note.content);
+  useAlert(t('CONTACT_PANEL.COPY_SUCCESSFUL'));
+};
+
 onMounted(() => {
   if (props.collapsible) {
     // Check if content height exceeds approximately 4 lines
@@ -99,6 +106,15 @@ onMounted(() => {
           icon="i-lucide-arrow-left-to-line"
           class="opacity-0 group-hover/note:opacity-100"
           @click="handleUseNote"
+        />
+        <Button
+          v-tooltip.top-end="t('CONTACTS_LAYOUT.SIDEBAR.NOTES.COPY_NOTE')"
+          variant="faded"
+          color="slate"
+          size="xs"
+          icon="i-lucide-clipboard"
+          class="opacity-0 group-hover/note:opacity-100"
+          @click="handleCopy"
         />
         <Button
           v-if="allowDelete"

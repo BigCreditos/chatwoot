@@ -215,7 +215,8 @@
     "ACTIONS": {
       "COPY": "Copy attribute",
       "DELETE": "Delete attribute",
-      "EDIT": "Edit attribute"
+      "EDIT": "Edit attribute",
+      "USE": "Use attribute"
     },
     "ADD": {
       "TITLE": "Create custom attribute",

@@ -215,7 +215,8 @@
     "ACTIONS": {
       "COPY": "Copiar atributo",
       "DELETE": "Excluir atributo",
-      "EDIT": "Alterar atributo"
+      "EDIT": "Alterar atributo",
+      "USE": "Usar atributo"
     },
     "ADD": {
       "TITLE": "Criar atributo personalizado",

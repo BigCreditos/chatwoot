@@ -1,5 +1,5 @@
 <script setup>
-import { useTemplateRef, onMounted, ref } from 'vue';
+import { useTemplateRef, onMounted, ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { dynamicTime } from 'shared/helpers/timeHelper';
 import { useToggle } from '@vueuse/core';

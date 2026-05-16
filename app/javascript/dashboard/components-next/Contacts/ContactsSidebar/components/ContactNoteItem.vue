@@ -26,13 +26,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  allowEdit: {
+    type: Boolean,
+    default: false,
+  },
   collapsible: {
     type: Boolean,
     default: false,
   },
 });
 
-const emit = defineEmits(['delete']);
+const emit = defineEmits(['delete', 'edit']);
 const noteContentRef = useTemplateRef('noteContentRef');
 const needsCollapse = ref(false);
 const [isExpanded, toggleExpanded] = useToggle();
@@ -41,6 +45,10 @@ const { formatMessage } = useMessageFormatter();
 
 const handleDelete = () => {
   emit('delete', props.note.id);
+};
+
+const handleEdit = () => {
+  emit('edit', props.note);
 };
 
 const currentChat = useMapGetter('getSelectedChat');
@@ -104,7 +112,7 @@ onMounted(() => {
           color="blue"
           size="xs"
           icon="i-lucide-arrow-left-to-line"
-          class="opacity-0 group-hover/note:opacity-100"
+          class="opacity-100"
           @click="handleUseNote"
         />
         <Button
@@ -113,8 +121,17 @@ onMounted(() => {
           color="slate"
           size="xs"
           icon="i-lucide-clipboard"
-          class="opacity-0 group-hover/note:opacity-100"
+          class="opacity-100"
           @click="handleCopy"
+        />
+        <Button
+          v-if="allowEdit"
+          variant="faded"
+          color="slate"
+          size="xs"
+          icon="i-lucide-pencil"
+          class="opacity-100"
+          @click="handleEdit"
         />
         <Button
           v-if="allowDelete"
@@ -122,7 +139,7 @@ onMounted(() => {
           color="ruby"
           size="xs"
           icon="i-lucide-trash"
-          class="opacity-0 group-hover/note:opacity-100"
+          class="opacity-100"
           @click="handleDelete"
         />
       </div>

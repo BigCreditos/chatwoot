@@ -583,6 +583,8 @@
         "YOU": "You",
         "SAVE": "Save note",
         "ADD_NOTE": "Add contact note",
+        "EDIT_NOTE": "Edit contact note",
+        "UPDATE": "Update note",
         "USE_NOTE": "Use note",
         "COPY_NOTE": "Copy note",
         "EXPAND": "Expand",

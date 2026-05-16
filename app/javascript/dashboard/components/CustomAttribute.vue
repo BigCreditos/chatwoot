@@ -310,13 +310,13 @@ export default {
           class="flex items-center max-w-[2rem] gap-1 ml-1 rtl:mr-1 rtl:ml-0"
         >
           <NextButton
-            v-if="showActions && hasValue && currentChat"
+            v-if="showActions && hasValue"
             v-tooltip="$t('CUSTOM_ATTRIBUTES.ACTIONS.USE')"
             xs
             blue
             ghost
             icon="i-lucide-arrow-left-to-line"
-            class="hidden group-hover:flex flex-shrink-0"
+            class="flex flex-shrink-0"
             @click="handleUseAttribute"
           />
           <NextButton
@@ -326,7 +326,7 @@ export default {
             slate
             ghost
             icon="i-lucide-clipboard"
-            class="hidden group-hover:flex flex-shrink-0"
+            class="flex flex-shrink-0"
             @click="onCopy"
           />
           <NextButton
@@ -336,7 +336,7 @@ export default {
             slate
             ghost
             icon="i-lucide-pen"
-            class="hidden group-hover:flex flex-shrink-0"
+            class="flex flex-shrink-0"
             @click="onEdit"
           />
         </div>

@@ -152,7 +152,7 @@ export default {
         @click="onCopy"
       />
       <NextButton
-        v-if="currentChat && value"
+        v-if="value"
         v-tooltip.top="$t('CUSTOM_ATTRIBUTES.ACTIONS.USE')"
         ghost
         xs

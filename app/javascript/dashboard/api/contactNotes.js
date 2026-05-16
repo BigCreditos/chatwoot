@@ -20,6 +20,11 @@ class ContactNotes extends ApiClient {
     return super.create({ content });
   }
 
+  update(contactId, id, content) {
+    this.contactId = contactId;
+    return super.update(id, { content });
+  }
+
   delete(contactId, id) {
     this.contactId = contactId;
     return super.delete(id);

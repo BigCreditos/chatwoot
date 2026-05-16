@@ -582,6 +582,8 @@
         "YOU": "Você",
         "SAVE": "Salvar nota",
         "ADD_NOTE": "Adicionar nota de contato",
+        "EDIT_NOTE": "Editar nota de contato",
+        "UPDATE": "Atualizar nota",
         "USE_NOTE": "Usar nota",
         "COPY_NOTE": "Copiar nota",
         "EXPAND": "Expandir",

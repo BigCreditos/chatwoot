@@ -20,8 +20,11 @@ const uiFlags = useMapGetter('contactNotes/getUIFlags');
 const notesByContact = useMapGetter('contactNotes/getAllNotesByContactId');
 const isFetchingNotes = computed(() => uiFlags.value.isFetching);
 const isCreatingNote = computed(() => uiFlags.value.isCreating);
+const isUpdatingNote = computed(() => uiFlags.value.isUpdating);
+const isSavingNote = computed(() => isCreatingNote.value || isUpdatingNote.value);
 const contactId = computed(() => props.contactId);
 const noteContent = ref('');
+const activeNote = ref(null);
 const shouldShowCreateModal = ref(false);
 const notes = computed(() => {
   if (!contactId.value) {
@@ -37,29 +40,50 @@ const getWrittenBy = ({ user } = {}) => {
     : user?.name || t('CONVERSATION.BOT');
 };
 
+const isNoteAuthor = note => {
+  const currentUserId = currentUser.value?.id;
+  return note?.user?.id === currentUserId;
+};
+
 const openCreateModal = () => {
   if (!contactId.value) {
     return;
   }
 
   noteContent.value = '';
+  activeNote.value = null;
+  shouldShowCreateModal.value = true;
+};
+
+const handleEdit = note => {
+  activeNote.value = note;
+  noteContent.value = note.content;
   shouldShowCreateModal.value = true;
 };
 
 const closeCreateModal = () => {
   shouldShowCreateModal.value = false;
   noteContent.value = '';
+  activeNote.value = null;
 };
 
-const onAdd = async () => {
-  if (!contactId.value || !noteContent.value || isCreatingNote.value) {
+const onSave = async () => {
+  if (!contactId.value || !noteContent.value || isSavingNote.value) {
     return;
   }
 
-  await store.dispatch('contactNotes/create', {
-    content: noteContent.value,
-    contactId: contactId.value,
-  });
+  if (activeNote.value) {
+    await store.dispatch('contactNotes/update', {
+      noteId: activeNote.value.id,
+      content: noteContent.value,
+      contactId: contactId.value,
+    });
+  } else {
+    await store.dispatch('contactNotes/create', {
+      content: noteContent.value,
+      contactId: contactId.value,
+    });
+  }
   noteContent.value = '';
   closeCreateModal();
 };
@@ -77,7 +101,7 @@ const onDelete = noteId => {
 
 const keyboardEvents = {
   '$mod+Enter': {
-    action: onAdd,
+    action: onSave,
     allowOnFocusedInput: true,
   },
 };
@@ -125,9 +149,11 @@ watch(
         class="py-4 last-of-type:border-b-0 px-4"
         :note="note"
         :written-by="getWrittenBy(note)"
+        :allow-edit="isNoteAuthor(note)"
         allow-delete
         collapsible
         @delete="onDelete"
+        @edit="handleEdit"
       />
     </div>
     <p v-else class="px-6 py-6 text-sm leading-6 text-center text-n-slate-11">
@@ -142,7 +168,11 @@ watch(
     >
       <div class="flex w-full flex-col gap-6 px-6 py-6">
         <h3 class="text-lg font-semibold text-n-slate-12">
-          {{ t('CONTACTS_LAYOUT.SIDEBAR.NOTES.ADD_NOTE') }}
+          {{
+            activeNote
+              ? t('CONTACTS_LAYOUT.SIDEBAR.NOTES.EDIT_NOTE')
+              : t('CONTACTS_LAYOUT.SIDEBAR.NOTES.ADD_NOTE')
+          }}
         </h3>
         <Editor
           v-model="noteContent"
@@ -154,10 +184,14 @@ watch(
           <NextButton
             solid
             blue
-            :label="t('CONTACTS_LAYOUT.SIDEBAR.NOTES.SAVE')"
-            :is-loading="isCreatingNote"
-            :disabled="!noteContent || isCreatingNote"
-            @click="onAdd"
+            :label="
+              activeNote
+                ? t('CONTACTS_LAYOUT.SIDEBAR.NOTES.UPDATE')
+                : t('CONTACTS_LAYOUT.SIDEBAR.NOTES.SAVE')
+            "
+            :is-loading="isSavingNote"
+            :disabled="!noteContent || isSavingNote"
+            @click="onSave"
           />
         </div>
       </div>

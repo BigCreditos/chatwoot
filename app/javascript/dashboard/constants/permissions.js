@@ -38,14 +38,6 @@ export const ASSIGNEE_TYPE_TAB_PERMISSIONS = {
       CONVERSATION_PARTICIPATING_PERMISSIONS,
     ],
   },
-  unassigned: {
-    count: 'unAssignedCount',
-    permissions: [
-      ...ROLES,
-      MANAGE_ALL_CONVERSATION_PERMISSIONS,
-      CONVERSATION_UNASSIGNED_PERMISSIONS,
-    ],
-  },
   waiting: {
     count: 'waitingCount',
     permissions: [...ROLES, ...CONVERSATION_PERMISSIONS],
@@ -53,6 +45,14 @@ export const ASSIGNEE_TYPE_TAB_PERMISSIONS = {
   me: {
     count: 'mineCount',
     permissions: [...ROLES, ...CONVERSATION_PERMISSIONS],
+  },
+  unassigned: {
+    count: 'unAssignedCount',
+    permissions: [
+      ...ROLES,
+      MANAGE_ALL_CONVERSATION_PERMISSIONS,
+      CONVERSATION_UNASSIGNED_PERMISSIONS,
+    ],
   },
   groups: {
     count: 'groupCount',

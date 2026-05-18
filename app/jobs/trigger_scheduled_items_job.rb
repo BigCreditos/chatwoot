@@ -21,6 +21,9 @@ class TriggerScheduledItemsJob < ApplicationJob
     Channels::Whatsapp::TemplatesSyncSchedulerJob.perform_later
     # Job to sync templates notifica_me
     Channels::NotificaMe::TemplatesSyncSchedulerJob.perform_later
+
+    # Job to process contact reminders
+    ProcessContactRemindersJob.perform_later
   end
 end
 

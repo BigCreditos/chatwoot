@@ -127,6 +127,14 @@ const getters = {
       return applyPageFilters(conversation, activeFilters);
     });
   },
+  getWaitingChats: _state => activeFilters => {
+    return _state.allConversations.filter(conversation => {
+      const isWaiting =
+        !conversation.first_reply_created_at || !!conversation.waiting_since;
+      const shouldFilter = applyPageFilters(conversation, activeFilters);
+      return isWaiting && shouldFilter;
+    });
+  },
   getAllStatusChats: (_state, _, __, rootGetters) => activeFilters => {
     const currentUser = rootGetters.getCurrentUser;
     const currentUserId = rootGetters.getCurrentUser.id;

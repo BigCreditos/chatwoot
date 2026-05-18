@@ -398,7 +398,7 @@ export default {
         <ContactReminderModal :contact-id="contact.id">
           <template #trigger>
             <NextButton
-              v-tooltip.top-end="'Agendar Lembrete'"
+              v-tooltip.top-end="'Criar Lembrete'"
               icon="i-ph-calendar-plus"
               slate
               faded

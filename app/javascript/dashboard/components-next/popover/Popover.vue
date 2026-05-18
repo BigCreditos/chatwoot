@@ -77,6 +77,8 @@ const handleClickOutside = event => {
 const clickOutsideIgnore = [
   'dialog.ProseMirror-prompt-backdrop',
   '[data-popover-content]',
+  '.mx-datepicker-main',
+  '.mx-datepicker-popup',
 ];
 
 useKeyboardEvents({

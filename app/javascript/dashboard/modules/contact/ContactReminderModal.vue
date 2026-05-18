@@ -79,7 +79,7 @@ const onSubmit = async hide => {
       <div class="w-full md:w-96 p-6 flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <h3 class="text-base font-medium leading-6 text-n-slate-12">
-            Agendar Lembrete
+            Criar Lembrete
           </h3>
           <p class="mb-0 text-sm text-n-slate-11">
             Escolha uma data e horário para receber um lembrete sobre este contato. Você também pode enviar uma mensagem automática.

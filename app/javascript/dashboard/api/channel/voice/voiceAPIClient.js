@@ -24,7 +24,11 @@ class VoiceAPI extends ApiClient {
       })
       .catch(error => {
         // eslint-disable-next-line no-console
-        console.error('[VoiceAPI] initiateCall error', { contactId, inboxId, error });
+        console.error('[VoiceAPI] initiateCall error', {
+          contactId,
+          inboxId,
+          error,
+        });
         throw error;
       });
   }
@@ -59,7 +63,10 @@ class VoiceAPI extends ApiClient {
 
   leaveConference(inboxId, conversationId) {
     // eslint-disable-next-line no-console
-    console.log('[VoiceAPI] leaveConference request', { inboxId, conversationId });
+    console.log('[VoiceAPI] leaveConference request', {
+      inboxId,
+      conversationId,
+    });
     return axios
       .delete(`${this.baseUrl()}/inboxes/${inboxId}/conference`, {
         params: { conversation_id: conversationId },
@@ -76,7 +83,11 @@ class VoiceAPI extends ApiClient {
       })
       .catch(error => {
         // eslint-disable-next-line no-console
-        console.error('[VoiceAPI] leaveConference error', { inboxId, conversationId, error });
+        console.error('[VoiceAPI] leaveConference error', {
+          inboxId,
+          conversationId,
+          error,
+        });
         throw error;
       });
   }

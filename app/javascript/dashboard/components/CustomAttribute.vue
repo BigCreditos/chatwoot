@@ -288,7 +288,7 @@ export default {
       </div>
       <div
         v-show="!isEditing"
-        class="flex group"
+        class="flex items-start justify-between w-full group"
         :class="{ 'is-editable': showActions }"
       >
         <a
@@ -296,18 +296,18 @@ export default {
           :href="hrefURL"
           target="_blank"
           rel="noopener noreferrer"
-          class="group-hover:bg-n-slate-3 group-hover:dark:bg-n-solid-3 inline-block rounded-sm mb-0 break-all py-0.5 px-1"
+          class="group-hover:bg-n-slate-3 group-hover:dark:bg-n-solid-3 rounded-sm mb-0 break-all py-0.5 px-1 min-w-0 flex-1"
         >
           {{ urlValue }}
         </a>
         <p
           v-else
-          class="group-hover:bg-n-slate-3 group-hover:dark:bg-n-solid-3 inline-block rounded-sm mb-0 break-all py-0.5 px-1"
+          class="group-hover:bg-n-slate-3 group-hover:dark:bg-n-solid-3 rounded-sm mb-0 break-all py-0.5 px-1 min-w-0 flex-1"
         >
           {{ displayValue }}
         </p>
         <div
-          class="flex items-center max-w-[2rem] gap-1 ml-1 rtl:mr-1 rtl:ml-0"
+          class="flex items-center flex-shrink-0 gap-1 ml-1 rtl:mr-1 rtl:ml-0"
         >
           <NextButton
             v-if="showActions && hasValue"

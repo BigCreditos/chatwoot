@@ -51,7 +51,7 @@ const onSubmit = async hide => {
     useAlert('Por favor, selecione uma data e hora válidas.');
     return;
   }
-  
+
   isCreating.value = true;
   try {
     await store.dispatch('contactReminders/create', {
@@ -73,7 +73,12 @@ const onSubmit = async hide => {
 </script>
 
 <template>
-  <Popover @hide="resetForm(); $emit('close')">
+  <Popover
+    @hide="
+      resetForm();
+      $emit('close');
+    "
+  >
     <slot name="trigger" />
     <template #content="{ hide }">
       <div class="w-full md:w-96 p-6 flex flex-col gap-4">
@@ -82,10 +87,11 @@ const onSubmit = async hide => {
             Criar Lembrete
           </h3>
           <p class="mb-0 text-sm text-n-slate-11">
-            Escolha uma data e horário para receber um lembrete sobre este contato. Você também pode enviar uma mensagem automática.
+            Escolha uma data e horário para receber um lembrete sobre este
+            contato. Você também pode enviar uma mensagem automática.
           </p>
         </div>
-        
+
         <form class="flex flex-col gap-4" @submit.prevent="onSubmit(hide)">
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-n-slate-12">Data e Hora</label>
@@ -100,7 +106,7 @@ const onSubmit = async hide => {
               style="width: 100%"
             />
           </div>
-          
+
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-n-slate-12">Nota / Mensagem</label>
             <textarea
@@ -110,15 +116,18 @@ const onSubmit = async hide => {
               placeholder="Digite uma anotação ou a mensagem que será enviada"
             />
           </div>
-          
+
           <div class="flex items-center gap-2">
             <input
+              id="send-message-checkbox"
               v-model="sendMessage"
               type="checkbox"
-              id="send-message-checkbox"
               class="w-4 h-4 rounded text-w-500 border-n-slate-3 focus:ring-w-500"
             />
-            <label for="send-message-checkbox" class="text-sm text-n-slate-11 cursor-pointer">
+            <label
+              for="send-message-checkbox"
+              class="text-sm text-n-slate-11 cursor-pointer"
+            >
               Enviar esta mensagem para o cliente no horário agendado
             </label>
           </div>

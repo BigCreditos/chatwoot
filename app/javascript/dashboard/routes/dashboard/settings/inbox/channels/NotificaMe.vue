@@ -110,13 +110,17 @@ export default {
       :header-title="$t('INBOX_MGMT.ADD.NOTIFICA_ME_CHANNEL.TITLE')"
       :header-content="$t('INBOX_MGMT.ADD.NOTIFICA_ME_CHANNEL.DESC')"
     >
-      <br/>
-      <br/>
-      <a href="https://hub.notificame.com.br/signup/registrar?from=@UNOAPI" target="_blank" style="font-weight: bold;">
+      <br />
+      <br />
+      <a
+        href="https://hub.notificame.com.br/signup/registrar?from=@UNOAPI"
+        target="_blank"
+        style="font-weight: bold"
+      >
         🚀 Clique aqui para criar um conta no NoticaMeHub 🚀
       </a>
-      <br/>
-      <br/>
+      <br />
+      <br />
     </PageHeader>
     <form class="mx-0 flex flex-wrap" @submit.prevent="createChannel()">
       <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">

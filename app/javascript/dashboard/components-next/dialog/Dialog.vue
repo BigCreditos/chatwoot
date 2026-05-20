@@ -59,9 +59,9 @@ const props = defineProps({
   },
 });
 
-defineOptions({ inheritAttrs: false });
-
 const emit = defineEmits(['confirm', 'close']);
+
+defineOptions({ inheritAttrs: false });
 
 const { t } = useI18n();
 

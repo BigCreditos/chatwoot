@@ -643,7 +643,7 @@ export default {
       </div>
       <div
         class="relative"
-        :class="bubbleClass"
+        :class="[bubbleClass]"
         @contextmenu="openContextMenu($event)"
         @touchstart.passive="startTouchContextMenu"
         @touchmove.passive="moveTouchContextMenu"

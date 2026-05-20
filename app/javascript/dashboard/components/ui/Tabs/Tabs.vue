@@ -79,9 +79,7 @@ watch(
     <ul
       ref="tabsList"
       class="border-r-0 border-l-0 border-t-0 flex flex-nowrap min-w-[6.25rem] py-0 px-4 list-none mb-0 overflow-x-auto overflow-y-hidden [scrollbar-gutter:stable] pb-3"
-      :class="
-        hasScroll ? 'py-0 px-1 pb-3 max-w-[calc(100%-64px)]' : ''
-      "
+      :class="hasScroll ? 'py-0 px-1 pb-3 max-w-[calc(100%-64px)]' : ''"
     >
       <slot />
     </ul>

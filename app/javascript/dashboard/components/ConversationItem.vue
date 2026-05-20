@@ -191,66 +191,68 @@ const onDeleteConversation = () => {
 </script>
 
 <template>
-  <!-- Expanded layout: wide screen + expanded setting -->
-  <ConversationCardExpanded
-    v-if="showExpanded"
-    :chat="source"
-    :current-contact="currentContact"
-    :assignee="assignee"
-    :inbox="inbox"
-    :selected="isConversationSelected(source.id)"
-    :is-active-chat="isActiveChat"
-    :show-assignee="showAssigneeForExpandedCard"
-    :show-inbox-name="showInboxName"
-    :is-inbox-view="isInboxView"
-    @select-conversation="onExpandedSelect"
-    @de-select-conversation="onExpandedSelect"
-    @click="onCardClick"
-    @contextmenu="openContextMenu"
-  />
-
-  <!-- Default (condensed) layout -->
-  <ConversationCard
-    v-else
-    :chat="source"
-    :current-contact="currentContact"
-    :assignee="assignee"
-    :inbox="inbox"
-    :selected="isConversationSelected(source.id)"
-    :is-active-chat="isActiveChat"
-    :show-assignee="showAssignee"
-    :show-inbox-name="showInboxName"
-    @click="onCardClick"
-    @contextmenu="openContextMenu"
-    @select-conversation="selectConversation"
-    @de-select-conversation="deSelectConversation"
-  />
-
-  <!-- Shared context menu for both layouts -->
-  <ContextMenu
-    v-if="showContextMenu"
-    :x="contextMenu.x"
-    :y="contextMenu.y"
-    @close="closeContextMenu"
-  >
-    <ConversationContextMenu
-      :status="source.status"
-      :inbox-id="inbox.id"
-      :priority="source.priority"
-      :chat-id="source.id"
-      :has-unread-messages="source.unread_count > 0"
-      :conversation-labels="source.labels"
-      :conversation-url="conversationPath"
-      @update-conversation="onUpdateConversation"
-      @assign-agent="onAssignAgent"
-      @assign-label="onAssignLabel"
-      @remove-label="onRemoveLabel"
-      @assign-team="onAssignTeam"
-      @mark-as-unread="onMarkAsUnread"
-      @mark-as-read="onMarkAsRead"
-      @assign-priority="onAssignPriority"
-      @delete-conversation="onDeleteConversation"
-      @close="closeContextMenu"
+  <div class="w-full">
+    <!-- Expanded layout: wide screen + expanded setting -->
+    <ConversationCardExpanded
+      v-if="showExpanded"
+      :chat="source"
+      :current-contact="currentContact"
+      :assignee="assignee"
+      :inbox="inbox"
+      :selected="isConversationSelected(source.id)"
+      :is-active-chat="isActiveChat"
+      :show-assignee="showAssigneeForExpandedCard"
+      :show-inbox-name="showInboxName"
+      :is-inbox-view="isInboxView"
+      @select-conversation="onExpandedSelect"
+      @de-select-conversation="onExpandedSelect"
+      @click="onCardClick"
+      @contextmenu="openContextMenu"
     />
-  </ContextMenu>
+
+    <!-- Default (condensed) layout -->
+    <ConversationCard
+      v-else
+      :chat="source"
+      :current-contact="currentContact"
+      :assignee="assignee"
+      :inbox="inbox"
+      :selected="isConversationSelected(source.id)"
+      :is-active-chat="isActiveChat"
+      :show-assignee="showAssignee"
+      :show-inbox-name="showInboxName"
+      @click="onCardClick"
+      @contextmenu="openContextMenu"
+      @select-conversation="selectConversation"
+      @de-select-conversation="deSelectConversation"
+    />
+
+    <!-- Shared context menu for both layouts -->
+    <ContextMenu
+      v-if="showContextMenu"
+      :x="contextMenu.x"
+      :y="contextMenu.y"
+      @close="closeContextMenu"
+    >
+      <ConversationContextMenu
+        :status="source.status"
+        :inbox-id="inbox.id"
+        :priority="source.priority"
+        :chat-id="source.id"
+        :has-unread-messages="source.unread_count > 0"
+        :conversation-labels="source.labels"
+        :conversation-url="conversationPath"
+        @update-conversation="onUpdateConversation"
+        @assign-agent="onAssignAgent"
+        @assign-label="onAssignLabel"
+        @remove-label="onRemoveLabel"
+        @assign-team="onAssignTeam"
+        @mark-as-unread="onMarkAsUnread"
+        @mark-as-read="onMarkAsRead"
+        @assign-priority="onAssignPriority"
+        @delete-conversation="onDeleteConversation"
+        @close="closeContextMenu"
+      />
+    </ContextMenu>
+  </div>
 </template>

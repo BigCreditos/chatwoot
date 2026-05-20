@@ -6,11 +6,16 @@ class ContactReminders extends ApiClient {
   }
 
   get(contactId) {
-    return this.axios.get(`${this.urlPrefix}/contacts/${contactId}/contact_reminders`);
+    return this.axios.get(
+      `${this.urlPrefix}/contacts/${contactId}/contact_reminders`
+    );
   }
 
   create(contactId, data) {
-    return this.axios.post(`${this.urlPrefix}/contacts/${contactId}/contact_reminders`, data);
+    return this.axios.post(
+      `${this.urlPrefix}/contacts/${contactId}/contact_reminders`,
+      data
+    );
   }
 
   update(contactId, reminderId, data) {

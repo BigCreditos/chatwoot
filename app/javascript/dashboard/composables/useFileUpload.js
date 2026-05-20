@@ -2,7 +2,10 @@ import { useMapGetter } from 'dashboard/composables/store';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { DirectUpload } from 'activestorage';
-import { checkFileSizeLimit, resolveMaximumFileUploadSize } from 'shared/helpers/FileHelper';
+import {
+  checkFileSizeLimit,
+  resolveMaximumFileUploadSize,
+} from 'shared/helpers/FileHelper';
 import { MAXIMUM_FILE_UPLOAD_SIZE } from 'shared/constants/messages';
 
 /**
@@ -27,7 +30,8 @@ export const useFileUpload = ({ inbox, attachFile, isPrivateNote = false }) => {
   // helper: compute max upload size for a given file's mime
   const maxSizeFor = mime => {
     const configured =
-      Number(globalConfig.value.maxFileUploadSizeInMb) || MAXIMUM_FILE_UPLOAD_SIZE;
+      Number(globalConfig.value.maxFileUploadSizeInMb) ||
+      MAXIMUM_FILE_UPLOAD_SIZE;
 
     // Por enquanto usamos um limite global, independente do canal.
     // O valor é definido via env MAXIMUM_FILE_UPLOAD_SIZE (em MB),

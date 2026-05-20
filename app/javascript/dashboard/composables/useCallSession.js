@@ -33,15 +33,15 @@ export function useCallSession() {
     { immediate: true }
   );
 
-    const handleDisconnect = event => {
-      const detail = event?.detail || {};
-      const { callSid } = detail;
-      if (callSid) {
-        callsStore.removeCall(callSid);
-        return;
-      }
-      callsStore.clearActiveCall();
-    };
+  const handleDisconnect = event => {
+    const detail = event?.detail || {};
+    const { callSid } = detail;
+    if (callSid) {
+      callsStore.removeCall(callSid);
+      return;
+    }
+    callsStore.clearActiveCall();
+  };
   const handleIncoming = event => {
     const detail = event?.detail || {};
     const { callSid, conversationId, inboxId } = detail;
@@ -95,13 +95,22 @@ export function useCallSession() {
     TwilioVoiceClient.addEventListener('call:disconnected', handleDisconnect);
     CustomVoiceClient.addEventListener('call:disconnected', handleDisconnect);
     CustomVoiceClient.addEventListener('call:incoming', handleIncoming);
-    CustomVoiceClient.addEventListener('call:invite_failed', handleInviteFailed);
+    CustomVoiceClient.addEventListener(
+      'call:invite_failed',
+      handleInviteFailed
+    );
   });
 
   onUnmounted(() => {
     durationTimer.stop();
-    TwilioVoiceClient.removeEventListener('call:disconnected', handleDisconnect);
-    CustomVoiceClient.removeEventListener('call:disconnected', handleDisconnect);
+    TwilioVoiceClient.removeEventListener(
+      'call:disconnected',
+      handleDisconnect
+    );
+    CustomVoiceClient.removeEventListener(
+      'call:disconnected',
+      handleDisconnect
+    );
     CustomVoiceClient.removeEventListener('call:incoming', handleIncoming);
     CustomVoiceClient.removeEventListener(
       'call:invite_failed',
@@ -150,7 +159,11 @@ export function useCallSession() {
 
     isJoining.value = true;
     // eslint-disable-next-line no-console
-    console.log('[CallSession] joinCall start', { conversationId, inboxId, callSid });
+    console.log('[CallSession] joinCall start', {
+      conversationId,
+      inboxId,
+      callSid,
+    });
     try {
       await requestMicrophonePermission();
       const voiceClient = resolveVoiceClient(inboxId);
@@ -269,7 +282,9 @@ export function useCallSession() {
 
   const rejectIncomingCall = callSid => {
     const call = callsStore.calls.find(item => item.callSid === callSid);
-    const conversation = store.getters.getConversationById(call?.conversationId);
+    const conversation = store.getters.getConversationById(
+      call?.conversationId
+    );
     const inboxId = call?.inboxId || conversation?.inbox_id;
     // eslint-disable-next-line no-console
     console.log('[CallSession] rejectIncomingCall', {

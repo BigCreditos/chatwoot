@@ -965,8 +965,7 @@ const selectDefaultTabBasedOnHierarchy = () => {
     c => c.status === wootConstants.STATUS_TYPE.OPEN
   );
 
-  const isUnattended = c =>
-    !c.first_reply_created_at || !!c.waiting_since;
+  const isUnattended = c => !c.first_reply_created_at || !!c.waiting_since;
 
   // 1. Any Unattended ("Não atendidas") conversations (whether mine or unassigned)
   const hasAnyUnattended = openConversations.some(isUnattended);

@@ -52,8 +52,14 @@ function extractCallData(message, currentUserId) {
 export function handleVoiceCallCreated(message, currentUserId) {
   if (!isVoiceCallMessage(message)) return;
 
-  const { callSid, callDirection, callType, conversationId, senderId, inboxId } =
-    extractCallData(message, currentUserId);
+  const {
+    callSid,
+    callDirection,
+    callType,
+    conversationId,
+    senderId,
+    inboxId,
+  } = extractCallData(message, currentUserId);
 
   if (shouldSkipCall(callDirection, senderId, currentUserId, callType)) return;
 
@@ -78,8 +84,15 @@ export function handleVoiceCallCreated(message, currentUserId) {
 export function handleVoiceCallUpdated(commit, message, currentUserId) {
   if (!isVoiceCallMessage(message)) return;
 
-  const { callSid, status, callDirection, callType, conversationId, senderId, inboxId } =
-    extractCallData(message, currentUserId);
+  const {
+    callSid,
+    status,
+    callDirection,
+    callType,
+    conversationId,
+    senderId,
+    inboxId,
+  } = extractCallData(message, currentUserId);
 
   // eslint-disable-next-line no-console
   console.log('[VoiceHelper] handleVoiceCallUpdated', {

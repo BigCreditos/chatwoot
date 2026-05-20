@@ -71,7 +71,8 @@ export default {
           'fallback',
         ].includes(type)
       ) {
-        const isVoiceOrAudio = type === 'voice' || type === 'audio' || type === '1';
+        const isVoiceOrAudio =
+          type === 'voice' || type === 'audio' || type === '1';
         const translationType = isVoiceOrAudio ? 'audio' : type;
         return `CHAT_LIST.ATTACHMENTS.${translationType}.CONTENT`;
       }
@@ -139,4 +140,3 @@ export default {
     </span>
   </div>
 </template>
-

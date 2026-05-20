@@ -43,10 +43,13 @@ export default {
   },
   methods: {
     generateToken() {
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      const characters =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
       let token = '';
       for (let i = 0; i < 64; i++) {
-        token += characters.charAt(Math.floor(Math.random() * characters.length));
+        token += characters.charAt(
+          Math.floor(Math.random() * characters.length)
+        );
       }
 
       if (this.apiKey) {
@@ -171,10 +174,13 @@ export default {
     </div>
 
     <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] config-helptext">
-      <label :class="{ error: v$.sendAgentName.$error }" style="display: flex; align-items: center;">
+      <label
+        :class="{ error: v$.sendAgentName.$error }"
+        style="display: flex; align-items: center"
+      >
         <Switch
           v-model="sendAgentName"
-          style="flex: 0 0 auto; margin-right: 10px;"
+          style="flex: 0 0 auto; margin-right: 10px"
         />
         {{ $t('INBOX_MGMT.ADD.WHATSAPP.SEND_AGENT_NAME.LABEL') }}
         <span v-if="v$.sendAgentName.$error" class="message">
@@ -184,10 +190,13 @@ export default {
     </div>
 
     <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] config-helptext">
-      <label :class="{ error: v$.ignoreGroupMessages.$error }" style="display: flex; align-items: center;">
+      <label
+        :class="{ error: v$.ignoreGroupMessages.$error }"
+        style="display: flex; align-items: center"
+      >
         <Switch
           v-model="ignoreGroupMessages"
-          style="flex: 0 0 auto; margin-right: 10px;"
+          style="flex: 0 0 auto; margin-right: 10px"
         />
         {{ $t('INBOX_MGMT.ADD.WHATSAPP.IGNORE_GROUPS.LABEL') }}
         <span v-if="v$.ignoreGroupMessages.$error" class="message">
@@ -197,10 +206,13 @@ export default {
     </div>
 
     <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] config-helptext">
-      <label :class="{ error: v$.ignoreHistoryMessages.$error }" style="display: flex; align-items: center;">
+      <label
+        :class="{ error: v$.ignoreHistoryMessages.$error }"
+        style="display: flex; align-items: center"
+      >
         <Switch
           v-model="ignoreHistoryMessages"
-          style="flex: 0 0 auto; margin-right: 10px;"
+          style="flex: 0 0 auto; margin-right: 10px"
         />
         {{ $t('INBOX_MGMT.ADD.WHATSAPP.IGNORE_HISTORY.LABEL') }}
         <span v-if="v$.ignoreHistoryMessages.$error" class="message">
@@ -210,10 +222,13 @@ export default {
     </div>
 
     <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] config-helptext">
-      <label :class="{ error: v$.webhookSendNewMessages.$error }" style="display: flex; align-items: center;">
+      <label
+        :class="{ error: v$.webhookSendNewMessages.$error }"
+        style="display: flex; align-items: center"
+      >
         <Switch
           v-model="webhookSendNewMessages"
-          style="flex: 0 0 auto; margin-right: 10px;"
+          style="flex: 0 0 auto; margin-right: 10px"
         />
         {{ $t('INBOX_MGMT.ADD.WHATSAPP.WEBHOOK_SEND_NEW_MESSAGES.LABEL') }}
         <span v-if="v$.webhookSendNewMessages.$error" class="message">
@@ -222,7 +237,7 @@ export default {
       </label>
     </div>
 
-    <div class="w-full" style="margin-top: 20px;">
+    <div class="w-full" style="margin-top: 20px">
       <NextButton
         :is-loading="uiFlags.isCreating"
         type="submit"

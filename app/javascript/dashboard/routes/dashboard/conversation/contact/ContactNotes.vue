@@ -21,7 +21,9 @@ const notesByContact = useMapGetter('contactNotes/getAllNotesByContactId');
 const isFetchingNotes = computed(() => uiFlags.value.isFetching);
 const isCreatingNote = computed(() => uiFlags.value.isCreating);
 const isUpdatingNote = computed(() => uiFlags.value.isUpdating);
-const isSavingNote = computed(() => isCreatingNote.value || isUpdatingNote.value);
+const isSavingNote = computed(
+  () => isCreatingNote.value || isUpdatingNote.value
+);
 const contactId = computed(() => props.contactId);
 const noteContent = ref('');
 const activeNote = ref(null);

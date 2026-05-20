@@ -391,7 +391,11 @@ describe('#actions', () => {
       });
       const dispatch = vi.fn();
       await actions.toggleStatus(
-        { commit, dispatch, state: { conversationFilters: { status: 'open' } } },
+        {
+          commit,
+          dispatch,
+          state: { conversationFilters: { status: 'open' } },
+        },
         { conversationId: 1, status: 'snoozed' }
       );
       expect(commit).toHaveBeenCalledTimes(1);

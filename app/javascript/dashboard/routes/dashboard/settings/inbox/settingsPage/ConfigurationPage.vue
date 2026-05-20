@@ -404,7 +404,9 @@ export default {
           <Input
             v-model="customVoiceConfig.turnUrl"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_URL.LABEL')"
-            :placeholder="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_URL.PLACEHOLDER')"
+            :placeholder="
+              $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_URL.PLACEHOLDER')
+            "
           />
           <Input
             v-model="customVoiceConfig.turnUsername"
@@ -452,9 +454,7 @@ export default {
           <template v-if="customVoiceConfig.transferMode === 'ari'">
             <Input
               v-model="customVoiceConfig.transferApiUrl"
-              :label="
-                $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_URL.LABEL')
-              "
+              :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_URL.LABEL')"
               :placeholder="
                 $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_URL.PLACEHOLDER')
               "
@@ -466,9 +466,7 @@ export default {
                 $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_TOKEN.LABEL')
               "
               :placeholder="
-                $t(
-                  'INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_TOKEN.PLACEHOLDER'
-                )
+                $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_TOKEN.PLACEHOLDER')
               "
             />
           </template>

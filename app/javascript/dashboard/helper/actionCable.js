@@ -84,6 +84,8 @@ class ActionCableConnector extends BaseActionCableConnector {
 
   onConversationCreated = data => {
     this.app.$store.dispatch('addConversation', data);
+    this.app.$store.dispatch('addUnattended', data);
+    this.app.$store.dispatch('addMentions', data);
     this.fetchConversationStats();
   };
 
@@ -95,11 +97,16 @@ class ActionCableConnector extends BaseActionCableConnector {
   onLogout = () => AuthAPI.logout();
 
   onMessageCreated = data => {
-    const {
-      conversation: { last_activity_at: lastActivityAt },
-      conversation_id: conversationId,
-    } = data;
+    const { conversation, conversation_id: conversationId } = data;
+    const { last_activity_at: lastActivityAt } = conversation || {};
     DashboardAudioNotificationHelper.onNewMessage(data);
+
+    if (conversation) {
+      this.app.$store.dispatch('addConversation', conversation);
+      this.app.$store.dispatch('addUnattended', conversation);
+      this.app.$store.dispatch('addMentions', conversation);
+    }
+
     this.app.$store.dispatch('addMessage', data);
     if (lastActivityAt && conversationId) {
       this.app.$store.dispatch('updateConversationLastActivity', {
@@ -119,6 +126,8 @@ class ActionCableConnector extends BaseActionCableConnector {
 
   onConversationUpdated = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('addUnattended', data);
+    this.app.$store.dispatch('addMentions', data);
     this.fetchConversationStats();
   };
 

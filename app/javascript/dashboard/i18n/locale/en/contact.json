@@ -59,6 +59,20 @@
       "CONTACT_LABELS": "Contact Labels",
       "PREVIOUS_CONVERSATIONS": "Previous Conversations",
       "NO_RECORDS_FOUND": "No attributes found"
+    },
+    "REMINDER": {
+      "TITLE": "Create Reminder",
+      "DESC": "Choose a date and time to receive a reminder about this contact. You can also send an automated message.",
+      "DATE_TIME_LABEL": "Date and Time",
+      "DATE_TIME_PLACEHOLDER": "Select date and time",
+      "NOTE_LABEL": "Note / Message",
+      "NOTE_PLACEHOLDER": "Type an annotation or the message to be sent",
+      "SEND_CHECKBOX": "Send this message to the customer at the scheduled time",
+      "CANCEL": "Cancel",
+      "SAVE": "Save Reminder",
+      "SUCCESS": "Reminder created successfully!",
+      "ERROR": "Error creating reminder. Please try again.",
+      "VALIDATION_ERROR": "Please select a valid date and time."
     }
   },
   "EDIT_CONTACT": {

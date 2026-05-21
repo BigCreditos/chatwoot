@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
 import DatePicker from 'vue-datepicker-next';
@@ -11,11 +12,16 @@ const props = defineProps({
     type: [Number, String],
     required: true,
   },
+  conversationId: {
+    type: [Number, String],
+    default: null,
+  },
 });
 
 const emit = defineEmits(['close']);
 
 const store = useStore();
+const { t } = useI18n();
 
 const reminderTime = ref(null);
 const note = ref('');
@@ -48,7 +54,7 @@ const resetForm = () => {
 
 const onSubmit = async hide => {
   if (!reminderTime.value) {
-    useAlert('Por favor, selecione uma data e hora válidas.');
+    useAlert(t('CONTACT_PANEL.REMINDER.VALIDATION_ERROR'));
     return;
   }
 
@@ -56,16 +62,19 @@ const onSubmit = async hide => {
   try {
     await store.dispatch('contactReminders/create', {
       contactId: props.contactId,
-      reminder_time: reminderTime.value.toISOString(),
-      note: note.value,
-      send_message: sendMessage.value,
+      contact_reminder: {
+        conversation_id: props.conversationId,
+        scheduled_at: reminderTime.value.toISOString(),
+        message_content: note.value,
+        send_message: sendMessage.value,
+      },
     });
-    useAlert('Lembrete criado com sucesso!');
+    useAlert(t('CONTACT_PANEL.REMINDER.SUCCESS'));
     resetForm();
     hide();
     emit('close');
   } catch (error) {
-    useAlert('Erro ao criar lembrete. Tente novamente.');
+    useAlert(t('CONTACT_PANEL.REMINDER.ERROR'));
   } finally {
     isCreating.value = false;
   }
@@ -84,17 +93,18 @@ const onSubmit = async hide => {
       <div class="w-full md:w-96 p-6 flex flex-col gap-4">
         <div class="flex flex-col gap-2">
           <h3 class="text-base font-medium leading-6 text-n-slate-12">
-            Criar Lembrete
+            {{ t('CONTACT_PANEL.REMINDER.TITLE') }}
           </h3>
           <p class="mb-0 text-sm text-n-slate-11">
-            Escolha uma data e horário para receber um lembrete sobre este
-            contato. Você também pode enviar uma mensagem automática.
+            {{ t('CONTACT_PANEL.REMINDER.DESC') }}
           </p>
         </div>
 
         <form class="flex flex-col gap-4" @submit.prevent="onSubmit(hide)">
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-n-slate-12">Data e Hora</label>
+            <label class="text-sm font-medium text-n-slate-12">
+              {{ t('CONTACT_PANEL.REMINDER.DATE_TIME_LABEL') }}
+            </label>
             <DatePicker
               v-model:value="reminderTime"
               type="datetime"
@@ -102,18 +112,20 @@ const onSubmit = async hide => {
               :lang="lang"
               :disabled-date="disabledDate"
               :disabled-time="disabledTime"
-              placeholder="Selecione data e hora"
-              style="width: 100%"
+              :placeholder="t('CONTACT_PANEL.REMINDER.DATE_TIME_PLACEHOLDER')"
+              class="w-full"
             />
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-n-slate-12">Nota / Mensagem</label>
+            <label class="text-sm font-medium text-n-slate-12">
+              {{ t('CONTACT_PANEL.REMINDER.NOTE_LABEL') }}
+            </label>
             <textarea
               v-model="note"
               rows="3"
               class="w-full px-3 py-2 border rounded-md border-n-slate-3 bg-white text-n-slate-12 focus:ring-1 focus:ring-w-500 focus:border-w-500"
-              placeholder="Digite uma anotação ou a mensagem que será enviada"
+              :placeholder="t('CONTACT_PANEL.REMINDER.NOTE_PLACEHOLDER')"
             />
           </div>
 
@@ -128,7 +140,7 @@ const onSubmit = async hide => {
               for="send-message-checkbox"
               class="text-sm text-n-slate-11 cursor-pointer"
             >
-              Enviar esta mensagem para o cliente no horário agendado
+              {{ t('CONTACT_PANEL.REMINDER.SEND_CHECKBOX') }}
             </label>
           </div>
 
@@ -137,12 +149,12 @@ const onSubmit = async hide => {
               faded
               slate
               type="reset"
-              label="Cancelar"
+              :label="t('CONTACT_PANEL.REMINDER.CANCEL')"
               @click.prevent="hide"
             />
             <NextButton
               type="submit"
-              label="Salvar Lembrete"
+              :label="t('CONTACT_PANEL.REMINDER.SAVE')"
               :is-loading="isCreating"
             />
           </div>

@@ -395,7 +395,10 @@ export default {
           sm
           @click="$emit('onToggleNotes')"
         />
-        <ContactReminderModal :contact-id="contact.id">
+        <ContactReminderModal
+          :contact-id="contact.id"
+          :conversation-id="currentChat.id"
+        >
           <template #trigger>
             <NextButton
               v-tooltip.top-end="'Criar Lembrete'"

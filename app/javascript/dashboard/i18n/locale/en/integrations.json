@@ -61,6 +61,10 @@
             "CONVERSATION_TYPING_OFF": "Conversation Typing Off"
           }
         },
+        "INBOX": {
+          "LABEL": "Inbox",
+          "ALL": "All inboxes"
+        },
         "NAME": {
           "LABEL": "Webhook Name",
           "PLACEHOLDER": "Enter the name of the webhook"

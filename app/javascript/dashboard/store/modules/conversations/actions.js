@@ -30,9 +30,18 @@ export const hasMessageFailedWithExternalError = pendingMessage => {
   return status === MESSAGE_STATUS.FAILED && externalError !== '';
 };
 
+export const isValidConversationId = id => {
+  if (id === null || id === undefined) return false;
+  const parsed = Number(id);
+  return Number.isInteger(parsed) && parsed > 0;
+};
+
 // actions
 const actions = {
   getConversation: async ({ commit }, conversationId) => {
+    if (!isValidConversationId(conversationId)) {
+      return;
+    }
     try {
       const response = await ConversationApi.show(conversationId);
       commit(types.UPDATE_CONVERSATION, response.data);
@@ -105,6 +114,9 @@ const actions = {
   },
 
   fetchAllAttachments: async ({ commit }, conversationId) => {
+    if (!isValidConversationId(conversationId)) {
+      return;
+    }
     let attachments = [];
     let meta = null;
 
@@ -142,6 +154,9 @@ const actions = {
   },
 
   loadMoreAttachments: async ({ state, commit }, conversationId) => {
+    if (!isValidConversationId(conversationId)) {
+      return 0;
+    }
     const existingAttachments = state.attachments[conversationId] || [];
     const meta = state.attachmentsMeta[conversationId] || {};
     const nextPage = (meta.page || 1) + 1;
@@ -194,6 +209,9 @@ const actions = {
     { commit },
     { conversationId, attachmentIds = [], deleteAll = false }
   ) => {
+    if (!isValidConversationId(conversationId)) {
+      return null;
+    }
     const payload = deleteAll
       ? { delete_all: true }
       : { attachment_ids: attachmentIds };
@@ -228,6 +246,9 @@ const actions = {
     { commit, state, dispatch },
     { conversationId }
   ) => {
+    if (!isValidConversationId(conversationId)) {
+      return;
+    }
     const { allConversations, syncConversationsMessages } = state;
     const lastMessageId = syncConversationsMessages[conversationId];
     const selectedChat = allConversations.find(

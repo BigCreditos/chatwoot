@@ -1,12 +1,14 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { formatNumber } from '@chatwoot/utils';
 import wootConstants from 'dashboard/constants/globals';
+import { useI18n } from 'vue-i18n';
 
 import ConversationBasicFilter from './widgets/conversation/ConversationBasicFilter.vue';
 import SwitchLayout from 'dashboard/routes/dashboard/conversation/search/SwitchLayout.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import NewConversationModal from 'dashboard/components-next/NewConversation/NewConversationModal.vue';
 
 const props = defineProps({
   pageTitle: { type: String, required: true },
@@ -26,6 +28,17 @@ const emit = defineEmits([
   'basicFilterChange',
   'filtersModal',
 ]);
+
+const { locale } = useI18n();
+const newConversationModalRef = ref(null);
+
+const isPortuguese = computed(() => {
+  return (locale.value || '').toLowerCase().startsWith('pt');
+});
+
+const openNewConversationModal = () => {
+  newConversationModalRef.value?.open();
+};
 
 const { uiSettings, updateUISettings } = useUISettings();
 
@@ -87,6 +100,14 @@ const toggleConversationLayout = () => {
       </span>
     </div>
     <div v-if="!hasHideFiltersForAgents" class="flex items-center gap-1">
+      <NextButton
+        v-tooltip.right="isPortuguese ? 'Nova Conversa' : 'New Conversation'"
+        icon="i-lucide-message-square-plus"
+        blue
+        xs
+        faded
+        @click="openNewConversationModal"
+      />
       <template v-if="hasAppliedFilters && !hasActiveFolders">
         <div class="relative">
           <NextButton
@@ -165,5 +186,6 @@ const toggleConversationLayout = () => {
         @toggle="toggleConversationLayout"
       />
     </div>
+    <NewConversationModal ref="newConversationModalRef" />
   </div>
 </template>

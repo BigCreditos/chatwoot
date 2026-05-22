@@ -1,27 +1,26 @@
-import {
-  findSignatureInBody,
-  appendSignature,
-  removeSignature,
-  replaceSignature,
-  cleanSignature,
-  extractTextFromMarkdown,
-  stripUnsupportedMarkdown,
-  insertAtCursor,
-  findNodeToInsertImage,
-  setURLWithQueryAndSize,
-  getContentNode,
-  getFormattingForEditor,
-  getSelectionCoords,
-  getMenuAnchor,
-  calculateMenuPosition,
-  stripUnsupportedFormatting,
-  stripInlineBase64Images,
-  collapseSelection,
-} from '../editorHelper';
-import { EditorState } from '@chatwoot/prosemirror-schema';
-import { EditorView } from '@chatwoot/prosemirror-schema';
+import { EditorState, EditorView } from '@chatwoot/prosemirror-schema';
 import { FORMATTING } from 'dashboard/constants/editor';
 import { Schema } from 'prosemirror-model';
+import {
+  appendSignature,
+  calculateMenuPosition,
+  cleanSignature,
+  collapseSelection,
+  extractTextFromMarkdown,
+  findNodeToInsertImage,
+  findSignatureInBody,
+  getContentNode,
+  getFormattingForEditor,
+  getMenuAnchor,
+  getSelectionCoords,
+  insertAtCursor,
+  removeSignature,
+  replaceSignature,
+  setURLWithQueryAndSize,
+  stripInlineBase64Images,
+  stripUnsupportedFormatting,
+  stripUnsupportedMarkdown,
+} from '../editorHelper';
 
 // Define a basic ProseMirror schema
 const schema = new Schema({

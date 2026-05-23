@@ -7,6 +7,7 @@ import { useVuelidate } from '@vuelidate/core';
 import { required } from '@vuelidate/validators';
 import { useAlert } from 'dashboard/composables';
 import ContactAPI from 'dashboard/api/contacts';
+import MessageApi from 'dashboard/api/inbox/message';
 import { DuplicateContactException } from 'shared/helpers/CustomErrors';
 import { debounce } from '@chatwoot/utils';
 
@@ -210,6 +211,21 @@ const isPhoneMatching = (phone1, phone2) => {
   return false;
 };
 
+// Helper: get the last conversation ID for an existing contact
+const getLastConversationId = async contactId => {
+  try {
+    const response = await ContactAPI.getConversations(contactId);
+    const conversations = response.data?.payload || [];
+    if (conversations.length > 0) {
+      const sorted = [...conversations].sort((a, b) => b.id - a.id);
+      return sorted[0].id;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return null;
+};
+
 // Debounced Contact Search
 const performContactLookup = debounce(async phoneVal => {
   const cleanPhone = (phoneVal || '').trim();
@@ -301,6 +317,62 @@ const onSubmit = async () => {
           if (updateResponse) {
             contact = updateResponse;
           }
+        }
+
+        // If contact exists, try to send message in last conversation
+        const lastConversationId = await getLastConversationId(contact.id);
+        if (lastConversationId) {
+          // Apply Contact Labels if selected
+          if (state.selectedLabels.length > 0) {
+            await store.dispatch('contactLabels/update', {
+              contactId: contact.id,
+              labels: state.selectedLabels,
+            });
+          }
+
+          // Send message to last conversation
+          await MessageApi.create({
+            conversationId: lastConversationId,
+            message: { content: state.message },
+            private: false,
+          });
+
+          // Assign Agent
+          if (state.selectedAgentId) {
+            await store.dispatch('assignAgent', {
+              conversationId: lastConversationId,
+              agentId: Number(state.selectedAgentId),
+            });
+          }
+
+          // Assign Team
+          if (state.selectedTeamId) {
+            await store.dispatch('assignTeam', {
+              conversationId: lastConversationId,
+              teamId: Number(state.selectedTeamId),
+            });
+          }
+
+          // Assign Priority
+          if (state.selectedPriority) {
+            await store.dispatch('assignPriority', {
+              conversationId: lastConversationId,
+              priority: state.selectedPriority,
+            });
+          }
+
+          useAlert(t('successMessage'));
+          close();
+
+          const accountId =
+            contact.account_id ||
+            store.getters.getCurrentAccountId ||
+            store.state.accounts.currentId;
+          router.push(
+            `/app/accounts/${accountId}/conversations/${lastConversationId}`
+          );
+          isSubmitting.value = false;
+          return;
         }
       }
     } catch (e) {

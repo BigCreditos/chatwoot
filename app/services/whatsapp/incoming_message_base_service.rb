@@ -363,13 +363,26 @@ class Whatsapp::IncomingMessageBaseService
     attachment_file = download_attachment_file(attachment_payload)
     return if attachment_file.blank?
 
+    payload_mime_type = attachment_payload[:mime_type] || attachment_payload['mime_type']
+    content_type = payload_mime_type.to_s.split(';').first&.strip
+    content_type = attachment_file.content_type if content_type.blank?
+
+    if %w[audio voice].include?(message_type) && (content_type.blank? || content_type == 'application/octet-stream')
+      content_type = 'audio/ogg'
+    end
+
+    original_filename = attachment_file.original_filename
+    if %w[audio voice].include?(message_type) && original_filename.present? && !original_filename.include?('.')
+      original_filename = "#{original_filename}.ogg"
+    end
+
     @message.attachments.new(
       account_id: @message.account_id,
       file_type: file_content_type(message_type),
       file: {
         io: attachment_file,
-        filename: attachment_file.original_filename,
-        content_type: attachment_file.content_type
+        filename: original_filename,
+        content_type: content_type
       }
     )
   end
@@ -386,7 +399,6 @@ class Whatsapp::IncomingMessageBaseService
       external_url: location['url']
     )
   end
-
   def create_message(message, source_id: nil)
     timestamp = message[:timestamp] ? Time.at(message[:timestamp].to_i, microsecond, :microsecond, in: 'UTC') : Time.current.utc
     Rails.logger.info("[WHATSAPP] Incoming message type=#{message_type} content_type=#{message_type == 'sticker' ? 'sticker' : 'nil'} source_id=#{message[:id]}")

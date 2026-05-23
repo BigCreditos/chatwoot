@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -8,6 +8,7 @@ import { required } from '@vuelidate/validators';
 import { useAlert } from 'dashboard/composables';
 import ContactAPI from 'dashboard/api/contacts';
 import { DuplicateContactException } from 'shared/helpers/CustomErrors';
+import { debounce } from '@chatwoot/utils';
 
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
@@ -102,6 +103,12 @@ const t = key => {
     errorMessage: isPortuguese.value
       ? 'Erro ao criar a conversa. Verifique os dados.'
       : 'Error creating conversation. Please check the fields.',
+    existingContactFound: isPortuguese.value
+      ? 'Contato existente encontrado'
+      : 'Existing contact found',
+    existingContactWarning: isPortuguese.value
+      ? 'O número digitado já está associado a este contato. Se você prosseguir, a mensagem será enviada a ele.'
+      : 'The typed number is already associated with this contact. If you proceed, the message will be sent to them.',
   };
   return translations[key] || key;
 };
@@ -177,6 +184,8 @@ const state = reactive({
   selectedPriority: '',
 });
 
+const existingContact = ref(null);
+
 // Form validation rules
 const rules = {
   phoneNumber: { required },
@@ -187,6 +196,58 @@ const rules = {
 const v$ = useVuelidate(rules, state);
 const isSubmitting = ref(false);
 const dialogRef = ref(null);
+
+// Intelligent Phone Matching Helper
+const isPhoneMatching = (phone1, phone2) => {
+  if (!phone1 || !phone2) return false;
+  const digits1 = phone1.replace(/\D/g, '');
+  const digits2 = phone2.replace(/\D/g, '');
+  if (!digits1 || !digits2) return false;
+  if (digits1 === digits2) return true;
+  if (digits1.length >= 8 && digits2.length >= 8) {
+    return digits1.endsWith(digits2) || digits2.endsWith(digits1);
+  }
+  return false;
+};
+
+// Debounced Contact Search
+const performContactLookup = debounce(async phoneVal => {
+  const cleanPhone = (phoneVal || '').trim();
+  if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 8) {
+    existingContact.value = null;
+    return;
+  }
+
+  try {
+    const searchResponse = await ContactAPI.search(cleanPhone);
+    const foundContact = (searchResponse.data?.payload || []).find(
+      c =>
+        c.phone_number === cleanPhone ||
+        isPhoneMatching(c.phone_number, cleanPhone)
+    );
+    if (foundContact) {
+      existingContact.value = foundContact;
+      // Populate name if not currently set or if it's the exact clean phone
+      if (
+        !state.contactName.trim() ||
+        state.contactName.trim() === cleanPhone
+      ) {
+        state.contactName = foundContact.name;
+      }
+    } else {
+      existingContact.value = null;
+    }
+  } catch (e) {
+    existingContact.value = null;
+  }
+}, 300);
+
+watch(
+  () => state.phoneNumber,
+  newVal => {
+    performContactLookup(newVal);
+  }
+);
 
 const open = () => {
   // Reset state
@@ -200,6 +261,7 @@ const open = () => {
     selectedTeamId: '',
     selectedPriority: '',
   });
+  existingContact.value = null;
   v$.value.$reset();
   dialogRef.value?.open();
 };
@@ -224,7 +286,7 @@ const onSubmit = async () => {
       const foundContact = (searchResponse.data?.payload || []).find(
         c =>
           c.phone_number === cleanPhone ||
-          c.phone_number?.replace(/\D/g, '') === cleanPhone.replace(/\D/g, '')
+          isPhoneMatching(c.phone_number, cleanPhone)
       );
       if (foundContact) {
         contact = foundContact;
@@ -257,7 +319,7 @@ const onSubmit = async () => {
           error instanceof DuplicateContactException ||
           error.name === 'DuplicateContactException'
         ) {
-          contact = error.attributes?.contact;
+          contact = error.data?.contact;
         } else {
           throw error;
         }
@@ -382,6 +444,24 @@ defineExpose({ open });
           :message="v$.phoneNumber.$error ? t('phoneNumberError') : ''"
           message-type="error"
         />
+      </div>
+
+      <!-- Existing Contact Alert Banner -->
+      <div
+        v-if="existingContact"
+        class="p-3 bg-n-alpha-2 border border-n-weak rounded-xl text-sm flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200"
+      >
+        <span class="font-medium text-n-slate-12 flex items-center gap-1.5">
+          <span class="i-lucide-alert-triangle size-4 text-n-warning" />
+          {{ t('existingContactFound') }}
+        </span>
+        <span class="text-n-slate-11">
+          {{
+            isPortuguese
+              ? `O número digitado já está associado a "${existingContact.name}". Se você prosseguir, a mensagem será enviada para este contato existente.`
+              : `The typed number is already associated with "${existingContact.name}". If you continue, the message will be sent to this existing contact.`
+          }}
+        </span>
       </div>
 
       <!-- Inbox Selector -->

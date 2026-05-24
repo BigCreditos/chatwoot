@@ -198,17 +198,23 @@ const v$ = useVuelidate(rules, state);
 const isSubmitting = ref(false);
 const dialogRef = ref(null);
 
-// Intelligent Phone Matching Helper
-const isPhoneMatching = (phone1, phone2) => {
-  if (!phone1 || !phone2) return false;
-  const digits1 = phone1.replace(/\D/g, '');
-  const digits2 = phone2.replace(/\D/g, '');
-  if (!digits1 || !digits2) return false;
-  if (digits1 === digits2) return true;
-  if (digits1.length >= 8 && digits2.length >= 8) {
-    return digits1.endsWith(digits2) || digits2.endsWith(digits1);
-  }
-  return false;
+// Normalize phone to digits only
+const normalizePhone = phone => {
+  if (!phone) return '';
+  return phone.replace(/\D/g, '');
+};
+
+// Filter out contacts that are WhatsApp LID/JID references, not real phone contacts
+const isValidContact = contact => {
+  if (!contact) return false;
+  const identifier = contact.identifier || '';
+  const phoneNumber = contact.phone_number || '';
+  const invalidPatterns = ['@lid', '@c.us', '@s.whatsapp.net', '@g.us'];
+  const hasInvalidId = invalidPatterns.some(
+    p => identifier.includes(p) || phoneNumber.includes(p)
+  );
+  if (hasInvalidId) return false;
+  return normalizePhone(phoneNumber).length >= 8;
 };
 
 // Helper: get the last conversation ID for an existing contact
@@ -229,21 +235,19 @@ const getLastConversationId = async contactId => {
 // Debounced Contact Search
 const performContactLookup = debounce(async phoneVal => {
   const cleanPhone = (phoneVal || '').trim();
-  if (!cleanPhone || cleanPhone.replace(/\D/g, '').length < 8) {
+  const normalizedQuery = normalizePhone(cleanPhone);
+  if (!normalizedQuery || normalizedQuery.length < 10) {
     existingContact.value = null;
     return;
   }
 
   try {
     const searchResponse = await ContactAPI.search(cleanPhone);
-    const foundContact = (searchResponse.data?.payload || []).find(
-      c =>
-        c.phone_number === cleanPhone ||
-        isPhoneMatching(c.phone_number, cleanPhone)
-    );
+    const foundContact = (searchResponse.data?.payload || [])
+      .filter(isValidContact)
+      .find(c => normalizePhone(c.phone_number) === normalizedQuery);
     if (foundContact) {
       existingContact.value = foundContact;
-      // Populate name if not currently set or if it's the exact clean phone
       if (
         !state.contactName.trim() ||
         state.contactName.trim() === cleanPhone
@@ -299,11 +303,9 @@ const onSubmit = async () => {
     // Try finding contact first
     try {
       const searchResponse = await ContactAPI.search(cleanPhone);
-      const foundContact = (searchResponse.data?.payload || []).find(
-        c =>
-          c.phone_number === cleanPhone ||
-          isPhoneMatching(c.phone_number, cleanPhone)
-      );
+      const foundContact = (searchResponse.data?.payload || [])
+        .filter(isValidContact)
+        .find(c => normalizePhone(c.phone_number) === normalizePhone(cleanPhone));
       if (foundContact) {
         contact = foundContact;
         if (
@@ -384,7 +386,7 @@ const onSubmit = async () => {
       try {
         contact = await store.dispatch('contacts/create', {
           name: state.contactName.trim() || cleanPhone,
-          phone_number: cleanPhone,
+          phone_number: normalizePhone(cleanPhone),
         });
       } catch (error) {
         if (

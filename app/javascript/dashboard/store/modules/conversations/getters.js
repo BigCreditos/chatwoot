@@ -102,9 +102,16 @@ const getters = {
   },
   getUnAssignedChats: _state => activeFilters => {
     return _state.allConversations.filter(conversation => {
-      const isUnAssigned = !conversation.meta.assignee;
+      const isUnAssigned = !conversation.meta.assignee && !conversation.group;
       const shouldFilter = applyPageFilters(conversation, activeFilters);
       return isUnAssigned && shouldFilter;
+    });
+  },
+  getGroupChats: _state => activeFilters => {
+    return _state.allConversations.filter(conversation => {
+      const isGroup = !!conversation.group;
+      const shouldFilter = applyPageFilters(conversation, activeFilters);
+      return isGroup && shouldFilter;
     });
   },
   getParticipatingChats: (_state, _, __, rootGetters) => activeFilters => {

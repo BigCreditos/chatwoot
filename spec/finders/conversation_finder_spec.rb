@@ -96,6 +96,41 @@ describe ConversationFinder do
         result = conversation_finder.perform
         expect(result[:conversations].length).to be 1
       end
+
+      it 'does not include unassigned group conversations in the unassigned tab' do
+        group_conversation = create(:conversation, account: account, inbox: inbox, group: true, group_title: 'Grupo Comercial')
+
+        result = conversation_finder.perform
+
+        expect(result[:conversations].map(&:id)).not_to include(group_conversation.id)
+        expect(result[:conversations].length).to be 1
+        expect(result[:count][:unassigned_count]).to be 1
+        expect(result[:count][:group_count]).to be 1
+      end
+    end
+
+    context 'with assignee_type groups' do
+      let(:team) { create(:team, account: account) }
+      let(:params) { { assignee_type: 'groups' } }
+
+      it 'returns every group conversation regardless of assignee or team' do
+        assigned_group = create(:conversation, account: account, inbox: inbox, assignee: user_1, group: true, group_title: 'Assigned group')
+        team_group = create(:conversation, account: account, inbox: inbox, team: team, group: true, group_title: 'Team group')
+        unassigned_group = create(:conversation, account: account, inbox: inbox, group: true, group_title: 'Unassigned group')
+
+        result = conversation_finder.perform
+
+        expect(result[:conversations].map(&:id)).to match_array([assigned_group.id, team_group.id, unassigned_group.id])
+      end
+
+      it 'returns the correct group count' do
+        create(:conversation, account: account, inbox: inbox, assignee: user_1, group: true)
+        create(:conversation, account: account, inbox: inbox, team: team, group: true)
+
+        result = conversation_finder.perform
+
+        expect(result[:count][:group_count]).to be 2
+      end
     end
 
     context 'with assignee_type waiting' do
@@ -138,7 +173,8 @@ describe ConversationFinder do
                                        assigned_count: 3,
                                        unassigned_count: 1,
                                        waiting_count: 3,
-                                       internal_count: 1,
+                                       group_count: 0,
+                                       internal_count: 0,
                                        all_count: 4
                                      })
       end
@@ -235,7 +271,8 @@ describe ConversationFinder do
                                        assigned_count: 3,
                                        unassigned_count: 1,
                                        waiting_count: 3,
-                                       internal_count: 1,
+                                       group_count: 0,
+                                       internal_count: 0,
                                        all_count: 4
                                      })
       end
@@ -255,6 +292,8 @@ describe ConversationFinder do
       end
 
       it 'returns internal conversations only for the internal tab' do
+        create(:inbox_member, user: user_1, inbox: internal_inbox)
+
         result = described_class.new(user_1, { assignee_type: 'internal' }).perform
 
         expect(result[:conversations].map(&:inbox_id)).to contain_exactly(internal_inbox.id)

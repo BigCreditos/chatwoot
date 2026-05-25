@@ -335,7 +335,7 @@ const onSubmit = async () => {
           // Send message to last conversation
           await MessageApi.create({
             conversationId: lastConversationId,
-            message: { content: state.message },
+            message: state.message,
             private: false,
           });
 
@@ -386,7 +386,7 @@ const onSubmit = async () => {
       try {
         contact = await store.dispatch('contacts/create', {
           name: state.contactName.trim() || cleanPhone,
-          phone_number: normalizePhone(cleanPhone),
+          phone_number: cleanPhone.startsWith('+') ? cleanPhone : `+${normalizePhone(cleanPhone)}`,
         });
       } catch (error) {
         if (

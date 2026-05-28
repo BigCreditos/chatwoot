@@ -166,17 +166,10 @@ const copyConversationId = async () => {
         >
           {{ currentContact.phone_number }}
         </div>
+        <InboxName :inbox="inbox" class="mt-0.5" />
         <div
           class="flex items-center gap-2 mt-0.5 overflow-hidden text-xs conversation--header--actions text-n-slate-11 text-ellipsis whitespace-nowrap"
         >
-          <button
-            type="button"
-            class="truncate text-label-small text-n-slate-11 hover:text-n-slate-12 !p-0 cursor-pointer"
-            @click="copyConversationId"
-          >
-            {{ `#${chat.id}` }}
-          </button>
-          <span v-if="chat.group && chat.group_contacts_count">•</span>
           <span v-if="chat.group && chat.group_contacts_count">
             {{ chat.group_contacts_count }}
             {{ t('CONVERSATION.GROUP.MEMBERS') }}
@@ -191,7 +184,13 @@ const copyConversationId = async () => {
     <div
       class="flex flex-row items-center justify-start xl:justify-end flex-shrink-0 gap-2 w-full xl:w-auto header-actions-wrap"
     >
-      <InboxName :inbox="inbox" class="!mx-0" />
+      <button
+        type="button"
+        class="truncate text-label-small text-n-slate-11 hover:text-n-slate-12 !p-0 cursor-pointer"
+        @click="copyConversationId"
+      >
+        {{ `#${chat.id}` }}
+      </button>
       <SLACardLabel
         v-if="hasSlaPolicyId"
         :chat="chat"

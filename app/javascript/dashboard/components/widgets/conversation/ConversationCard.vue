@@ -184,6 +184,12 @@ watch(
         {{ conversationTitle }}
       </h4>
       <p
+        v-if="currentContact.phone_number"
+        class="text-n-slate-10 text-xs my-0 mx-2 leading-4 h-4 overflow-hidden text-ellipsis whitespace-nowrap"
+      >
+        {{ currentContact.phone_number }}
+      </p>
+      <p
         v-if="chat.group && chat.group_contacts_count"
         class="text-n-slate-10 text-xs my-0 mx-2 leading-4 h-4 overflow-hidden text-ellipsis whitespace-nowrap"
       >

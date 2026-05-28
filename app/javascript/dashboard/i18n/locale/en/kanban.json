@@ -45,7 +45,16 @@
       "AUTO_WIN": "Auto-win task when resolving conversation",
       "SAVE": "Save changes",
       "DELETE": "Delete funnel",
-      "DELETE_CONFIRM": "Are you sure you want to delete this funnel?"
+      "DELETE_CONFIRM": "Are you sure you want to delete this funnel?",
+      "SELECT_MODEL_TITLE": "Select a template",
+      "EMPTY_FUNNEL": "Empty Funnel",
+      "EMPTY_FUNNEL_DESC": "Start from scratch with an empty funnel.",
+      "SALES_FUNNEL": "Sales Pipeline",
+      "SALES_FUNNEL_DESC": "Track your sales leads from initial contact to deal close.",
+      "SUPPORT_FUNNEL": "Support",
+      "SUPPORT_FUNNEL_DESC": "Manage support tickets from creation to resolution.",
+      "RECRUITMENT_FUNNEL": "Recruitment Pipeline",
+      "RECRUITMENT_FUNNEL_DESC": "Manage your hiring process from application to offer."
     },
     "SIDEBAR": {
       "SECTION_TITLE": "Kanban",

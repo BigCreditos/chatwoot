@@ -45,7 +45,16 @@
       "AUTO_WIN": "Ganhar tarefa automaticamente ao resolver conversa",
       "SAVE": "Salvar alterações",
       "DELETE": "Excluir funil",
-      "DELETE_CONFIRM": "Tem certeza de que deseja excluir este funil?"
+      "DELETE_CONFIRM": "Tem certeza de que deseja excluir este funil?",
+      "SELECT_MODEL_TITLE": "Selecione um modelo",
+      "EMPTY_FUNNEL": "Funil Vazio",
+      "EMPTY_FUNNEL_DESC": "Comece do zero com um funil vazio.",
+      "SALES_FUNNEL": "Pipeline de Vendas",
+      "SALES_FUNNEL_DESC": "Acompanhe seus leads de vendas desde o contato inicial até o fechamento do negócio.",
+      "SUPPORT_FUNNEL": "Suporte",
+      "SUPPORT_FUNNEL_DESC": "Gerencie tickets de suporte desde a criação até a resolução.",
+      "RECRUITMENT_FUNNEL": "Pipeline de Recrutamento",
+      "RECRUITMENT_FUNNEL_DESC": "Gerencie seu processo de contratação desde a candidatura até a oferta."
     },
     "SIDEBAR": {
       "SECTION_TITLE": "Kanban",

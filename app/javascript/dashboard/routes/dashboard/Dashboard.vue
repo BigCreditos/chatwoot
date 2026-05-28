@@ -19,21 +19,13 @@ const CommandBar = defineAsyncComponent(
 const FloatingCallWidget = defineAsyncComponent(
   () => import('dashboard/components/widgets/FloatingCallWidget.vue')
 );
-const VoiceDialerFab = defineAsyncComponent(
-  () => import('dashboard/components/widgets/VoiceDialerFab.vue')
-);
-const VoiceAudioPlaybackModal = defineAsyncComponent(
-  () => import('dashboard/components/widgets/VoiceAudioPlaybackModal.vue')
-);
-const VoiceAutoRegister = defineAsyncComponent(
-  () => import('dashboard/components/widgets/VoiceAutoRegister.vue')
-);
 
 import CopilotLauncher from 'dashboard/components-next/copilot/CopilotLauncher.vue';
 import CopilotContainer from 'dashboard/components/copilot/CopilotContainer.vue';
 
 import MobileSidebarLauncher from 'dashboard/components-next/sidebar/MobileSidebarLauncher.vue';
 import { useCallsStore } from 'dashboard/stores/calls';
+import { KanbanAutomations } from './kanban/helpers/kanbanAutomations';
 
 export default {
   components: {
@@ -45,9 +37,6 @@ export default {
     CopilotLauncher,
     CopilotContainer,
     FloatingCallWidget,
-    VoiceDialerFab,
-    VoiceAudioPlaybackModal,
-    VoiceAutoRegister,
     MobileSidebarLauncher,
   },
   setup() {
@@ -138,6 +127,14 @@ export default {
       this.showShortcutModal = false;
     },
   },
+  mounted() {
+    this.unsubscribeAutomations = KanbanAutomations.register(this.$store);
+  },
+  beforeUnmount() {
+    if (this.unsubscribeAutomations) {
+      this.unsubscribeAutomations();
+    }
+  },
 };
 </script>
 
@@ -174,9 +171,6 @@ export default {
           @toggle="toggleMobileSidebar"
         />
         <CopilotContainer />
-        <VoiceAutoRegister />
-        <VoiceDialerFab />
-        <VoiceAudioPlaybackModal />
         <FloatingCallWidget v-if="hasActiveCall || hasIncomingCall" />
       </template>
       <AddAccountModal

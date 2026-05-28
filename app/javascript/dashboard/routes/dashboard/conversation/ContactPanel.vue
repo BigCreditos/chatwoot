@@ -13,9 +13,10 @@ import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
 import ContactConversations from './ContactConversations.vue';
 import ConversationAction from './ConversationAction.vue';
 import ConversationParticipant from './ConversationParticipant.vue';
-import GroupContacts from './GroupContacts.vue';
 import ContactInfo from './contact/ContactInfo.vue';
+import GroupContactInfo from './contact/GroupContactInfo.vue';
 import ContactNotes from './contact/ContactNotes.vue';
+import ScheduledMessages from './scheduledMessages/ScheduledMessages.vue';
 import ConversationInfo from './ConversationInfo.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
 import SharedFiles from './SharedFiles.vue';
@@ -25,6 +26,7 @@ import ShopifyOrdersList from 'dashboard/components/widgets/conversation/Shopify
 import SidebarActionsHeader from 'dashboard/components-next/SidebarActionsHeader.vue';
 import LinearIssuesList from 'dashboard/components/widgets/conversation/linear/IssuesList.vue';
 import LinearSetupCTA from 'dashboard/components/widgets/conversation/linear/LinearSetupCTA.vue';
+import ConversationSidebarKanban from 'dashboard/components/widgets/conversation/ConversationSidebarKanban.vue';
 
 const props = defineProps({
   conversationId: {
@@ -89,6 +91,14 @@ const conversationAdditionalAttributes = computed(
 );
 
 const channelType = computed(() => currentChat.value.meta?.channel);
+const isGroupConversation = computed(
+  () => currentChat.value.group_type === 'group'
+);
+const sidebarTitle = computed(() =>
+  isGroupConversation.value
+    ? 'GROUP.SIDEBAR_TITLE'
+    : 'CONVERSATION.SIDEBAR.CONTACT'
+);
 
 const contactGetter = useMapGetter('contacts/getContact');
 const contactId = computed(() => currentChat.value.meta?.sender?.id);
@@ -96,19 +106,6 @@ const contact = computed(() => contactGetter.value(contactId.value));
 const contactAdditionalAttributes = computed(
   () => contact.value.additional_attributes || {}
 );
-const isGroupConversation = computed(() => currentChat.value.group);
-
-const shouldShowSidebarItem = element => {
-  if (!isGroupConversation.value) return true;
-
-  return [
-    'conversation_actions',
-    'conversation_participants',
-    'conversation_info',
-    'macros',
-    'linear_issues',
-  ].includes(element.name);
-};
 
 const getContactDetails = () => {
   if (contactId.value) {
@@ -116,9 +113,16 @@ const getContactDetails = () => {
   }
 };
 
+const triggerGroupSync = () => {
+  if (isGroupConversation.value && contactId.value) {
+    store.dispatch('groupMembers/sync', { contactId: contactId.value });
+  }
+};
+
 watch(contactId, (newContactId, prevContactId) => {
   if (newContactId && newContactId !== prevContactId) {
     getContactDetails();
+    triggerGroupSync();
   }
 });
 
@@ -136,19 +140,10 @@ const closeContactPanel = () => {
   });
 };
 
-const onToggleNotes = () => {
-  toggleSidebarUIState('is_contact_notes_open', true);
-  setTimeout(() => {
-    const element = document.getElementById('contact-notes-accordion');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, 100);
-};
-
 onMounted(() => {
   conversationSidebarItems.value = conversationSidebarItemsOrder.value;
   getContactDetails();
+  triggerGroupSync();
   store.dispatch('attributes/get', 0);
   // Load integrations to ensure linear integration state is available
   store.dispatch('integrations/get', 'linear');
@@ -158,24 +153,24 @@ onMounted(() => {
 <template>
   <div class="w-full">
     <SidebarActionsHeader
-      :title="
-        isGroupConversation
-          ? $t('CONVERSATION.SIDEBAR.GROUP')
-          : $t('CONVERSATION.SIDEBAR.CONTACT')
-      "
+      :title="$t(sidebarTitle)"
       @close="closeContactPanel"
     />
-    <GroupContacts
-      v-if="isGroupConversation"
-      :conversation-id="conversationId"
-    />
-    <ContactInfo
-      v-else
-      :contact="contact"
-      :channel-type="channelType"
-      @on-toggle-notes="onToggleNotes"
-    />
+    <GroupContactInfo v-if="isGroupConversation" :contact="contact" />
+    <ContactInfo v-else :contact="contact" :channel-type="channelType" />
     <div class="px-2 pb-8 list-group">
+      <!-- Kanban Funnel Integration Accordion Widget -->
+      <div v-if="conversationId" class="mb-3 conversation--actions">
+        <AccordionItem
+          :title="$t('KANBAN.SIDEBAR.SECTION_TITLE')"
+          :is-open="isContactSidebarItemOpen('is_kanban_sidebar_open')"
+          compact
+          @toggle="value => toggleSidebarUIState('is_kanban_sidebar_open', value)"
+        >
+          <ConversationSidebarKanban :conversation-id="conversationId" />
+        </AccordionItem>
+      </div>
+
       <Draggable
         :list="conversationSidebarItems"
         animation="200"
@@ -188,10 +183,26 @@ onMounted(() => {
       >
         <template #item="{ element }">
           <div
-            v-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'conversation_actions'
-            "
+            v-if="element.name === 'scheduled_messages'"
+            class="conversation--actions"
+          >
+            <AccordionItem
+              :title="$t('CONVERSATION_SIDEBAR.ACCORDION.SCHEDULED_MESSAGES')"
+              :is-open="isContactSidebarItemOpen('is_scheduled_messages_open')"
+              compact
+              @toggle="
+                value =>
+                  toggleSidebarUIState('is_scheduled_messages_open', value)
+              "
+            >
+              <ScheduledMessages
+                :conversation-id="conversationId"
+                :inbox-id="inboxId"
+              />
+            </AccordionItem>
+          </div>
+          <div
+            v-else-if="element.name === 'conversation_actions'"
             class="conversation--actions"
           >
             <AccordionItem
@@ -208,10 +219,7 @@ onMounted(() => {
             </AccordionItem>
           </div>
           <div
-            v-else-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'conversation_participants'
-            "
+            v-else-if="element.name === 'conversation_participants'"
             class="conversation--actions"
           >
             <AccordionItem
@@ -228,12 +236,7 @@ onMounted(() => {
               />
             </AccordionItem>
           </div>
-          <div
-            v-else-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'conversation_info'
-            "
-          >
+          <div v-else-if="element.name === 'conversation_info'">
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONVERSATION_INFO')"
               :is-open="isContactSidebarItemOpen('is_conv_details_open')"
@@ -248,12 +251,7 @@ onMounted(() => {
               />
             </AccordionItem>
           </div>
-          <div
-            v-else-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'contact_attributes'
-            "
-          >
+          <div v-else-if="element.name === 'contact_attributes'">
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONTACT_ATTRIBUTES')"
               :is-open="isContactSidebarItemOpen('is_contact_attributes_open')"
@@ -273,12 +271,7 @@ onMounted(() => {
               />
             </AccordionItem>
           </div>
-          <div
-            v-else-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'previous_conversation'
-            "
-          >
+          <div v-else-if="element.name === 'previous_conversation'">
             <AccordionItem
               v-if="contact.id"
               :title="
@@ -297,9 +290,7 @@ onMounted(() => {
             </AccordionItem>
           </div>
           <woot-feature-toggle
-            v-else-if="
-              shouldShowSidebarItem(element) && element.name === 'macros'
-            "
+            v-else-if="element.name === 'macros'"
             feature-key="macros"
           >
             <AccordionItem
@@ -313,7 +304,6 @@ onMounted(() => {
           </woot-feature-toggle>
           <div
             v-else-if="
-              shouldShowSidebarItem(element) &&
               element.name === 'linear_issues' &&
               isLinearFeatureEnabled &&
               isLinearClientIdConfigured
@@ -333,9 +323,7 @@ onMounted(() => {
           </div>
           <div
             v-else-if="
-              shouldShowSidebarItem(element) &&
-              element.name === 'shopify_orders' &&
-              isShopifyFeatureEnabled
+              element.name === 'shopify_orders' && isShopifyFeatureEnabled
             "
           >
             <AccordionItem
@@ -349,12 +337,7 @@ onMounted(() => {
               <ShopifyOrdersList :contact-id="contactId" />
             </AccordionItem>
           </div>
-          <div
-            v-else-if="
-              shouldShowSidebarItem(element) && element.name === 'contact_notes'
-            "
-            id="contact-notes-accordion"
-          >
+          <div v-else-if="element.name === 'contact_notes'">
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONTACT_NOTES')"
               :is-open="isContactSidebarItemOpen('is_contact_notes_open')"

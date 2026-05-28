@@ -24,8 +24,9 @@ export default {
       this.$emit('change', value);
     },
     disableBeforeToday(date) {
-      const yesterdayDate = addDays(new Date(), -1);
-      return date < yesterdayDate;
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      return date < startOfToday;
     },
   },
 };

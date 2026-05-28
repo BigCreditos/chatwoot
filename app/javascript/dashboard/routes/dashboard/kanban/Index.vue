@@ -63,8 +63,8 @@ const loadKanbanConfig = async () => {
       config.pipelines.some(p => p.id === queryPipelineId)
     ) {
       activePipelineId.value = queryPipelineId;
-    } else if (config.pipelines.length > 0) {
-      activePipelineId.value = config.pipelines[0].id;
+    } else {
+      activePipelineId.value = null;
     }
   } catch (err) {
     console.error('Failed to load Kanban configurations:', err);
@@ -77,9 +77,46 @@ watch(
     const parsedId = Number(newId);
     if (parsedId && fullConfig.value.pipelines.some(p => p.id === parsedId)) {
       activePipelineId.value = parsedId;
+    } else {
+      activePipelineId.value = null;
     }
   }
 );
+
+// Overview Helper Methods
+const selectPipeline = pipeline => {
+  router.push({
+    name: 'kanban_dashboard',
+    query: { pipeline_id: pipeline.id },
+  });
+};
+
+const getStageLeadsCount = stage => {
+  return allConversations.value.filter(c => c.labels?.includes(stage.label))
+    .length;
+};
+
+const getPipelineTotalLeads = pipeline => {
+  let count = 0;
+  pipeline.stages.forEach(stage => {
+    count += getStageLeadsCount(stage);
+  });
+  return count;
+};
+
+const getPipelineUniqueAgents = pipeline => {
+  const pipelineConversations = allConversations.value.filter(c =>
+    pipeline.stages.some(stage => c.labels?.includes(stage.label))
+  );
+  const agentsMap = new Map();
+  pipelineConversations.forEach(c => {
+    const assignee = c.meta?.assignee;
+    if (assignee && assignee.id) {
+      agentsMap.set(assignee.id, assignee);
+    }
+  });
+  return Array.from(agentsMap.values());
+};
 
 onMounted(() => {
   // Ensure Chatwoot memory is populated
@@ -330,241 +367,319 @@ const addConversationToStage = async (conversation, stage) => {
   <div
     class="flex flex-col w-full h-full bg-slate-950 font-sans overflow-hidden"
   >
-    <!-- Header Top Section -->
-    <header
-      class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-6 py-4 border-b border-slate-900 bg-slate-950 shrink-0"
-    >
-      <!-- Title & Pipelines Selector -->
-      <div class="flex items-center gap-3">
-        <h2 class="text-xl font-bold tracking-tight text-slate-100 shrink-0">
-          {{ t('KANBAN.HEADER.TITLE') }}
-        </h2>
-
-        <!-- Pipeline Select Dropdown -->
-        <div
-          v-if="fullConfig.pipelines.length > 0"
-          class="flex items-center gap-1.5"
-        >
-          <select
-            v-model="activePipelineId"
-            class="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer min-w-[160px]"
-          >
-            <option v-for="p in fullConfig.pipelines" :key="p.id" :value="p.id">
-              {{ p.name }}
-            </option>
-          </select>
-
-          <!-- Edit pipeline settings gear -->
-          <button
-            type="button"
-            class="p-2 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-lg text-slate-400 hover:text-slate-200 transition-all"
-            title="Configurações do Funil"
-            @click="openEditPipeline"
-          >
-            <Icon icon="i-lucide-settings" class="size-4 shrink-0" />
-          </button>
-        </div>
-
-        <!-- Add pipeline button -->
-        <Button
-          small
-          blue
-          class="flex items-center gap-1 shrink-0"
-          @click="openAddPipeline"
-        >
-          <Icon icon="i-lucide-plus" class="size-3.5" />
-          {{ t('KANBAN.HEADER.ADD_FUNNEL') }}
-        </Button>
-      </div>
-
-      <!-- Filters & Search Bar -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <!-- Live Search Bar -->
-        <div class="relative shrink-0 w-full sm:w-60">
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="t('KANBAN.HEADER.SEARCH')"
-            class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
-          />
-          <span class="absolute left-3 top-2.5 text-slate-500">
-            <Icon icon="i-lucide-search" class="size-3.5" />
-          </span>
-        </div>
-
-        <!-- Filter Agents -->
-        <select
-          v-model="filterAgentId"
-          class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
-        >
-          <option value="">-- {{ t('KANBAN.HEADER.ALL_AGENTS') }} --</option>
-          <option v-for="agent in allAgents" :key="agent.id" :value="agent.id">
-            {{ agent.name }}
-          </option>
-        </select>
-
-        <!-- Filter Inboxes -->
-        <select
-          v-model="filterInboxId"
-          class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
-        >
-          <option value="">-- {{ t('KANBAN.HEADER.ALL_INBOXES') }} --</option>
-          <option v-for="ib in allInboxes" :key="ib.id" :value="ib.id">
-            {{ ib.name }}
-          </option>
-        </select>
-      </div>
-    </header>
-
-    <!-- Empty State Funnels -->
+    <!-- 1. Funis Overview (Visão geral) when activePipelineId is null -->
     <div
-      v-if="fullConfig.pipelines.length === 0"
-      class="flex-1 flex flex-col items-center justify-center p-8 text-center"
+      v-if="activePipelineId === null"
+      class="flex-grow flex flex-col h-full bg-slate-950 p-8 overflow-y-auto"
     >
-      <div
-        class="max-w-md p-6 border border-slate-800 bg-slate-900/50 rounded-2xl shadow-xl flex flex-col items-center"
-      >
-        <Icon icon="i-lucide-kanban" class="text-blue-500 size-12 mb-4" />
-        <h3 class="text-lg font-semibold text-slate-200 mb-2">
-          Crie seu primeiro Funil de Vendas
-        </h3>
-        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
-          Nenhum funil Kanban foi configurado ainda para esta conta. Crie etapas
-          personalizadas e gerencie seus leads de forma nativa e integrada.
-        </p>
+      <!-- Overview Header -->
+      <div class="flex items-center justify-between mb-8 shrink-0">
+        <h2 class="text-2xl font-bold tracking-tight text-slate-100">Funis</h2>
         <Button
           blue
-          solid
-          md
-          class="flex items-center gap-2"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl"
           @click="openAddPipeline"
         >
           <Icon icon="i-lucide-plus" class="size-4" />
-          {{ t('KANBAN.HEADER.ADD_FUNNEL') }}
+          Adicionar Funil
         </Button>
+      </div>
+
+      <!-- Funnels List -->
+      <div class="flex flex-col gap-5 max-w-5xl">
+        <div
+          v-for="p in fullConfig.pipelines"
+          :key="p.id"
+          class="bg-slate-900/60 hover:bg-slate-900 border border-slate-850 hover:border-slate-800 rounded-2xl p-6 transition-all cursor-pointer flex flex-col gap-4 shadow-lg hover:shadow-2xl"
+          @click="selectPipeline(p)"
+        >
+          <!-- Pipeline Header Info -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-lg font-bold text-slate-200">{{ p.name }}</span>
+              <span
+                class="px-2.5 py-0.5 rounded-full bg-slate-950 text-xs font-semibold text-slate-400 border border-slate-800"
+              >
+                {{ getPipelineTotalLeads(p) }}
+              </span>
+            </div>
+
+            <!-- Agent / Inbox placeholder avatars (from the pipeline or active leads) -->
+            <div class="flex items-center -space-x-2">
+              <Thumbnail
+                v-for="agent in getPipelineUniqueAgents(p).slice(0, 4)"
+                :key="agent.id"
+                :src="agent.thumbnail"
+                :username="agent.name"
+                size="26px"
+                class="border-2 border-slate-900 rounded-full shrink-0"
+              />
+              <span
+                v-if="getPipelineUniqueAgents(p).length > 4"
+                class="size-[26px] rounded-full border-2 border-slate-900 bg-slate-950 text-[10px] font-bold text-slate-400 flex items-center justify-center shrink-0 z-10"
+              >
+                +{{ getPipelineUniqueAgents(p).length - 4 }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Stages Summary Horizontal Bar -->
+          <div class="flex flex-wrap gap-2.5">
+            <div
+              v-for="stage in p.stages"
+              :key="stage.id"
+              class="bg-slate-950/70 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-300 flex items-center gap-2 border border-slate-850"
+            >
+              <span
+                class="size-2 rounded-full"
+                :style="{ backgroundColor: stage.color || '#3b82f6' }"
+              />
+              <span>{{ stage.title }}</span>
+              <span class="text-slate-500 font-bold ml-0.5">{{
+                getStageLeadsCount(stage)
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="fullConfig.pipelines.length === 0"
+          class="flex flex-col items-center justify-center py-20 text-center gap-4 bg-slate-900/20 border border-dashed border-slate-850 rounded-2xl"
+        >
+          <div class="p-4 bg-slate-900/60 rounded-full text-slate-500">
+            <Icon icon="i-lucide-folder-open" class="size-8" />
+          </div>
+          <div class="flex flex-col gap-1 max-w-sm">
+            <h3 class="text-sm font-bold text-slate-300">
+              Nenhum funil configurado
+            </h3>
+            <p class="text-xs text-slate-500 font-medium">
+              Crie seu primeiro funil para gerenciar leads, propostas e
+              fechamento comercial de forma visual.
+            </p>
+          </div>
+          <Button blue small class="mt-2" @click="openAddPipeline">
+            <Icon icon="i-lucide-plus" class="size-3.5" />
+            Adicionar Funil
+          </Button>
+        </div>
       </div>
     </div>
 
-    <!-- Active Pipeline Columns Board -->
-    <main
-      v-else
-      class="flex-1 flex gap-5 p-6 overflow-x-auto select-none items-stretch"
-    >
-      <div
-        v-for="stage in activePipeline.stages"
-        :key="stage.id"
-        class="flex flex-col w-[290px] shrink-0 border border-slate-900 bg-slate-900/10 rounded-2xl max-h-full overflow-hidden"
+    <!-- 2. Kanban Board (when activePipelineId is NOT null) -->
+    <template v-else>
+      <!-- Header Top Section -->
+      <header
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-6 py-4 border-b border-slate-900 bg-slate-950 shrink-0"
       >
-        <!-- Column Header -->
-        <div
-          class="p-4 border-b border-slate-900/60 flex items-center justify-between shrink-0 bg-slate-900/30"
-        >
-          <div class="flex items-center gap-2">
-            <!-- Color Stage Dot -->
-            <span
-              :style="{ backgroundColor: stage.color }"
-              class="w-2.5 h-2.5 rounded-full shrink-0"
-            />
-            <div class="flex flex-col">
-              <span class="text-xs font-bold text-slate-100 leading-tight">
-                {{ stage.title }}
-              </span>
-              <span class="text-[9px] text-slate-500 font-mono">
-                {{ stage.label }}
-              </span>
-            </div>
+        <!-- Title & Pipelines Selector -->
+        <div class="flex items-center gap-3">
+          <h2 class="text-xl font-bold tracking-tight text-slate-100 shrink-0">
+            {{ t('KANBAN.HEADER.TITLE') }}
+          </h2>
+
+          <!-- Pipeline Select Dropdown -->
+          <div
+            v-if="fullConfig.pipelines.length > 0"
+            class="flex items-center gap-1.5"
+          >
+            <select
+              v-model="activePipelineId"
+              class="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer min-w-[160px]"
+            >
+              <option
+                v-for="p in fullConfig.pipelines"
+                :key="p.id"
+                :value="p.id"
+              >
+                {{ p.name }}
+              </option>
+            </select>
+
+            <!-- Edit pipeline settings gear -->
+            <button
+              type="button"
+              class="p-2 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-lg text-slate-400 hover:text-slate-200 transition-all"
+              title="Configurações do Funil"
+              @click="openEditPipeline"
+            >
+              <Icon icon="i-lucide-settings" class="size-4 shrink-0" />
+            </button>
           </div>
 
-          <!-- Raio-X card counts in Column -->
-          <span
-            class="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] font-bold text-slate-400 border border-slate-800"
+          <!-- Add pipeline button -->
+          <Button
+            small
+            blue
+            class="flex items-center gap-1 shrink-0"
+            @click="openAddPipeline"
           >
-            {{ columnsCardsMap[stage.id]?.length || 0 }}
-          </span>
+            <Icon icon="i-lucide-plus" class="size-3.5" />
+            {{ t('KANBAN.HEADER.ADD_FUNNEL') }}
+          </Button>
         </div>
 
-        <!-- Draggable Cards Container -->
-        <div
-          class="flex-1 overflow-y-auto px-3.5 py-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent"
-        >
-          <Draggable
-            v-model="columnsCardsMap[stage.id]"
-            group="kanban-conversations"
-            item-key="id"
-            animation="200"
-            ghost-class="bg-slate-950/40 border-dashed border-slate-700 opacity-60 scale-[0.98] rounded-xl"
-            drag-class="scale-105 rotate-1 opacity-90 shadow-2xl rounded-xl z-50 cursor-grabbing"
-            class="flex flex-col gap-3.5 min-h-[300px] h-full"
-            @change="onCardDragChange($event, stage)"
-          >
-            <template #item="{ element }">
-              <KanbanCard
-                :conversation="element"
-                @click="openConversation"
-                @resolve="resolveConversation"
-              />
-            </template>
-          </Draggable>
-        </div>
+        <!-- Filters & Search Bar -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Live Search Bar -->
+          <div class="relative shrink-0 w-full sm:w-60">
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t('KANBAN.HEADER.SEARCH')"
+              class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
+            />
+            <span class="absolute left-3 top-2.5 text-slate-500">
+              <Icon icon="i-lucide-search" class="size-3.5" />
+            </span>
+          </div>
 
-        <!-- "+ Adicionar tarefa" Button & Popover -->
-        <div class="p-3 border-t border-slate-900/40 shrink-0 relative">
-          <button
-            type="button"
-            class="w-full py-2 px-3 hover:bg-slate-900/50 rounded-lg text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-900"
-            @click="
-              showAddCardPopoverId =
-                showAddCardPopoverId === stage.id ? null : stage.id
-            "
+          <!-- Filter Agents -->
+          <select
+            v-model="filterAgentId"
+            class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
           >
-            <Icon icon="i-lucide-plus" class="size-4 shrink-0" />
-            {{ t('KANBAN.HEADER.ADD_TASK') }}
-          </button>
-
-          <!-- Add lead popover drop list -->
-          <div
-            v-if="showAddCardPopoverId === stage.id"
-            class="absolute bottom-12 left-2 right-2 flex flex-col max-h-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-y-auto py-1.5 z-40 animate-in fade-in slide-in-from-bottom-2"
-          >
-            <div
-              class="px-3 py-1.5 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-500"
+            <option value="">-- {{ t('KANBAN.HEADER.ALL_AGENTS') }} --</option>
+            <option
+              v-for="agent in allAgents"
+              :key="agent.id"
+              :value="agent.id"
             >
-              Chats recentes sem funil
+              {{ agent.name }}
+            </option>
+          </select>
+
+          <!-- Filter Inboxes -->
+          <select
+            v-model="filterInboxId"
+            class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
+          >
+            <option value="">-- {{ t('KANBAN.HEADER.ALL_INBOXES') }} --</option>
+            <option
+              v-for="inbox in allInboxes"
+              :key="inbox.id"
+              :value="inbox.id"
+            >
+              {{ inbox.name }}
+            </option>
+          </select>
+        </div>
+      </header>
+
+      <!-- Draggable Stage Board Columns -->
+      <main class="flex-grow flex gap-4 p-6 overflow-x-auto overflow-y-hidden">
+        <!-- Stage Column -->
+        <div
+          v-for="stage in activePipeline?.stages"
+          :key="stage.id"
+          class="flex flex-col w-[272px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
+        >
+          <!-- Column Header Info -->
+          <div
+            class="flex items-center justify-between px-4 py-3 bg-slate-900/60 border-b border-slate-900/40 shrink-0"
+          >
+            <div class="flex items-center gap-2 min-w-0">
+              <!-- Colored Column Bullet Indicator -->
+              <span
+                class="size-2 rounded-full shrink-0"
+                :style="{ backgroundColor: stage.color || '#3b82f6' }"
+              />
+              <span class="text-xs font-bold text-slate-200 truncate">{{
+                stage.title
+              }}</span>
             </div>
 
-            <button
-              v-for="conv in eligibleConversationsForInclusion"
-              :key="conv.id"
-              type="button"
-              class="px-3 py-2 text-left hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
-              @click="addConversationToStage(conv, stage)"
+            <!-- Total Leads Counter Badge -->
+            <span
+              class="px-2 py-0.5 rounded-full bg-slate-950 text-[10px] font-bold text-slate-400 border border-slate-800"
             >
-              <Thumbnail
-                :src="conv.meta?.sender?.thumbnail"
-                :username="conv.meta?.sender?.name || 'Cliente'"
-                size="20px"
-                class="shrink-0"
-              />
-              <div class="flex flex-col min-w-0">
-                <span class="text-xs font-semibold truncate">{{
-                  conv.meta?.sender?.name || 'Cliente'
-                }}</span>
-                <span class="text-[9px] text-slate-500 font-mono"
-                  >#{{ conv.display_id || conv.id }}</span
-                >
-              </div>
+              {{ columnsCardsMap[stage.id]?.length || 0 }}
+            </span>
+          </div>
+
+          <!-- Draggable Cards Container -->
+          <div
+            class="flex-1 overflow-y-auto px-3.5 py-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent"
+          >
+            <Draggable
+              v-model="columnsCardsMap[stage.id]"
+              group="kanban-conversations"
+              item-key="id"
+              animation="200"
+              ghost-class="bg-slate-950/40 border-dashed border-slate-700 opacity-60 scale-[0.98] rounded-xl"
+              drag-class="scale-105 rotate-1 opacity-90 shadow-2xl rounded-xl z-50 cursor-grabbing"
+              class="flex flex-col gap-3.5 min-h-[300px] h-full"
+              @change="onCardDragChange($event, stage)"
+            >
+              <template #item="{ element }">
+                <KanbanCard
+                  :conversation="element"
+                  @click="openConversation"
+                  @resolve="resolveConversation"
+                />
+              </template>
+            </Draggable>
+          </div>
+
+          <!-- "+ Adicionar tarefa" Button & Popover -->
+          <div class="p-3 border-t border-slate-900/40 shrink-0 relative">
+            <button
+              type="button"
+              class="w-full py-2 px-3 hover:bg-slate-900/50 rounded-lg text-slate-400 hover:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-slate-900"
+              @click="
+                showAddCardPopoverId =
+                  showAddCardPopoverId === stage.id ? null : stage.id
+              "
+            >
+              <Icon icon="i-lucide-plus" class="size-4 shrink-0" />
+              {{ t('KANBAN.HEADER.ADD_TASK') }}
             </button>
 
+            <!-- Add lead popover drop list -->
             <div
-              v-if="eligibleConversationsForInclusion.length === 0"
-              class="px-4 py-6 text-center text-xs text-slate-500 font-medium leading-relaxed"
+              v-if="showAddCardPopoverId === stage.id"
+              class="absolute bottom-12 left-2 right-2 flex flex-col max-h-56 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-y-auto py-1.5 z-40 animate-in fade-in slide-in-from-bottom-2"
             >
-              Nenhuma conversa recente elegível encontrada.
+              <div
+                class="px-3 py-1.5 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-500"
+              >
+                Chats recentes sem funil
+              </div>
+
+              <button
+                v-for="conv in eligibleConversationsForInclusion"
+                :key="conv.id"
+                type="button"
+                class="px-3 py-2 text-left hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
+                @click="addConversationToStage(conv, stage)"
+              >
+                <Thumbnail
+                  :src="conv.meta?.sender?.thumbnail"
+                  :username="conv.meta?.sender?.name || 'Cliente'"
+                  size="20px"
+                  class="shrink-0"
+                />
+                <div class="flex flex-col min-w-0">
+                  <span class="text-xs font-semibold truncate">{{
+                    conv.meta?.sender?.name || 'Cliente'
+                  }}</span>
+                  <span class="text-[9px] text-slate-500 font-mono"
+                    >#{{ conv.display_id || conv.id }}</span
+                  >
+                </div>
+              </button>
+
+              <div
+                v-if="eligibleConversationsForInclusion.length === 0"
+                class="px-4 py-6 text-center text-xs text-slate-500 font-medium leading-relaxed"
+              >
+                Nenhuma conversa recente elegível encontrada.
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </template>
 
     <!-- Pipeline Configurations Settings Modal -->
     <PipelineSettingsModal

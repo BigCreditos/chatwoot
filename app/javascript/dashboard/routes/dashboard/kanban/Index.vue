@@ -2,7 +2,7 @@
 /* eslint-disable no-console, no-restricted-globals, no-alert */
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'dashboard/composables/store';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import Draggable from 'vuedraggable';
 
@@ -20,6 +20,7 @@ import { KanbanConfigHelper } from './helpers/kanbanConfig';
 const { t } = useI18n();
 const store = useStore();
 const router = useRouter();
+const route = useRoute();
 
 // State fields
 const fullConfig = ref({ pipelines: [] });
@@ -56,13 +57,29 @@ const loadKanbanConfig = async () => {
     fullConfig.value = config;
     configLabelId.value = labelId;
 
-    if (config.pipelines.length > 0) {
+    const queryPipelineId = Number(route.query.pipeline_id);
+    if (
+      queryPipelineId &&
+      config.pipelines.some(p => p.id === queryPipelineId)
+    ) {
+      activePipelineId.value = queryPipelineId;
+    } else if (config.pipelines.length > 0) {
       activePipelineId.value = config.pipelines[0].id;
     }
   } catch (err) {
     console.error('Failed to load Kanban configurations:', err);
   }
 };
+
+watch(
+  () => route.query.pipeline_id,
+  newId => {
+    const parsedId = Number(newId);
+    if (parsedId && fullConfig.value.pipelines.some(p => p.id === parsedId)) {
+      activePipelineId.value = parsedId;
+    }
+  }
+);
 
 onMounted(() => {
   // Ensure Chatwoot memory is populated

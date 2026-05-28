@@ -238,6 +238,27 @@ const newReportRoutes = () => [
 
 const reportRoutes = computed(() => newReportRoutes());
 
+const kanbanPipelines = computed(() => {
+  const allLabels = store.getters['labels/getLabels'] || [];
+  const configLabel = allLabels.find(l => l.title === '_kanban_config');
+  if (configLabel && configLabel.description) {
+    try {
+      const desc = configLabel.description;
+      const prefix = '[KANBAN_CONFIG]';
+      if (desc.startsWith(prefix)) {
+        const jsonStr = desc.substring(prefix.length);
+        const parsed = JSON.parse(jsonStr);
+        if (parsed && Array.isArray(parsed.pipelines)) {
+          return parsed.pipelines;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  return [{ id: 1, name: 'Vendas' }];
+});
+
 const menuItems = computed(() => {
   return [
     {
@@ -254,8 +275,31 @@ const menuItems = computed(() => {
       name: 'Kanban',
       label: t('SIDEBAR.KANBAN'),
       icon: 'i-lucide-columns-3',
-      to: accountScopedRoute('kanban_dashboard'),
       activeOn: ['kanban_dashboard'],
+      children: [
+        {
+          name: 'KanbanOverview',
+          label: 'Visão geral',
+          to: accountScopedRoute('kanban_dashboard'),
+          activeOn: ['kanban_dashboard'],
+        },
+        {
+          name: 'FunnelsHeader',
+          label: 'Funis',
+          icon: 'i-lucide-folder',
+          to: accountScopedRoute('kanban_dashboard'),
+          disabled: true,
+        },
+        ...kanbanPipelines.value.map(pipeline => ({
+          name: `Pipeline-${pipeline.id}`,
+          label: pipeline.name,
+          to: {
+            name: 'kanban_dashboard',
+            query: { pipeline_id: pipeline.id },
+          },
+          activeOn: ['kanban_dashboard'],
+        })),
+      ],
     },
     {
       name: 'Conversation',

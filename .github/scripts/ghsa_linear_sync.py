@@ -139,13 +139,21 @@ def post_discord(adv: dict[str, Any], issue: dict[str, str], webhook_url: str) -
 
 
 def main() -> int:
-    repo = required_env("GITHUB_REPOSITORY")
-    gh_token = required_env("GHSA_READ_TOKEN")
-    linear_api_key = required_env("LINEAR_API_KEY")
-    team_id = required_env("LINEAR_TEAM_ID")
-    project_id = required_env("LINEAR_PROJECT_ID")
-    label_id = required_env("LINEAR_LABEL_ID")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    gh_token = os.environ.get("GHSA_READ_TOKEN")
+    linear_api_key = os.environ.get("LINEAR_API_KEY")
+    team_id = os.environ.get("LINEAR_TEAM_ID")
+    project_id = os.environ.get("LINEAR_PROJECT_ID")
+    label_id = os.environ.get("LINEAR_LABEL_ID")
     discord_webhook = os.environ.get("DISCORD_WEBHOOK_URL") or None
+
+    if not repo:
+        print("Warning: Missing GITHUB_REPOSITORY. Skipping sync.")
+        return 0
+
+    if not gh_token or not linear_api_key or not team_id or not project_id or not label_id:
+        print("Warning: Missing required environment variables for sync (GHSA_READ_TOKEN, LINEAR_API_KEY, LINEAR_TEAM_ID, LINEAR_PROJECT_ID, or LINEAR_LABEL_ID). Skipping advisory sync.")
+        return 0
 
     advisories = fetch_triage_advisories(repo, gh_token)
     print(f"Fetched {len(advisories)} triage advisories")

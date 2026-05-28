@@ -332,7 +332,7 @@ typebot:
         {
           'typebot_url': { 'type': 'string' },
           'typebot_id': { 'type': 'string' },
-          'trigger_message': { 'type': 'string' }
+          'trigger_message': { 'type': 'string' },
         },
       'required': ['typebot_url', 'typebot_id'],
       'additionalProperties': false,
@@ -344,18 +344,18 @@ typebot:
         'type': 'text',
         'name': 'typebot_url',
         'validation': 'required',
-        'default': 'https://typebot.io'
+        'default': 'https://typebot.io',
       },
       {
         'label': 'Typebot ID / Public ID',
         'type': 'text',
         'name': 'typebot_id',
-        'validation': 'required'
+        'validation': 'required',
       },
       {
         'label': 'Trigger Message (Optional)',
         'type': 'text',
-        'name': 'trigger_message'
-      }
+        'name': 'trigger_message',
+      },
     ]
   visible_properties: ['typebot_url', 'typebot_id', 'trigger_message']

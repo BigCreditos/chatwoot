@@ -293,7 +293,7 @@ const handleStageAutomations = async stage => {
         @change="onStageChange"
       >
         <option :value="null">
-          -- {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }} --
+          {{ `-- ${t('KANBAN.SIDEBAR.NOT_IN_PIPELINE')} --` }}
         </option>
         <option
           v-for="stage in activePipeline.stages"

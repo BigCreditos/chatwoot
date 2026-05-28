@@ -1,3 +1,4 @@
+/* eslint-disable no-console, no-restricted-syntax, no-await-in-loop */
 /**
  * Kanban Configuration Helper
  * Natively serializes and stores Kanban configs in the description of the `_kanban_config` Label.
@@ -9,14 +10,42 @@ const CONFIG_LABEL_TITLE = '_kanban_config';
 const DEFAULT_PIPELINE = {
   id: 1,
   name: 'Vendas',
-  description: 'Acompanhe seus leads de vendas desde o contato inicial até o fechamento do negócio.',
+  description:
+    'Acompanhe seus leads de vendas desde o contato inicial até o fechamento do negócio.',
   stages: [
     { id: 'stage_1', title: 'Novo Lead', label: 'Novo Lead', color: '#3b82f6' },
-    { id: 'stage_2', title: 'Qualificando', label: 'Qualificando', color: '#f59e0b' },
-    { id: 'stage_3', title: 'Proposta Enviada', label: 'Proposta Enviada', color: '#8b5cf6' },
-    { id: 'stage_4', title: 'Negociação', label: 'Negociação', color: '#f97316' },
-    { id: 'stage_5', title: 'Oportunidade Perdida', label: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
-    { id: 'stage_6', title: 'Oportunidade Ganha', label: 'Oportunidade Ganha', color: '#10b981', is_won: true }
+    {
+      id: 'stage_2',
+      title: 'Qualificando',
+      label: 'Qualificando',
+      color: '#f59e0b',
+    },
+    {
+      id: 'stage_3',
+      title: 'Proposta Enviada',
+      label: 'Proposta Enviada',
+      color: '#8b5cf6',
+    },
+    {
+      id: 'stage_4',
+      title: 'Negociação',
+      label: 'Negociação',
+      color: '#f97316',
+    },
+    {
+      id: 'stage_5',
+      title: 'Oportunidade Perdida',
+      label: 'Oportunidade Perdida',
+      color: '#ef4444',
+      is_lost: true,
+    },
+    {
+      id: 'stage_6',
+      title: 'Oportunidade Ganha',
+      label: 'Oportunidade Ganha',
+      color: '#10b981',
+      is_won: true,
+    },
   ],
   inboxes: [],
   agents: [],
@@ -25,8 +54,8 @@ const DEFAULT_PIPELINE = {
     auto_assign_agent: false,
     auto_assign_conversation: false,
     auto_resolve_on_won_lost: false,
-    auto_win_on_resolve: false
-  }
+    auto_win_on_resolve: false,
+  },
 };
 
 export const KanbanConfigHelper = {
@@ -49,16 +78,16 @@ export const KanbanConfigHelper = {
     if (!configLabel) {
       // Create special label with default config
       const initialPayload = {
-        pipelines: [DEFAULT_PIPELINE]
+        pipelines: [DEFAULT_PIPELINE],
       };
-      
+
       await store.dispatch('labels/create', {
         title: CONFIG_LABEL_TITLE,
         description: `${CONFIG_PREFIX}${JSON.stringify(initialPayload)}`,
         color: '#1e293b',
-        show_on_sidebar: false
+        show_on_sidebar: false,
       });
-      
+
       // Re-fetch labels
       await store.dispatch('labels/get');
       configLabel = this.getConfigLabel(store);
@@ -84,7 +113,7 @@ export const KanbanConfigHelper = {
     // Return fallback with default pipeline
     return {
       labelId: configLabel ? configLabel.id : null,
-      config: { pipelines: [DEFAULT_PIPELINE] }
+      config: { pipelines: [DEFAULT_PIPELINE] },
     };
   },
 
@@ -113,7 +142,7 @@ export const KanbanConfigHelper = {
       title: CONFIG_LABEL_TITLE,
       description: newDescription,
       color: '#1e293b',
-      show_on_sidebar: false
+      show_on_sidebar: false,
     });
   },
 
@@ -125,21 +154,25 @@ export const KanbanConfigHelper = {
     const activeLabelNames = new Set(activeLabels.map(l => l.title));
 
     for (const stage of pipeline.stages) {
-      if (stage.label && !activeLabelNames.has(stage.label) && stage.label !== CONFIG_LABEL_TITLE) {
+      if (
+        stage.label &&
+        !activeLabelNames.has(stage.label) &&
+        stage.label !== CONFIG_LABEL_TITLE
+      ) {
         try {
           await store.dispatch('labels/create', {
             title: stage.label,
             description: `Stage label for pipeline: ${pipeline.name}`,
             color: stage.color || '#3b82f6',
-            show_on_sidebar: true
+            show_on_sidebar: true,
           });
         } catch (e) {
           console.error(`Failed to auto-create stage label: ${stage.label}`, e);
         }
       }
     }
-    
+
     // Refresh labels to make sure the app has the new ones
     await store.dispatch('labels/get');
-  }
+  },
 };

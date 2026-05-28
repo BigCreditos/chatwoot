@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable no-console, no-use-before-define, no-restricted-syntax */
 import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
@@ -8,8 +9,8 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 const props = defineProps({
   conversationId: {
     type: [Number, String],
-    required: true
-  }
+    required: true,
+  },
 });
 
 const { t } = useI18n();
@@ -24,16 +25,27 @@ const dueDateValue = ref('');
 
 // Computed conversation properties
 const conversation = computed(() => {
-  return store.value.getters['conversations/getConversation'](props.conversationId) || {};
+  return (
+    store.value.getters['conversations/getConversation'](
+      props.conversationId
+    ) || {}
+  );
 });
 
 // Mapped labels for active conversation
 const savedLabels = computed(() => {
-  return store.value.getters['conversationLabels/getConversationLabels'](props.conversationId) || [];
+  return (
+    store.value.getters['conversationLabels/getConversationLabels'](
+      props.conversationId
+    ) || []
+  );
 });
 
 const activePipeline = computed(() => {
-  return fullConfig.value.pipelines.find(p => p.id === activePipelineId.value) || null;
+  return (
+    fullConfig.value.pipelines.find(p => p.id === activePipelineId.value) ||
+    null
+  );
 });
 
 // Fetch active config and load inputs
@@ -51,7 +63,7 @@ const loadPipelineConfig = async () => {
 
 const detectConversationPipeline = () => {
   const labels = savedLabels.value;
-  
+
   // Find which pipeline and stage matches the conversation's active labels
   for (const pipeline of fullConfig.value.pipelines) {
     for (const stage of pipeline.stages) {
@@ -74,8 +86,11 @@ const detectConversationPipeline = () => {
 const syncConversationData = () => {
   if (!conversation.value) return;
 
-  priorityValue.value = conversation.value.priority || conversation.value.custom_attributes?.priority || '';
-  
+  priorityValue.value =
+    conversation.value.priority ||
+    conversation.value.custom_attributes?.priority ||
+    '';
+
   const dVal = conversation.value.custom_attributes?.due_date || '';
   if (dVal) {
     // Format YYYY-MM-DD for standard date input
@@ -91,18 +106,25 @@ onMounted(() => {
 });
 
 // Watchers for reactive sync
-watch(() => props.conversationId, () => {
-  detectConversationPipeline();
-  syncConversationData();
-});
+watch(
+  () => props.conversationId,
+  () => {
+    detectConversationPipeline();
+    syncConversationData();
+  }
+);
 
 watch(savedLabels, () => {
   detectConversationPipeline();
 });
 
-watch(conversation, () => {
-  syncConversationData();
-}, { deep: true });
+watch(
+  conversation,
+  () => {
+    syncConversationData();
+  },
+  { deep: true }
+);
 
 // Actions
 const onPipelineChange = () => {
@@ -111,13 +133,17 @@ const onPipelineChange = () => {
 
 const onStageChange = async () => {
   if (!activePipeline.value) return;
-  
-  const selectedStage = activePipeline.value.stages.find(s => s.id === activeStageId.value);
+
+  const selectedStage = activePipeline.value.stages.find(
+    s => s.id === activeStageId.value
+  );
   const currentLabels = [...savedLabels.value];
   const allStagesLabels = activePipeline.value.stages.map(s => s.label);
 
   // Strip other stage labels
-  const cleanLabels = currentLabels.filter(lbl => !allStagesLabels.includes(lbl));
+  const cleanLabels = currentLabels.filter(
+    lbl => !allStagesLabels.includes(lbl)
+  );
 
   if (selectedStage) {
     cleanLabels.push(selectedStage.label);
@@ -129,7 +155,7 @@ const onStageChange = async () => {
   try {
     await store.value.dispatch('conversationLabels/update', {
       conversationId: props.conversationId,
-      labels: cleanLabels
+      labels: cleanLabels,
     });
   } catch (err) {
     console.error('Failed to update stage label:', err);
@@ -141,7 +167,7 @@ const updatePriority = async () => {
   try {
     await store.value.dispatch('conversations/assignPriority', {
       conversationId: props.conversationId,
-      priority: p
+      priority: p,
     });
   } catch (err) {
     console.error('Failed to assign priority:', err);
@@ -150,8 +176,10 @@ const updatePriority = async () => {
 
 const updateDueDate = async () => {
   const dVal = dueDateValue.value;
-  const currentCustomAttributes = { ...(conversation.value.custom_attributes || {}) };
-  
+  const currentCustomAttributes = {
+    ...(conversation.value.custom_attributes || {}),
+  };
+
   if (dVal) {
     // Set to local midnight of selected day
     const localDate = new Date(dVal + 'T00:00:00');
@@ -163,7 +191,7 @@ const updateDueDate = async () => {
   try {
     await store.value.dispatch('conversations/updateCustomAttributes', {
       conversationId: props.conversationId,
-      customAttributes: currentCustomAttributes
+      customAttributes: currentCustomAttributes,
     });
   } catch (err) {
     console.error('Failed to update due date custom attribute:', err);
@@ -174,7 +202,7 @@ const handleResolve = async () => {
   try {
     await store.value.dispatch('conversations/toggleStatus', {
       conversationId: props.conversationId,
-      status: 'resolved'
+      status: 'resolved',
     });
   } catch (err) {
     console.error('Failed to resolve conversation from sidebar:', err);
@@ -182,15 +210,15 @@ const handleResolve = async () => {
 };
 
 // Automations processor when moving stage
-const handleStageAutomations = async (stage) => {
+const handleStageAutomations = async stage => {
   const automations = activePipeline.value.automations || {};
-  
+
   // 1. Auto resolve when dragging to a won/lost column
   if (automations.auto_resolve_on_won_lost && (stage.is_won || stage.is_lost)) {
     try {
       await store.value.dispatch('conversations/toggleStatus', {
         conversationId: props.conversationId,
-        status: 'resolved'
+        status: 'resolved',
       });
     } catch (err) {
       console.error('Failed to auto-resolve on stage change:', err);
@@ -201,20 +229,24 @@ const handleStageAutomations = async (stage) => {
   if (automations.auto_assign_agent && !conversation.value.meta?.assignee) {
     const agentsList = activePipeline.value.agents || [];
     const allAgents = store.value.getters['agents/getAgents'] || [];
-    
+
     // Find active agents (online)
-    const onlineAgents = allAgents.filter(a => a.availability_status === 'online');
-    const eligibleAgents = agentsList.length > 0 
-      ? onlineAgents.filter(a => agentsList.includes(a.id)) 
-      : onlineAgents;
+    const onlineAgents = allAgents.filter(
+      a => a.availability_status === 'online'
+    );
+    const eligibleAgents =
+      agentsList.length > 0
+        ? onlineAgents.filter(a => agentsList.includes(a.id))
+        : onlineAgents;
 
     if (eligibleAgents.length > 0) {
       // Pick random or first eligible agent
-      const agentToAssign = eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
+      const agentToAssign =
+        eligibleAgents[Math.floor(Math.random() * eligibleAgents.length)];
       try {
         await store.value.dispatch('conversations/assignAgent', {
           conversationId: props.conversationId,
-          agentId: agentToAssign.id
+          agentId: agentToAssign.id,
         });
       } catch (err) {
         console.error('Failed to auto-assign agent:', err);
@@ -228,7 +260,9 @@ const handleStageAutomations = async (stage) => {
   <div class="flex flex-col gap-3 py-2 px-1 text-slate-200">
     <!-- Pipeline dropdown -->
     <div class="flex flex-col gap-1">
-      <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+      <label
+        class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+      >
         {{ t('KANBAN.SIDEBAR.PIPELINE') }}
       </label>
       <select
@@ -236,7 +270,11 @@ const handleStageAutomations = async (stage) => {
         class="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-200 text-xs focus:border-blue-500 outline-none"
         @change="onPipelineChange"
       >
-        <option v-for="pipeline in fullConfig.pipelines" :key="pipeline.id" :value="pipeline.id">
+        <option
+          v-for="pipeline in fullConfig.pipelines"
+          :key="pipeline.id"
+          :value="pipeline.id"
+        >
           {{ pipeline.name }}
         </option>
       </select>
@@ -244,7 +282,9 @@ const handleStageAutomations = async (stage) => {
 
     <!-- Stage dropdown -->
     <div v-if="activePipeline" class="flex flex-col gap-1">
-      <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+      <label
+        class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+      >
         {{ t('KANBAN.SIDEBAR.STAGE') }}
       </label>
       <select
@@ -255,7 +295,11 @@ const handleStageAutomations = async (stage) => {
         <option :value="null">
           -- {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }} --
         </option>
-        <option v-for="stage in activePipeline.stages" :key="stage.id" :value="stage.id">
+        <option
+          v-for="stage in activePipeline.stages"
+          :key="stage.id"
+          :value="stage.id"
+        >
           {{ stage.title }}
         </option>
       </select>
@@ -265,7 +309,9 @@ const handleStageAutomations = async (stage) => {
     <div class="grid grid-cols-2 gap-3">
       <!-- Priority -->
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+        <label
+          class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+        >
           {{ t('KANBAN.SIDEBAR.PRIORITY') }}
         </label>
         <select
@@ -273,17 +319,23 @@ const handleStageAutomations = async (stage) => {
           class="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-200 text-xs focus:border-blue-500 outline-none"
           @change="updatePriority"
         >
-          <option value="">Nenhuma</option>
-          <option value="urgent">Urgente</option>
-          <option value="high">Alta</option>
-          <option value="medium">Média</option>
-          <option value="low">Baixa</option>
+          <option value="">{{ t('KANBAN.SIDEBAR.PRIORITY_NONE') }}</option>
+          <option value="urgent">
+            {{ t('KANBAN.CARD.PRIORITIES.URGENT') }}
+          </option>
+          <option value="high">{{ t('KANBAN.CARD.PRIORITIES.HIGH') }}</option>
+          <option value="medium">
+            {{ t('KANBAN.CARD.PRIORITIES.MEDIUM') }}
+          </option>
+          <option value="low">{{ t('KANBAN.CARD.PRIORITIES.LOW') }}</option>
         </select>
       </div>
 
       <!-- Due Date -->
       <div class="flex flex-col gap-1">
-        <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+        <label
+          class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+        >
           {{ t('KANBAN.SIDEBAR.DUE_DATE') }}
         </label>
         <input
@@ -305,7 +357,7 @@ const handleStageAutomations = async (stage) => {
         @click="handleResolve"
       >
         <Icon icon="i-lucide-check-circle" class="size-4 shrink-0" />
-        Resolver Conversa
+        {{ t('KANBAN.SIDEBAR.RESOLVE_CONVERSATION') }}
       </button>
 
       <!-- Already resolved indicator -->
@@ -314,7 +366,7 @@ const handleStageAutomations = async (stage) => {
         class="w-full py-2 px-3 rounded-lg border border-slate-800 bg-slate-950 text-slate-500 text-xs font-semibold text-center flex items-center justify-center gap-1.5"
       >
         <Icon icon="i-lucide-check" class="size-4 shrink-0" />
-        Atendimento Resolvido
+        {{ t('KANBAN.SIDEBAR.CONVERSATION_RESOLVED') }}
       </div>
     </div>
   </div>

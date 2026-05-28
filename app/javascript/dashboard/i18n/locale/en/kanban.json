@@ -55,7 +55,10 @@
       "START_DATE": "Start Date",
       "PRIORITY": "Priority",
       "NOT_IN_PIPELINE": "Not in funnel",
-      "ADD_TO_PIPELINE": "Add to funnel"
+      "ADD_TO_PIPELINE": "Add to funnel",
+      "PRIORITY_NONE": "None",
+      "RESOLVE_CONVERSATION": "Resolve Conversation",
+      "CONVERSATION_RESOLVED": "Conversation Resolved"
     },
     "PAYWALL": {
       "TITLE": "Upgrade to use Kanban",

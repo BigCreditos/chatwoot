@@ -55,7 +55,10 @@
       "START_DATE": "Data de Início",
       "PRIORITY": "Prioridade",
       "NOT_IN_PIPELINE": "Fora do funil",
-      "ADD_TO_PIPELINE": "Adicionar ao funil"
+      "ADD_TO_PIPELINE": "Adicionar ao funil",
+      "PRIORITY_NONE": "Nenhuma",
+      "RESOLVE_CONVERSATION": "Resolver Conversa",
+      "CONVERSATION_RESOLVED": "Atendimento Resolvido"
     },
     "PAYWALL": {
       "TITLE": "Faça upgrade para usar o Kanban",

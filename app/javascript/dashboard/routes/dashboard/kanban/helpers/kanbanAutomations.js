@@ -1,3 +1,4 @@
+/* eslint-disable no-console, no-unused-vars, no-restricted-syntax, no-continue, no-await-in-loop */
 import { KanbanConfigHelper } from './kanbanConfig';
 
 export const KanbanAutomations = {
@@ -29,7 +30,7 @@ export const KanbanAutomations = {
       if (type === 'conversations/ADD_CONVERSATION') {
         const conversation = payload;
         if (!conversation || !conversation.id) return;
-        
+
         // Skip if config is not loaded yet
         if (!config || !Array.isArray(config.pipelines)) return;
 
@@ -38,14 +39,19 @@ export const KanbanAutomations = {
 
           // Check inbox filter
           const inboxFilter = pipeline.inboxes || [];
-          if (inboxFilter.length > 0 && !inboxFilter.includes(conversation.inbox_id)) {
+          if (
+            inboxFilter.length > 0 &&
+            !inboxFilter.includes(conversation.inbox_id)
+          ) {
             continue;
           }
 
           // Check if conversation already has any of the stages' labels
           const stageLabels = pipeline.stages.map(s => s.label);
-          const hasStageLabel = conversation.labels?.some(lbl => stageLabels.includes(lbl));
-          
+          const hasStageLabel = conversation.labels?.some(lbl =>
+            stageLabels.includes(lbl)
+          );
+
           if (!hasStageLabel && pipeline.stages.length > 0) {
             const firstStage = pipeline.stages[0];
             const currentLabels = [...(conversation.labels || [])];
@@ -54,10 +60,13 @@ export const KanbanAutomations = {
             try {
               await store.dispatch('conversationLabels/update', {
                 conversationId: conversation.id,
-                labels: currentLabels
+                labels: currentLabels,
               });
             } catch (err) {
-              console.error(`Automation failed: auto_create for chat #${conversation.id}`, err);
+              console.error(
+                `Automation failed: auto_create for chat #${conversation.id}`,
+                err
+              );
             }
           }
         }
@@ -71,7 +80,8 @@ export const KanbanAutomations = {
         // Skip if config is not loaded yet
         if (!config || !Array.isArray(config.pipelines)) return;
 
-        const conversation = store.getters['conversations/getConversationById'](conversationId);
+        const conversation =
+          store.getters['conversations/getConversationById'](conversationId);
         if (!conversation) return;
 
         const currentLabels = [...(conversation.labels || [])];
@@ -81,29 +91,36 @@ export const KanbanAutomations = {
 
           // Find current stage label active on conversation
           const allStagesLabels = pipeline.stages.map(s => s.label);
-          const currentActiveLabel = currentLabels.find(lbl => allStagesLabels.includes(lbl));
+          const currentActiveLabel = currentLabels.find(lbl =>
+            allStagesLabels.includes(lbl)
+          );
 
           if (currentActiveLabel) {
             // Find target "Won" stage
             const wonStage = pipeline.stages.find(s => s.is_won);
             if (wonStage && currentActiveLabel !== wonStage.label) {
               // Strip all stages labels
-              const cleanLabels = currentLabels.filter(lbl => !allStagesLabels.includes(lbl));
+              const cleanLabels = currentLabels.filter(
+                lbl => !allStagesLabels.includes(lbl)
+              );
               // Add Won stage label
               cleanLabels.push(wonStage.label);
 
               try {
                 await store.dispatch('conversationLabels/update', {
                   conversationId,
-                  labels: cleanLabels
+                  labels: cleanLabels,
                 });
               } catch (err) {
-                console.error(`Automation failed: auto_win_on_resolve for chat #${conversationId}`, err);
+                console.error(
+                  `Automation failed: auto_win_on_resolve for chat #${conversationId}`,
+                  err
+                );
               }
             }
           }
         }
       }
     });
-  }
+  },
 };

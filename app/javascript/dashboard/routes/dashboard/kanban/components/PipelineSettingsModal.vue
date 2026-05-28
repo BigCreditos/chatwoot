@@ -1,6 +1,7 @@
 <script setup>
+/* eslint-disable vue/no-unused-properties */
 import { ref, computed, onMounted } from 'vue';
-import { useStore, useStoreGetters } from 'dashboard/composables/store';
+import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
@@ -8,27 +9,26 @@ import Button from 'dashboard/components-next/button/Button.vue';
 const props = defineProps({
   isOpen: {
     type: Boolean,
-    required: true
+    required: true,
   },
   pipeline: {
     type: Object,
-    default: null
+    default: null,
   },
   labelId: {
     type: [Number, String],
-    default: null
+    default: null,
   },
   fullConfig: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
-const emit = defineEmits(['close', 'save']);
+const emit = defineEmits(['close', 'save', 'delete']);
 
 const { t } = useI18n();
 const store = useStore();
-const getters = useStoreGetters();
 
 // Form states
 const pipelineId = ref(null);
@@ -42,7 +42,7 @@ const automations = ref({
   auto_assign_agent: false,
   auto_assign_conversation: false,
   auto_resolve_on_won_lost: false,
-  auto_win_on_resolve: false
+  auto_win_on_resolve: false,
 });
 
 // Load lists from store
@@ -62,15 +62,19 @@ onMounted(() => {
     name.value = props.pipeline.name || '';
     description.value = props.pipeline.description || '';
     stages.value = JSON.parse(JSON.stringify(props.pipeline.stages || []));
-    inboxes.value = Array.isArray(props.pipeline.inboxes) ? [...props.pipeline.inboxes] : [];
-    agents.value = Array.isArray(props.pipeline.agents) ? [...props.pipeline.agents] : [];
+    inboxes.value = Array.isArray(props.pipeline.inboxes)
+      ? [...props.pipeline.inboxes]
+      : [];
+    agents.value = Array.isArray(props.pipeline.agents)
+      ? [...props.pipeline.agents]
+      : [];
     automations.value = {
       auto_create: false,
       auto_assign_agent: false,
       auto_assign_conversation: false,
       auto_resolve_on_won_lost: false,
       auto_win_on_resolve: false,
-      ...(props.pipeline.automations || {})
+      ...(props.pipeline.automations || {}),
     };
   } else {
     // New pipeline
@@ -79,11 +83,38 @@ onMounted(() => {
     description.value = '';
     stages.value = [
       { id: 'st_1', title: 'Novo Lead', label: 'Novo Lead', color: '#3b82f6' },
-      { id: 'st_2', title: 'Qualificando', label: 'Qualificando', color: '#f59e0b' },
-      { id: 'st_3', title: 'Proposta Enviada', label: 'Proposta Enviada', color: '#8b5cf6' },
-      { id: 'st_4', title: 'Negociação', label: 'Negociação', color: '#f97316' },
-      { id: 'st_5', title: 'Oportunidade Perdida', label: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
-      { id: 'st_6', title: 'Oportunidade Ganha', label: 'Oportunidade Ganha', color: '#10b981', is_won: true }
+      {
+        id: 'st_2',
+        title: 'Qualificando',
+        label: 'Qualificando',
+        color: '#f59e0b',
+      },
+      {
+        id: 'st_3',
+        title: 'Proposta Enviada',
+        label: 'Proposta Enviada',
+        color: '#8b5cf6',
+      },
+      {
+        id: 'st_4',
+        title: 'Negociação',
+        label: 'Negociação',
+        color: '#f97316',
+      },
+      {
+        id: 'st_5',
+        title: 'Oportunidade Perdida',
+        label: 'Oportunidade Perdida',
+        color: '#ef4444',
+        is_lost: true,
+      },
+      {
+        id: 'st_6',
+        title: 'Oportunidade Ganha',
+        label: 'Oportunidade Ganha',
+        color: '#10b981',
+        is_won: true,
+      },
     ];
     inboxes.value = [];
     agents.value = [];
@@ -92,7 +123,7 @@ onMounted(() => {
       auto_assign_agent: false,
       auto_assign_conversation: false,
       auto_resolve_on_won_lost: false,
-      auto_win_on_resolve: false
+      auto_win_on_resolve: false,
     };
   }
 });
@@ -104,40 +135,40 @@ const addStage = () => {
     id: newId,
     title: `Etapa ${stages.value.length + 1}`,
     label: `Etapa ${stages.value.length + 1}`,
-    color: '#3b82f6'
+    color: '#3b82f6',
   });
 };
 
-const removeStage = (index) => {
+const removeStage = index => {
   stages.value.splice(index, 1);
 };
 
-const moveStageUp = (index) => {
+const moveStageUp = index => {
   if (index === 0) return;
   const temp = stages.value[index];
   stages.value[index] = stages.value[index - 1];
   stages.value[index - 1] = temp;
 };
 
-const moveStageDown = (index) => {
+const moveStageDown = index => {
   if (index === stages.value.length - 1) return;
   const temp = stages.value[index];
   stages.value[index] = stages.value[index + 1];
   stages.value[index + 1] = temp;
 };
 
-const toggleWon = (index) => {
+const toggleWon = index => {
   stages.value[index].is_won = !stages.value[index].is_won;
   if (stages.value[index].is_won) stages.value[index].is_lost = false;
 };
 
-const toggleLost = (index) => {
+const toggleLost = index => {
   stages.value[index].is_lost = !stages.value[index].is_lost;
   if (stages.value[index].is_lost) stages.value[index].is_won = false;
 };
 
 // Toggle selections for inboxes & agents
-const toggleInbox = (id) => {
+const toggleInbox = id => {
   const index = inboxes.value.indexOf(id);
   if (index > -1) {
     inboxes.value.splice(index, 1);
@@ -146,7 +177,7 @@ const toggleInbox = (id) => {
   }
 };
 
-const toggleAgent = (id) => {
+const toggleAgent = id => {
   const index = agents.value.indexOf(id);
   if (index > -1) {
     agents.value.splice(index, 1);
@@ -165,11 +196,11 @@ const handleSave = () => {
     stages: stages.value.map(s => ({
       ...s,
       title: s.title.trim(),
-      label: s.label.trim()
+      label: s.label.trim(),
     })),
     inboxes: inboxes.value,
     agents: agents.value,
-    automations: automations.value
+    automations: automations.value,
   };
 
   emit('save', updatedPipeline);
@@ -177,6 +208,8 @@ const handleSave = () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div
     v-if="isOpen"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
@@ -185,8 +218,12 @@ const handleSave = () => {
       class="flex flex-col w-full max-w-4xl h-[85vh] border bg-slate-900 border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
     >
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-        <h3 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
+      <div
+        class="flex items-center justify-between px-6 py-4 border-b border-slate-800"
+      >
+        <h3
+          class="text-lg font-semibold text-slate-100 flex items-center gap-2"
+        >
           <Icon icon="i-lucide-settings" class="text-blue-500 size-5" />
           {{ t('KANBAN.SETTINGS.TITLE') }}
         </h3>
@@ -203,7 +240,9 @@ const handleSave = () => {
       <div class="flex-1 overflow-y-auto px-6 py-6 space-y-8">
         <!-- Basic Info Section -->
         <div class="space-y-4">
-          <h4 class="text-sm font-medium uppercase tracking-wider text-slate-400">
+          <h4
+            class="text-sm font-medium uppercase tracking-wider text-slate-400"
+          >
             {{ t('KANBAN.SETTINGS.BASIC_INFO') }}
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -237,7 +276,9 @@ const handleSave = () => {
         <!-- Stages Section -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <h4 class="text-sm font-medium uppercase tracking-wider text-slate-400">
+            <h4
+              class="text-sm font-medium uppercase tracking-wider text-slate-400"
+            >
               {{ t('KANBAN.SETTINGS.STAGES') }}
             </h4>
             <Button
@@ -259,7 +300,9 @@ const handleSave = () => {
               class="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-950/60 transition-colors"
             >
               <!-- Order actions -->
-              <div class="flex items-center md:flex-col justify-between gap-1.5">
+              <div
+                class="flex items-center md:flex-col justify-between gap-1.5"
+              >
                 <button
                   type="button"
                   class="p-1 text-slate-500 hover:text-slate-300 disabled:opacity-30"
@@ -281,7 +324,9 @@ const handleSave = () => {
               <!-- Title & Mapping -->
               <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1">
-                  <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+                  <label
+                    class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                  >
                     {{ t('KANBAN.SETTINGS.STAGE_NAME') }}
                   </label>
                   <input
@@ -291,7 +336,9 @@ const handleSave = () => {
                   />
                 </div>
                 <div class="space-y-1">
-                  <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+                  <label
+                    class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                  >
                     {{ t('KANBAN.SETTINGS.STAGE_LABEL') }} (Chatwoot Label)
                   </label>
                   <input
@@ -305,7 +352,9 @@ const handleSave = () => {
 
               <!-- Color picker -->
               <div class="space-y-1 min-w-[70px]">
-                <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
+                <label
+                  class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
+                >
                   {{ t('KANBAN.SETTINGS.STAGE_COLOR') }}
                 </label>
                 <div class="flex items-center gap-1.5">
@@ -314,7 +363,9 @@ const handleSave = () => {
                     type="color"
                     class="w-8 h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer overflow-hidden p-0"
                   />
-                  <span class="text-xs text-slate-400 font-mono uppercase">{{ stage.color }}</span>
+                  <span class="text-xs text-slate-400 font-mono uppercase">{{
+                    stage.color
+                  }}</span>
                 </div>
               </div>
 
@@ -323,9 +374,11 @@ const handleSave = () => {
                 <button
                   type="button"
                   class="px-2.5 py-1.5 rounded-md border text-xs font-semibold flex items-center gap-1 transition-all"
-                  :class="stage.is_won 
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' 
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-300'"
+                  :class="
+                    stage.is_won
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                      : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-300'
+                  "
                   @click="toggleWon(index)"
                 >
                   <Icon icon="i-lucide-check-circle" class="size-3.5" />
@@ -334,9 +387,11 @@ const handleSave = () => {
                 <button
                   type="button"
                   class="px-2.5 py-1.5 rounded-md border text-xs font-semibold flex items-center gap-1 transition-all"
-                  :class="stage.is_lost 
-                    ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' 
-                    : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-300'"
+                  :class="
+                    stage.is_lost
+                      ? 'border-rose-500/30 bg-rose-500/10 text-rose-400'
+                      : 'border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-300'
+                  "
                   @click="toggleLost(index)"
                 >
                   <Icon icon="i-lucide-x-circle" class="size-3.5" />
@@ -363,7 +418,9 @@ const handleSave = () => {
         <!-- Automations Section -->
         <div class="space-y-4">
           <div class="space-y-1">
-            <h4 class="text-sm font-medium uppercase tracking-wider text-slate-400">
+            <h4
+              class="text-sm font-medium uppercase tracking-wider text-slate-400"
+            >
               {{ t('KANBAN.SETTINGS.AUTOMATIONS') }}
             </h4>
             <p class="text-xs text-slate-500">
@@ -383,27 +440,37 @@ const handleSave = () => {
                 class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
               />
               <div class="space-y-1.5 flex-1">
-                <label for="auto-create-toggle" class="text-sm font-medium text-slate-200 cursor-pointer block">
+                <label
+                  for="auto-create-toggle"
+                  class="text-sm font-medium text-slate-200 cursor-pointer block"
+                >
                   {{ t('KANBAN.SETTINGS.AUTO_CREATE') }}
                 </label>
                 <p class="text-xs text-slate-500">
-                  Novas conversas serão colocadas automaticamente na primeira etapa do funil.
+                  Novas conversas serão colocadas automaticamente na primeira
+                  etapa do funil.
                 </p>
 
                 <!-- Inbox Selector -->
                 <div v-if="automations.auto_create" class="space-y-1.5 pt-2">
-                  <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
+                  <label
+                    class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
+                  >
                     Filtrar por caixas de entrada (todas se vazio):
                   </label>
-                  <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900">
+                  <div
+                    class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900"
+                  >
                     <button
                       v-for="inbox in allInboxes"
                       :key="inbox.id"
                       type="button"
                       class="px-2 py-0.5 rounded text-[10px] font-semibold border transition-all"
-                      :class="inboxes.includes(inbox.id)
-                        ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                        : 'border-slate-800 bg-slate-950 text-slate-400'"
+                      :class="
+                        inboxes.includes(inbox.id)
+                          ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
+                          : 'border-slate-800 bg-slate-950 text-slate-400'
+                      "
                       @click="toggleInbox(inbox.id)"
                     >
                       {{ inbox.name }}
@@ -423,27 +490,40 @@ const handleSave = () => {
                 class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
               />
               <div class="space-y-1.5 flex-1">
-                <label for="auto-assign-agent-toggle" class="text-sm font-medium text-slate-200 cursor-pointer block">
+                <label
+                  for="auto-assign-agent-toggle"
+                  class="text-sm font-medium text-slate-200 cursor-pointer block"
+                >
                   {{ t('KANBAN.SETTINGS.AUTO_ASSIGN_AGENT') }}
                 </label>
                 <p class="text-xs text-slate-500">
-                  Cards novos ou sem responsável serão distribuídos entre os agentes selecionados.
+                  Cards novos ou sem responsável serão distribuídos entre os
+                  agentes selecionados.
                 </p>
 
                 <!-- Agent Selector -->
-                <div v-if="automations.auto_assign_agent" class="space-y-1.5 pt-2">
-                  <label class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
+                <div
+                  v-if="automations.auto_assign_agent"
+                  class="space-y-1.5 pt-2"
+                >
+                  <label
+                    class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
+                  >
                     Agentes elegíveis (todos se vazio):
                   </label>
-                  <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900">
+                  <div
+                    class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900"
+                  >
                     <button
                       v-for="agent in allAgents"
                       :key="agent.id"
                       type="button"
                       class="px-2 py-0.5 rounded text-[10px] font-semibold border transition-all"
-                      :class="agents.includes(agent.id)
-                        ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                        : 'border-slate-800 bg-slate-950 text-slate-400'"
+                      :class="
+                        agents.includes(agent.id)
+                          ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
+                          : 'border-slate-800 bg-slate-950 text-slate-400'
+                      "
                       @click="toggleAgent(agent.id)"
                     >
                       {{ agent.name }}
@@ -463,11 +543,15 @@ const handleSave = () => {
                 class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
               />
               <div class="space-y-1.5 flex-1">
-                <label for="auto-assign-conv-toggle" class="text-sm font-medium text-slate-200 cursor-pointer block">
+                <label
+                  for="auto-assign-conv-toggle"
+                  class="text-sm font-medium text-slate-200 cursor-pointer block"
+                >
                   {{ t('KANBAN.SETTINGS.AUTO_ASSIGN_CONV') }}
                 </label>
                 <p class="text-xs text-slate-500">
-                  Ao alterar o atendente do card no Kanban, a conversa no Chatwoot será atribuída automaticamente a ele.
+                  Ao alterar o atendente do card no Kanban, a conversa no
+                  Chatwoot será atribuída automaticamente a ele.
                 </p>
               </div>
             </div>
@@ -482,11 +566,15 @@ const handleSave = () => {
                 class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
               />
               <div class="space-y-1.5 flex-1">
-                <label for="auto-resolve-toggle" class="text-sm font-medium text-slate-200 cursor-pointer block">
+                <label
+                  for="auto-resolve-toggle"
+                  class="text-sm font-medium text-slate-200 cursor-pointer block"
+                >
                   {{ t('KANBAN.SETTINGS.AUTO_RESOLVE') }}
                 </label>
                 <p class="text-xs text-slate-500">
-                  Mover o card para uma coluna de Ganho/Perda resolverá a conversa correspondente no Chatwoot.
+                  Mover o card para uma coluna de Ganho/Perda resolverá a
+                  conversa correspondente no Chatwoot.
                 </p>
               </div>
             </div>
@@ -501,11 +589,15 @@ const handleSave = () => {
                 class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
               />
               <div class="space-y-1.5 flex-1">
-                <label for="auto-win-toggle" class="text-sm font-medium text-slate-200 cursor-pointer block">
+                <label
+                  for="auto-win-toggle"
+                  class="text-sm font-medium text-slate-200 cursor-pointer block"
+                >
                   {{ t('KANBAN.SETTINGS.AUTO_WIN') }}
                 </label>
                 <p class="text-xs text-slate-500">
-                  Quando um atendente marcar a conversa como resolvida no chat convencional, o card será movido para a etapa de "Ganho".
+                  Quando um atendente marcar a conversa como resolvida no chat
+                  convencional, o card será movido para a etapa de "Ganho".
                 </p>
               </div>
             </div>
@@ -514,7 +606,9 @@ const handleSave = () => {
       </div>
 
       <!-- Footer Actions -->
-      <div class="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-950/40">
+      <div
+        class="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-950/40"
+      >
         <div>
           <Button
             v-if="props.pipeline"
@@ -535,13 +629,7 @@ const handleSave = () => {
           >
             Cancelar
           </Button>
-          <Button
-            md
-            blue
-            solid
-            :disabled="!name.trim()"
-            @click="handleSave"
-          >
+          <Button md blue solid :disabled="!name.trim()" @click="handleSave">
             {{ t('KANBAN.SETTINGS.SAVE') }}
           </Button>
         </div>

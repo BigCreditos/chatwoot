@@ -1,4 +1,5 @@
 <script setup>
+/* eslint-disable no-console */
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
@@ -8,8 +9,8 @@ import Thumbnail from 'dashboard/components/Thumbnail.vue';
 const props = defineProps({
   conversation: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const emit = defineEmits(['click', 'resolve']);
@@ -59,20 +60,40 @@ const channelType = computed(() => {
 
 // Priority states & helpers
 const conversationPriority = computed(() => {
-  return props.conversation.priority || props.conversation.custom_attributes?.priority || null;
+  return (
+    props.conversation.priority ||
+    props.conversation.custom_attributes?.priority ||
+    null
+  );
 });
 
 const priorityMeta = computed(() => {
   const p = conversationPriority.value;
   switch (p) {
     case 'urgent':
-      return { label: 'Urgente', colorClass: 'bg-rose-500/10 text-rose-400 border-rose-500/30', icon: 'i-lucide-alert-triangle' };
+      return {
+        label: 'Urgente',
+        colorClass: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+        icon: 'i-lucide-alert-triangle',
+      };
     case 'high':
-      return { label: 'Alta', colorClass: 'bg-amber-500/10 text-amber-400 border-amber-500/30', icon: 'i-lucide-chevron-up' };
+      return {
+        label: 'Alta',
+        colorClass: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        icon: 'i-lucide-chevron-up',
+      };
     case 'medium':
-      return { label: 'Média', colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30', icon: 'i-lucide-minus' };
+      return {
+        label: 'Média',
+        colorClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+        icon: 'i-lucide-minus',
+      };
     case 'low':
-      return { label: 'Baixa', colorClass: 'bg-slate-500/10 text-slate-400 border-slate-700/30', icon: 'i-lucide-chevron-down' };
+      return {
+        label: 'Baixa',
+        colorClass: 'bg-slate-500/10 text-slate-400 border-slate-700/30',
+        icon: 'i-lucide-chevron-down',
+      };
     default:
       return null;
   }
@@ -89,11 +110,19 @@ const urgencyMeta = computed(() => {
 
   const dueDate = new Date(dVal);
   const today = new Date();
-  
+
   // Strip time for clean day comparison
-  const dDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-  const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  
+  const dDate = new Date(
+    dueDate.getFullYear(),
+    dueDate.getMonth(),
+    dueDate.getDate()
+  );
+  const tDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
   const diffDays = Math.floor((dDate - tDate) / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
@@ -102,70 +131,95 @@ const urgencyMeta = computed(() => {
       label: '⚠️ Vencido',
       badgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
       borderClass: 'border-rose-500/40 bg-rose-500/[0.02]',
-      text: dueDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
+      text: dueDate.toLocaleDateString('pt-BR', {
+        day: 'numeric',
+        month: 'short',
+      }),
     };
-  } else if (diffDays === 0) {
+  }
+  if (diffDays === 0) {
     return {
       status: 'today',
       label: '⚠️ Hoje',
       badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
       borderClass: 'border-amber-500/40 bg-amber-500/[0.02]',
-      text: 'Hoje'
-    };
-  } else {
-    return {
-      status: 'future',
-      label: `📅 ${dueDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}`,
-      badgeClass: 'bg-slate-800 text-slate-400 border-slate-700/50',
-      borderClass: 'border-slate-800',
-      text: dueDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
+      text: 'Hoje',
     };
   }
+  return {
+    status: 'future',
+    label: `📅 ${dueDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}`,
+    badgeClass: 'bg-slate-800 text-slate-400 border-slate-700/50',
+    borderClass: 'border-slate-800',
+    text: dueDate.toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+    }),
+  };
 });
 
 // Channel Style Metas
 const channelMeta = computed(() => {
   const ch = channelType.value;
   if (ch.includes('whatsapp')) {
-    return { icon: 'i-lucide-phone', color: 'text-emerald-500', name: 'WhatsApp' };
-  } else if (ch.includes('email')) {
-    return { icon: 'i-lucide-mail', color: 'text-cyan-500', name: 'E-mail' };
-  } else if (ch.includes('instagram')) {
-    return { icon: 'i-lucide-instagram', color: 'text-pink-500', name: 'Instagram' };
-  } else if (ch.includes('facebook')) {
-    return { icon: 'i-lucide-facebook', color: 'text-blue-600', name: 'Facebook' };
-  } else if (ch.includes('twitter')) {
-    return { icon: 'i-lucide-twitter', color: 'text-sky-400', name: 'Twitter' };
-  } else if (ch.includes('telegram')) {
-    return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
-  } else {
-    return { icon: 'i-lucide-globe', color: 'text-slate-400', name: 'Web Chat' };
+    return {
+      icon: 'i-lucide-phone',
+      color: 'text-emerald-500',
+      name: 'WhatsApp',
+    };
   }
+  if (ch.includes('email')) {
+    return { icon: 'i-lucide-mail', color: 'text-cyan-500', name: 'E-mail' };
+  }
+  if (ch.includes('instagram')) {
+    return {
+      icon: 'i-lucide-instagram',
+      color: 'text-pink-500',
+      name: 'Instagram',
+    };
+  }
+  if (ch.includes('facebook')) {
+    return {
+      icon: 'i-lucide-facebook',
+      color: 'text-blue-600',
+      name: 'Facebook',
+    };
+  }
+  if (ch.includes('twitter')) {
+    return { icon: 'i-lucide-twitter', color: 'text-sky-400', name: 'Twitter' };
+  }
+  if (ch.includes('telegram')) {
+    return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
+  }
+  return { icon: 'i-lucide-globe', color: 'text-slate-400', name: 'Web Chat' };
 });
 
 // Last message content
 const messageSnippet = computed(() => {
-  const msg = props.conversation.last_non_activity_message || 
-                (props.conversation.messages && props.conversation.messages.length > 0 
-                  ? props.conversation.messages[props.conversation.messages.length - 1] 
-                  : null);
+  const msg =
+    props.conversation.last_non_activity_message ||
+    (props.conversation.messages && props.conversation.messages.length > 0
+      ? props.conversation.messages[props.conversation.messages.length - 1]
+      : null);
   if (!msg) return 'Sem mensagens';
   const cleanContent = msg.content || '';
-  return cleanContent.length > 60 ? cleanContent.substring(0, 60) + '...' : cleanContent;
+  return cleanContent.length > 60
+    ? cleanContent.substring(0, 60) + '...'
+    : cleanContent;
 });
 
 // Quick Actions Implementation
-const handleResolve = (e) => {
+const handleResolve = e => {
   e.stopPropagation();
   emit('resolve', props.conversation.id);
 };
 
-const updatePriority = async (p) => {
+const updatePriority = async p => {
   showPriorityPopover.value = false;
   try {
     await store.value.dispatch('conversations/assignPriority', {
       conversationId: props.conversation.id,
-      priority: p
+      priority: p,
     });
   } catch (err) {
     console.error('Failed to assign priority:', err);
@@ -178,8 +232,11 @@ const closePopover = () => {
 };
 
 // Document click listener for popover
-const handleDocumentClick = (e) => {
-  if (showPriorityPopover.value && !e.target.closest('.priority-popover-trigger')) {
+const handleDocumentClick = e => {
+  if (
+    showPriorityPopover.value &&
+    !e.target.closest('.priority-popover-trigger')
+  ) {
     closePopover();
   }
 };
@@ -194,6 +251,8 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-bare-strings-in-template -->
+  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div
     class="group relative flex flex-col p-4 rounded-xl border border-slate-800 bg-slate-900 shadow-md hover:shadow-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700"
     :class="urgencyMeta ? urgencyMeta.borderClass : 'border-slate-800'"
@@ -211,7 +270,9 @@ onUnmounted(() => {
           class="shrink-0"
         />
         <div class="flex flex-col min-w-0">
-          <span class="text-xs font-semibold text-slate-200 truncate max-w-[140px]">
+          <span
+            class="text-xs font-semibold text-slate-200 truncate max-w-[140px]"
+          >
             {{ props.conversation.meta?.sender?.name || 'Cliente' }}
           </span>
           <span class="text-[10px] text-slate-500 font-medium">
@@ -232,7 +293,9 @@ onUnmounted(() => {
     </div>
 
     <!-- Message Snippet -->
-    <p class="mt-2.5 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[32px]">
+    <p
+      class="mt-2.5 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[32px]"
+    >
       {{ messageSnippet }}
     </p>
 
@@ -268,7 +331,9 @@ onUnmounted(() => {
     </div>
 
     <!-- Card Footer: Time ago & Assignee & Inbox -->
-    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/40">
+    <div
+      class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/40"
+    >
       <!-- Time ago indicator -->
       <div
         class="flex items-center gap-1 text-[10px] text-slate-500 font-medium cursor-help"

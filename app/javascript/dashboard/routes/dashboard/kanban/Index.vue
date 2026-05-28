@@ -8,7 +8,7 @@ import Draggable from 'vuedraggable';
 
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
-import Thumbnail from 'dashboard/components/Thumbnail.vue';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 
 // Custom Kanban Components
 import KanbanCard from './components/KanbanCard.vue';

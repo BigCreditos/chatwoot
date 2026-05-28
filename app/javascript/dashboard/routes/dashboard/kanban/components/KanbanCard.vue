@@ -4,7 +4,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
-import Thumbnail from 'dashboard/components/Thumbnail.vue';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 
 const props = defineProps({
   conversation: {

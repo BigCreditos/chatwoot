@@ -336,7 +336,7 @@ onUnmounted(() => {
         </div>
         <div class="flex flex-col min-w-0">
           <span
-            class="text-xs font-semibold text-slate-200 truncate max-w-[130px]"
+            class="text-xs font-semibold text-slate-200 truncate"
           >
             {{ props.conversation.meta?.sender?.name || 'Cliente' }}
           </span>
@@ -402,7 +402,7 @@ onUnmounted(() => {
       <!-- Inbox Badge -->
       <span
         v-if="inbox && inbox.name"
-        class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800 text-[9px] text-slate-400 font-medium rounded truncate max-w-[100px]"
+        class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800 text-[9px] text-slate-400 font-medium rounded truncate max-w-[180px]"
         :title="inbox.name"
       >
         {{ inbox.name }}

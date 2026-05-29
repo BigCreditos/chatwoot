@@ -645,12 +645,12 @@ const addConversationToStage = async (conversation, stage) => {
       </header>
 
       <!-- Draggable Stage Board Columns -->
-      <main class="flex-grow flex gap-4 p-6 overflow-x-auto overflow-y-hidden">
+      <main class="flex-grow flex gap-4 p-5 overflow-x-auto overflow-y-hidden">
         <!-- Stage Column -->
         <div
           v-for="stage in activePipeline?.stages"
           :key="stage.id"
-          class="group/col flex flex-col flex-1 min-w-[280px] max-w-[420px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
+          class="group/col flex flex-col flex-1 min-w-[280px] max-w-[550px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
         >
           <!-- Column Header Info -->
           <div

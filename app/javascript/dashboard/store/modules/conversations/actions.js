@@ -426,6 +426,12 @@ const actions = {
         ...response.data,
         status: MESSAGE_STATUS.SENT,
       });
+      if (response.data.conversation) {
+        commit(types.UPDATE_CONVERSATION, {
+          ...response.data.conversation,
+          id: conversationId,
+        });
+      }
       if (state.conversationFilters?.assigneeType === 'waiting') {
         dispatch('conversationStats/get', state.conversationFilters, {
           root: true,

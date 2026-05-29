@@ -101,15 +101,11 @@ class ActionCableConnector extends BaseActionCableConnector {
     const { last_activity_at: lastActivityAt } = conversation || {};
     DashboardAudioNotificationHelper.onNewMessage(data);
 
-    if (
-      conversation &&
-      conversation.id &&
-      conversation.id !== 'null' &&
-      conversation.id !== 'undefined'
-    ) {
-      this.app.$store.dispatch('addConversation', conversation);
-      this.app.$store.dispatch('addUnattended', conversation);
-      this.app.$store.dispatch('addMentions', conversation);
+    if (conversation && conversationId) {
+      const conversationWithId = { ...conversation, id: conversationId };
+      this.app.$store.dispatch('updateConversation', conversationWithId);
+      this.app.$store.dispatch('addUnattended', conversationWithId);
+      this.app.$store.dispatch('addMentions', conversationWithId);
     }
 
     this.app.$store.dispatch('addMessage', data);

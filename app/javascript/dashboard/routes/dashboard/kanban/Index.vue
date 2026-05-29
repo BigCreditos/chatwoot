@@ -129,6 +129,32 @@ const getPipelineUniqueAgents = pipeline => {
   return Array.from(agentsMap.values());
 };
 
+const getPipelineUniqueInboxes = pipeline => {
+  const pipelineConversations = allConversations.value.filter(c =>
+    pipeline.stages.some(stage => c.labels?.includes(stage.label))
+  );
+  const inboxesMap = new Map();
+  pipelineConversations.forEach(c => {
+    const inboxId = c.inbox_id;
+    if (inboxId) {
+      const inbox = allInboxes.value.find(i => i.id === inboxId);
+      if (inbox) inboxesMap.set(inboxId, inbox);
+    }
+  });
+  return Array.from(inboxesMap.values());
+};
+
+const getInboxChannelMeta = inbox => {
+  const ch = (inbox.channel_type || '').toLowerCase();
+  if (ch.includes('whatsapp')) return { icon: 'i-lucide-phone', color: 'text-emerald-500', name: 'WhatsApp' };
+  if (ch.includes('email')) return { icon: 'i-lucide-mail', color: 'text-cyan-500', name: 'E-mail' };
+  if (ch.includes('instagram')) return { icon: 'i-lucide-instagram', color: 'text-pink-500', name: 'Instagram' };
+  if (ch.includes('facebook')) return { icon: 'i-lucide-facebook', color: 'text-blue-600', name: 'Facebook' };
+  if (ch.includes('twitter')) return { icon: 'i-lucide-twitter', color: 'text-sky-400', name: 'Twitter' };
+  if (ch.includes('telegram')) return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
+  return { icon: 'i-lucide-globe', color: 'text-slate-400', name: 'Web Chat' };
+};
+
 onMounted(() => {
   // Ensure Chatwoot memory is populated
   store.dispatch('conversations/fetchAllConversations');
@@ -435,22 +461,43 @@ const addConversationToStage = async (conversation, stage) => {
               </span>
             </div>
 
-            <!-- Agent / Inbox placeholder avatars (from the pipeline or active leads) -->
-            <div class="flex items-center -space-x-2">
-              <Thumbnail
-                v-for="agent in getPipelineUniqueAgents(p).slice(0, 4)"
-                :key="agent.id"
-                :src="agent.thumbnail"
-                :username="agent.name"
-                size="26px"
-                class="border-2 border-slate-900 rounded-full shrink-0"
-              />
-              <span
-                v-if="getPipelineUniqueAgents(p).length > 4"
-                class="size-[26px] rounded-full border-2 border-slate-900 bg-slate-950 text-[10px] font-bold text-slate-400 flex items-center justify-center shrink-0 z-10"
-              >
-                +{{ getPipelineUniqueAgents(p).length - 4 }}
-              </span>
+            <div class="flex items-center gap-3">
+              <!-- Agent placeholder avatars (from the pipeline active leads) -->
+              <div class="flex items-center -space-x-2">
+                <Thumbnail
+                  v-for="agent in getPipelineUniqueAgents(p).slice(0, 4)"
+                  :key="agent.id"
+                  :src="agent.thumbnail"
+                  :username="agent.name"
+                  size="26px"
+                  class="border-2 border-slate-900 rounded-full shrink-0"
+                />
+                <span
+                  v-if="getPipelineUniqueAgents(p).length > 4"
+                  class="size-[26px] rounded-full border-2 border-slate-900 bg-slate-950 text-[10px] font-bold text-slate-400 flex items-center justify-center shrink-0 z-10"
+                >
+                  +{{ getPipelineUniqueAgents(p).length - 4 }}
+                </span>
+              </div>
+
+              <!-- Inbox / Channel icons -->
+              <div class="flex items-center gap-1">
+                <span
+                  v-for="inbox in getPipelineUniqueInboxes(p).slice(0, 4)"
+                  :key="inbox.id"
+                  :class="getInboxChannelMeta(inbox).color"
+                  :title="inbox.name"
+                  class="shrink-0 p-1 bg-slate-950/60 border border-slate-800 rounded-lg"
+                >
+                  <Icon :icon="getInboxChannelMeta(inbox).icon" class="size-3.5" />
+                </span>
+                <span
+                  v-if="getPipelineUniqueInboxes(p).length > 4"
+                  class="text-[10px] font-bold text-slate-500 ml-1"
+                >
+                  +{{ getPipelineUniqueInboxes(p).length - 4 }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -603,7 +650,7 @@ const addConversationToStage = async (conversation, stage) => {
         <div
           v-for="stage in activePipeline?.stages"
           :key="stage.id"
-          class="group/col flex flex-col w-[272px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
+          class="group/col flex flex-col flex-1 min-w-[280px] max-w-[420px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
         >
           <!-- Column Header Info -->
           <div

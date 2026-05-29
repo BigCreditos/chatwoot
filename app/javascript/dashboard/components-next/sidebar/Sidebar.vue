@@ -287,18 +287,17 @@ const menuItems = computed(() => {
           name: 'FunnelsHeader',
           label: 'Funis',
           icon: 'i-lucide-folder',
-          to: accountScopedRoute('kanban_dashboard'),
-          disabled: true,
-        },
-        ...kanbanPipelines.value.map(pipeline => ({
-          name: `Pipeline-${pipeline.id}`,
-          label: pipeline.name,
-          to: {
-            name: 'kanban_dashboard',
-            query: { pipeline_id: pipeline.id },
-          },
           activeOn: ['kanban_dashboard'],
-        })),
+          children: kanbanPipelines.value.map(pipeline => ({
+            name: `Pipeline-${pipeline.id}`,
+            label: pipeline.name,
+            to: {
+              name: 'kanban_dashboard',
+              query: { pipeline_id: pipeline.id },
+            },
+            activeOn: ['kanban_dashboard'],
+          })),
+        },
       ],
     },
     {

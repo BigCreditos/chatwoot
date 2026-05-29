@@ -97,17 +97,11 @@ class ActionCableConnector extends BaseActionCableConnector {
   onLogout = () => AuthAPI.logout();
 
   onMessageCreated = data => {
-    const { conversation, conversation_id: conversationId } = data;
-    const { last_activity_at: lastActivityAt } = conversation || {};
+    const {
+      conversation: { last_activity_at: lastActivityAt },
+      conversation_id: conversationId,
+    } = data;
     DashboardAudioNotificationHelper.onNewMessage(data);
-
-    if (conversation && conversationId) {
-      const conversationWithId = { ...conversation, id: conversationId };
-      this.app.$store.dispatch('updateConversation', conversationWithId);
-      this.app.$store.dispatch('addUnattended', conversationWithId);
-      this.app.$store.dispatch('addMentions', conversationWithId);
-    }
-
     this.app.$store.dispatch('addMessage', data);
     if (lastActivityAt && conversationId) {
       this.app.$store.dispatch('updateConversationLastActivity', {

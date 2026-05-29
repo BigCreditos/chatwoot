@@ -22,6 +22,14 @@ const store = ref(useStore());
 const isHovered = ref(false);
 const showPriorityPopover = ref(false);
 
+// Online indicator
+const isOnline = computed(() => {
+  return (
+    props.conversation.meta?.sender?.availability_status === 'online' ||
+    props.conversation.meta?.sender?.online === true
+  );
+});
+
 // Format Creation Time Tooltip
 const exactCreationTime = computed(() => {
   const dateVal = props.conversation.created_at || props.conversation.timestamp;
@@ -45,6 +53,46 @@ const timeAgo = computed(() => {
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
   return `${diffDays}d`;
+});
+
+// Time badge for card: shows "Atrasado", "Amanhã", or timeago
+const timeBadge = computed(() => {
+  // First check due date for Atrasado/Amanhã
+  const dVal = dueDateValue.value;
+  if (dVal) {
+    const dueDate = new Date(dVal);
+    const today = new Date();
+    const dDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+    const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffDays = Math.floor((dDate - tDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return {
+        label: 'Atrasado',
+        class: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+      };
+    }
+    if (diffDays === 1) {
+      return {
+        label: 'Amanhã',
+        class: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      };
+    }
+    if (diffDays === 0) {
+      return {
+        label: 'Hoje',
+        class: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      };
+    }
+  }
+
+  // Otherwise show time since creation
+  const ta = timeAgo.value;
+  if (!ta) return null;
+  return {
+    label: ta,
+    class: 'bg-slate-800 text-slate-400 border-slate-700/50',
+  };
 });
 
 // Inbox & Channel Helpers
@@ -254,24 +302,41 @@ onUnmounted(() => {
   <!-- eslint-disable vue/no-bare-strings-in-template -->
   <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div
-    class="group relative flex flex-col p-4 rounded-xl border border-slate-800 bg-slate-900 shadow-md hover:shadow-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700"
+    class="group relative flex flex-col p-3.5 rounded-xl border border-slate-800 bg-slate-900 shadow-md hover:shadow-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700"
     :class="urgencyMeta ? urgencyMeta.borderClass : 'border-slate-800'"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @click="emit('click', props.conversation.id)"
   >
-    <!-- Card Header: Customer & Channel -->
-    <div class="flex items-start justify-between w-full gap-2">
-      <div class="flex items-center gap-2">
-        <Thumbnail
-          :src="props.conversation.meta?.sender?.thumbnail"
-          :username="props.conversation.meta?.sender?.name || 'Cliente'"
-          size="28px"
-          class="shrink-0"
-        />
+    <!-- Drag Indicator (grip dots, top-left) -->
+    <div
+      class="absolute top-2 left-2 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+    >
+      <Icon icon="i-lucide-grip-vertical" class="size-3.5" />
+    </div>
+
+    <!-- Card Header: Online Indicator + Thumbnail + Name/ID | Channel -->
+    <div
+      class="flex items-start justify-between w-full gap-2"
+      :class="{ 'pl-4': true }"
+    >
+      <div class="flex items-center gap-2.5">
+        <!-- Avatar with Online Indicator -->
+        <div class="relative shrink-0">
+          <Thumbnail
+            :src="props.conversation.meta?.sender?.thumbnail"
+            :username="props.conversation.meta?.sender?.name || 'Cliente'"
+            size="28px"
+            class="shrink-0"
+          />
+          <span
+            v-if="isOnline"
+            class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 border-2 border-slate-900"
+          />
+        </div>
         <div class="flex flex-col min-w-0">
           <span
-            class="text-xs font-semibold text-slate-200 truncate max-w-[140px]"
+            class="text-xs font-semibold text-slate-200 truncate max-w-[130px]"
           >
             {{ props.conversation.meta?.sender?.name || 'Cliente' }}
           </span>
@@ -294,20 +359,20 @@ onUnmounted(() => {
 
     <!-- Message Snippet -->
     <p
-      class="mt-2.5 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[32px]"
+      class="mt-2 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[28px]"
     >
       {{ messageSnippet }}
     </p>
 
-    <!-- Due Date & Priority Indicators -->
-    <div class="flex flex-wrap items-center gap-1.5 mt-3">
-      <!-- Urgency Custom Attribute (due_date) Badge -->
+    <!-- Badges Row: Time badge + Priority + Snooze -->
+    <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
+      <!-- Time Badge (Atrasado / Amanhã / 55m) -->
       <span
-        v-if="urgencyMeta"
-        :class="[urgencyMeta.badgeClass]"
-        class="px-2 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1"
+        v-if="timeBadge"
+        :class="[timeBadge.class]"
+        class="px-2 py-0.5 rounded text-[10px] font-semibold border"
       >
-        {{ urgencyMeta.label }}
+        {{ timeBadge.label }}
       </span>
 
       <!-- Priority Badge -->
@@ -330,46 +395,36 @@ onUnmounted(() => {
       </span>
     </div>
 
-    <!-- Card Footer: Time ago & Assignee & Inbox -->
+    <!-- Card Footer: Inbox + Assignee (compact, no timeago) -->
     <div
-      class="flex items-center justify-between mt-4 pt-3 border-t border-slate-800/40"
+      class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/40"
     >
-      <!-- Time ago indicator -->
-      <div
-        class="flex items-center gap-1 text-[10px] text-slate-500 font-medium cursor-help"
-        :title="exactCreationTime"
+      <!-- Inbox Badge -->
+      <span
+        v-if="inbox && inbox.name"
+        class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800 text-[9px] text-slate-400 font-medium rounded truncate max-w-[100px]"
+        :title="inbox.name"
       >
-        <Icon icon="i-lucide-clock" class="size-3" />
-        <span>{{ timeAgo }}</span>
-      </div>
+        {{ inbox.name }}
+      </span>
+      <span v-else class="text-[9px] text-slate-600">—</span>
 
-      <div class="flex items-center gap-2">
-        <!-- Inbox Badge -->
-        <span
-          v-if="inbox && inbox.name"
-          class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800 text-[9px] text-slate-400 font-medium rounded truncate max-w-[80px]"
-          :title="inbox.name"
-        >
-          {{ inbox.name }}
-        </span>
-
-        <!-- Assignee Thumbnail -->
-        <Thumbnail
-          v-if="props.conversation.meta?.assignee"
-          :src="props.conversation.meta?.assignee?.thumbnail"
-          :username="props.conversation.meta?.assignee?.name || 'Agente'"
-          size="18px"
-          class="shrink-0 ring-1 ring-slate-800"
-          :title="props.conversation.meta?.assignee?.name"
-        />
-        <!-- Unassigned Placeholder -->
-        <div
-          v-else
-          class="w-[18px] h-[18px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer"
-          :title="t('KANBAN.CARD.NO_ASSIGNEE')"
-        >
-          <Icon icon="i-lucide-user" class="text-slate-600 size-2.5" />
-        </div>
+      <!-- Assignee Thumbnail -->
+      <Thumbnail
+        v-if="props.conversation.meta?.assignee"
+        :src="props.conversation.meta?.assignee?.thumbnail"
+        :username="props.conversation.meta?.assignee?.name || 'Agente'"
+        size="16px"
+        class="shrink-0 ring-1 ring-slate-800"
+        :title="props.conversation.meta?.assignee?.name"
+      />
+      <!-- Unassigned Placeholder -->
+      <div
+        v-else
+        class="w-[16px] h-[16px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer"
+        :title="t('KANBAN.CARD.NO_ASSIGNEE')"
+      >
+        <Icon icon="i-lucide-user" class="text-slate-600 size-2" />
       </div>
     </div>
 

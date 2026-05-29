@@ -5,6 +5,7 @@ import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 
 const props = defineProps({
   isOpen: {
@@ -457,10 +458,10 @@ const handleSave = () => {
                 <label class="text-xs font-semibold text-slate-300">
                   {{ t('KANBAN.SETTINGS.FUNNEL_DESC') }}
                 </label>
-                <input
+                <textarea
                   v-model="description"
-                  type="text"
-                  class="w-full px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  rows="3"
+                  class="w-full px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
                   placeholder="Breve descrição sobre a finalidade do funil"
                 />
               </div>
@@ -630,17 +631,21 @@ const handleSave = () => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Automation Toggle Cards -->
               <div
-                class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <input
-                  id="auto-create-toggle"
-                  v-model="automations.auto_create"
-                  type="checkbox"
-                  class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <div class="space-y-1.5 flex-1">
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_create"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
                   <label
-                    for="auto-create-toggle"
                     class="text-sm font-medium text-slate-200 cursor-pointer block"
                   >
                     {{ t('KANBAN.SETTINGS.AUTO_CREATE') }}
@@ -650,13 +655,38 @@ const handleSave = () => {
                     etapa do funil.
                   </p>
 
-                  <!-- Inbox Selector -->
-                  <div v-if="automations.auto_create" class="space-y-1.5 pt-2">
+                  <!-- Inbox Selector as Chips -->
+                  <div v-if="automations.auto_create" class="space-y-2 pt-2">
                     <label
                       class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
                     >
                       Filtrar por caixas de entrada (todas se vazio):
                     </label>
+                    <!-- Selected inbox chips -->
+                    <div
+                      v-if="inboxes.length > 0"
+                      class="flex flex-wrap gap-1.5 mb-2"
+                    >
+                      <div
+                        v-for="inboxId in inboxes"
+                        :key="inboxId"
+                        class="flex items-center gap-1 px-2 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-semibold"
+                      >
+                        <Icon icon="i-lucide-inbox" class="size-3 shrink-0" />
+                        <span class="truncate max-w-[80px]">{{
+                          allInboxes.find(i => i.id === inboxId)?.name ||
+                            inboxId
+                        }}</span>
+                        <button
+                          type="button"
+                          class="ml-0.5 hover:text-blue-300 transition-colors"
+                          @click="toggleInbox(inboxId)"
+                        >
+                          <Icon icon="i-lucide-x" class="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Inbox selector buttons -->
                     <div
                       class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900"
                     >
@@ -668,7 +698,7 @@ const handleSave = () => {
                         :class="
                           inboxes.includes(inbox.id)
                             ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                            : 'border-slate-800 bg-slate-950 text-slate-400'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
                         "
                         @click="toggleInbox(inbox.id)"
                       >
@@ -680,17 +710,21 @@ const handleSave = () => {
               </div>
 
               <div
-                class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <input
-                  id="auto-assign-agent-toggle"
-                  v-model="automations.auto_assign_agent"
-                  type="checkbox"
-                  class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <div class="space-y-1.5 flex-1">
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_assign_agent"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
                   <label
-                    for="auto-assign-agent-toggle"
                     class="text-sm font-medium text-slate-200 cursor-pointer block"
                   >
                     {{ t('KANBAN.SETTINGS.AUTO_ASSIGN_AGENT') }}
@@ -700,16 +734,46 @@ const handleSave = () => {
                     agentes selecionados.
                   </p>
 
-                  <!-- Agent Selector -->
+                  <!-- Agent Selector as Chips with Avatars -->
                   <div
                     v-if="automations.auto_assign_agent"
-                    class="space-y-1.5 pt-2"
+                    class="space-y-2 pt-2"
                   >
                     <label
                       class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
                     >
                       Agentes elegíveis (todos se vazio):
                     </label>
+                    <!-- Selected agent chips -->
+                    <div
+                      v-if="agents.length > 0"
+                      class="flex flex-wrap gap-1.5 mb-2"
+                    >
+                      <div
+                        v-for="agentId in agents"
+                        :key="agentId"
+                        class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold"
+                      >
+                        <Thumbnail
+                          :src="allAgents.find(a => a.id === agentId)?.thumbnail"
+                          :username="allAgents.find(a => a.id === agentId)?.name || ''"
+                          size="14px"
+                          class="shrink-0 rounded-full"
+                        />
+                        <span class="truncate max-w-[60px]">{{
+                          allAgents.find(a => a.id === agentId)?.name ||
+                            agentId
+                        }}</span>
+                        <button
+                          type="button"
+                          class="ml-0.5 hover:text-emerald-300 transition-colors"
+                          @click="toggleAgent(agentId)"
+                        >
+                          <Icon icon="i-lucide-x" class="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <!-- Agent selector buttons -->
                     <div
                       class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 border border-slate-850 rounded bg-slate-900"
                     >
@@ -717,14 +781,20 @@ const handleSave = () => {
                         v-for="agent in allAgents"
                         :key="agent.id"
                         type="button"
-                        class="px-2 py-0.5 rounded text-[10px] font-semibold border transition-all"
+                        class="px-2 py-0.5 rounded text-[10px] font-semibold border transition-all flex items-center gap-1"
                         :class="
                           agents.includes(agent.id)
-                            ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                            : 'border-slate-800 bg-slate-950 text-slate-400'
+                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                            : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
                         "
                         @click="toggleAgent(agent.id)"
                       >
+                        <Thumbnail
+                          :src="agent.thumbnail"
+                          :username="agent.name"
+                          size="12px"
+                          class="shrink-0 rounded-full"
+                        />
                         {{ agent.name }}
                       </button>
                     </div>
@@ -733,17 +803,21 @@ const handleSave = () => {
               </div>
 
               <div
-                class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <input
-                  id="auto-assign-conv-toggle"
-                  v-model="automations.auto_assign_conversation"
-                  type="checkbox"
-                  class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <div class="space-y-1.5 flex-1">
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_assign_conversation"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
                   <label
-                    for="auto-assign-conv-toggle"
                     class="text-sm font-medium text-slate-200 cursor-pointer block"
                   >
                     {{ t('KANBAN.SETTINGS.AUTO_ASSIGN_CONV') }}
@@ -756,17 +830,21 @@ const handleSave = () => {
               </div>
 
               <div
-                class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <input
-                  id="auto-resolve-toggle"
-                  v-model="automations.auto_resolve_on_won_lost"
-                  type="checkbox"
-                  class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <div class="space-y-1.5 flex-1">
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_resolve_on_won_lost"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
                   <label
-                    for="auto-resolve-toggle"
                     class="text-sm font-medium text-slate-200 cursor-pointer block"
                   >
                     {{ t('KANBAN.SETTINGS.AUTO_RESOLVE') }}
@@ -779,17 +857,21 @@ const handleSave = () => {
               </div>
 
               <div
-                class="flex items-start gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <input
-                  id="auto-win-toggle"
-                  v-model="automations.auto_win_on_resolve"
-                  type="checkbox"
-                  class="mt-1 size-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                />
-                <div class="space-y-1.5 flex-1">
+                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_win_on_resolve"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
                   <label
-                    for="auto-win-toggle"
                     class="text-sm font-medium text-slate-200 cursor-pointer block"
                   >
                     {{ t('KANBAN.SETTINGS.AUTO_WIN') }}
@@ -825,9 +907,22 @@ const handleSave = () => {
           <Button
             md
             class="border border-slate-700 hover:bg-slate-800 text-slate-300"
-            @click="emit('close')"
+            @click="
+              currentStep === 'form' && !props.pipeline
+                ? (currentStep = 'select_model')
+                : emit('close')
+            "
           >
-            Cancelar
+            <Icon
+              v-if="currentStep === 'form' && !props.pipeline"
+              icon="i-lucide-arrow-left"
+              class="size-4"
+            />
+            {{
+              currentStep === 'form' && !props.pipeline
+                ? 'Voltar'
+                : 'Cancelar'
+            }}
           </Button>
           <Button
             v-if="currentStep === 'form'"
@@ -837,6 +932,7 @@ const handleSave = () => {
             :disabled="!name.trim()"
             @click="handleSave"
           >
+            <Icon icon="i-lucide-check" class="size-4" />
             {{ t('KANBAN.SETTINGS.SAVE') }}
           </Button>
         </div>

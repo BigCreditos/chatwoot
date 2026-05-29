@@ -27,6 +27,7 @@ const fullConfig = ref({ pipelines: [] });
 const activePipelineId = ref(null);
 const configLabelId = ref(null);
 const searchQuery = ref('');
+const pipelineSearchQuery = ref('');
 const filterAgentId = ref('');
 const filterInboxId = ref('');
 
@@ -103,6 +104,16 @@ const getPipelineTotalLeads = pipeline => {
   });
   return count;
 };
+
+const filteredPipelines = computed(() => {
+  if (!pipelineSearchQuery.value.trim()) return fullConfig.value.pipelines;
+  const q = pipelineSearchQuery.value.toLowerCase().trim();
+  return fullConfig.value.pipelines.filter(
+    p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.description || '').toLowerCase().includes(q)
+  );
+});
 
 const getPipelineUniqueAgents = pipeline => {
   const pipelineConversations = allConversations.value.filter(c =>
@@ -373,22 +384,42 @@ const addConversationToStage = async (conversation, stage) => {
       class="flex-grow flex flex-col h-full bg-slate-950 p-8 overflow-y-auto"
     >
       <!-- Overview Header -->
-      <div class="flex items-center justify-between mb-8 shrink-0">
-        <h2 class="text-2xl font-bold tracking-tight text-slate-100">Funis</h2>
-        <Button
-          blue
-          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl"
-          @click="openAddPipeline"
-        >
-          <Icon icon="i-lucide-plus" class="size-4" />
-          Adicionar Funil
-        </Button>
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-8 shrink-0"
+      >
+        <h2 class="text-2xl font-bold tracking-tight text-slate-100 shrink-0">
+          Funis
+        </h2>
+
+        <div class="flex items-center gap-3">
+          <!-- Search Input -->
+          <div class="relative">
+            <input
+              v-model="pipelineSearchQuery"
+              type="text"
+              placeholder="Buscar funis..."
+              class="w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
+            />
+            <span class="absolute left-3 top-2.5 text-slate-500">
+              <Icon icon="i-lucide-search" class="size-3.5" />
+            </span>
+          </div>
+
+          <Button
+            blue
+            class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl shrink-0"
+            @click="openAddPipeline"
+          >
+            <Icon icon="i-lucide-plus" class="size-4" />
+            Adicionar Funil
+          </Button>
+        </div>
       </div>
 
       <!-- Funnels List -->
       <div class="flex flex-col gap-5 max-w-5xl">
         <div
-          v-for="p in fullConfig.pipelines"
+          v-for="p in filteredPipelines"
           :key="p.id"
           class="bg-slate-900/60 hover:bg-slate-900 border border-slate-850 hover:border-slate-800 rounded-2xl p-6 transition-all cursor-pointer flex flex-col gap-4 shadow-lg hover:shadow-2xl"
           @click="selectPipeline(p)"
@@ -443,7 +474,7 @@ const addConversationToStage = async (conversation, stage) => {
         </div>
 
         <div
-          v-if="fullConfig.pipelines.length === 0"
+          v-if="filteredPipelines.length === 0"
           class="flex flex-col items-center justify-center py-20 text-center gap-4 bg-slate-900/20 border border-dashed border-slate-850 rounded-2xl"
         >
           <div class="p-4 bg-slate-900/60 rounded-full text-slate-500">
@@ -572,29 +603,43 @@ const addConversationToStage = async (conversation, stage) => {
         <div
           v-for="stage in activePipeline?.stages"
           :key="stage.id"
-          class="flex flex-col w-[272px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
+          class="group/col flex flex-col w-[272px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
         >
           <!-- Column Header Info -->
           <div
             class="flex items-center justify-between px-4 py-3 bg-slate-900/60 border-b border-slate-900/40 shrink-0"
           >
             <div class="flex items-center gap-2 min-w-0">
-              <!-- Colored Column Bullet Indicator -->
+              <!-- Colored Column Bullet with Glow -->
               <span
-                class="size-2 rounded-full shrink-0"
-                :style="{ backgroundColor: stage.color || '#3b82f6' }"
+                class="size-2.5 rounded-full shrink-0"
+                :style="{
+                  backgroundColor: stage.color || '#3b82f6',
+                  filter: 'drop-shadow(0 0 6px ' + (stage.color || '#3b82f6') + ')',
+                }"
               />
               <span class="text-xs font-bold text-slate-200 truncate">{{
                 stage.title
               }}</span>
             </div>
 
-            <!-- Total Leads Counter Badge -->
-            <span
-              class="px-2 py-0.5 rounded-full bg-slate-950 text-[10px] font-bold text-slate-400 border border-slate-800"
-            >
-              {{ columnsCardsMap[stage.id]?.length || 0 }}
-            </span>
+            <div class="flex items-center gap-1">
+              <!-- Total Leads Counter Badge -->
+              <span
+                class="px-2 py-0.5 rounded-full bg-slate-950 text-[10px] font-bold text-slate-400 border border-slate-800"
+              >
+                {{ columnsCardsMap[stage.id]?.length || 0 }}
+              </span>
+
+              <!-- More options button -->
+              <button
+                type="button"
+                class="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors opacity-0 group-hover/col:opacity-100"
+                title="Mais opções"
+              >
+                <Icon icon="i-lucide-ellipsis" class="size-3.5" />
+              </button>
+            </div>
           </div>
 
           <!-- Draggable Cards Container -->

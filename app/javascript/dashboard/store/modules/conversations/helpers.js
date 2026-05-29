@@ -49,7 +49,7 @@ export const filterByUnattended = (
   waitingSince
 ) => {
   return conversationType === 'unattended'
-    ? (!firstReplyOn || !!waitingSince) && shouldFilter
+    ? !firstReplyOn && shouldFilter
     : shouldFilter;
 };
 

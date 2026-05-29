@@ -5,7 +5,7 @@
  */
 
 const CONFIG_PREFIX = '[KANBAN_CONFIG]';
-const CONFIG_LABEL_TITLE = '_kanban_config';
+const CONFIG_LABEL_TITLE = 'kanban_config';
 
 const DEFAULT_PIPELINE = {
   id: 1,
@@ -154,21 +154,24 @@ export const KanbanConfigHelper = {
     const activeLabelNames = new Set(activeLabels.map(l => l.title));
 
     for (const stage of pipeline.stages) {
-      if (
-        stage.label &&
-        !activeLabelNames.has(stage.label) &&
-        stage.label !== CONFIG_LABEL_TITLE
-      ) {
-        try {
-          await store.dispatch('labels/create', {
-            title: stage.label,
-            description: `Stage label for pipeline: ${pipeline.name}`,
-            color: stage.color || '#3b82f6',
-            show_on_sidebar: true,
-          });
-        } catch (e) {
-          console.error(`Failed to auto-create stage label: ${stage.label}`, e);
-        }
+      if (!stage.label || stage.label === CONFIG_LABEL_TITLE) continue;
+
+      const normalizedTitle = stage.label
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_\-\p{L}]/gu, '');
+
+      if (activeLabelNames.has(normalizedTitle)) continue;
+
+      try {
+        await store.dispatch('labels/create', {
+          title: normalizedTitle,
+          description: `Stage label for pipeline: ${pipeline.name}`,
+          color: stage.color || '#3b82f6',
+          show_on_sidebar: true,
+        });
+      } catch (e) {
+        console.error(`Failed to auto-create stage label: ${stage.label}`, e);
       }
     }
 

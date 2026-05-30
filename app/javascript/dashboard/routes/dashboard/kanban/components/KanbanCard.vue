@@ -95,6 +95,28 @@ const timeBadge = computed(() => {
   };
 });
 
+const formattedTimestamp = computed(() => {
+  const timeVal = props.conversation.created_at || props.conversation.timestamp;
+  if (!timeVal) return null;
+  const date = new Date(timeVal * 1000 || timeVal);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffHours = Math.floor(diffMs / 3600000);
+
+  if (diffHours < 24) {
+    return {
+      text: timeAgo.value,
+      icon: 'i-lucide-clock',
+    };
+  } else {
+    const options = { day: 'numeric', month: 'short' };
+    return {
+      text: date.toLocaleDateString('pt-BR', options),
+      icon: 'i-lucide-calendar',
+    };
+  }
+});
+
 // Inbox & Channel Helpers
 const inboxId = computed(() => props.conversation.inbox_id);
 const inbox = computed(() => {
@@ -239,6 +261,13 @@ const channelMeta = computed(() => {
   if (ch.includes('telegram')) {
     return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
   }
+  if (ch.includes('tiktok')) {
+    return {
+      icon: 'i-lucide-music',
+      color: 'text-pink-400',
+      name: 'TikTok',
+    };
+  }
   return { icon: 'i-lucide-globe', color: 'text-slate-400', name: 'Web Chat' };
 });
 
@@ -302,8 +331,8 @@ onUnmounted(() => {
   <!-- eslint-disable vue/no-bare-strings-in-template -->
   <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div
-    class="group relative flex flex-col p-3.5 rounded-xl border border-slate-800 bg-slate-900 shadow-md hover:shadow-lg transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700"
-    :class="urgencyMeta ? urgencyMeta.borderClass : 'border-slate-800'"
+    class="group relative flex flex-col p-3.5 rounded-xl border bg-slate-900 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700/80"
+    :class="urgencyMeta ? urgencyMeta.borderClass : 'border-slate-850 bg-slate-900/90'"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @click="emit('click', props.conversation.id)"
@@ -315,120 +344,112 @@ onUnmounted(() => {
       <Icon icon="i-lucide-grip-vertical" class="size-3.5" />
     </div>
 
-    <!-- Card Header: Online Indicator + Thumbnail + Name/ID | Channel -->
-    <div
-      class="flex items-start justify-between w-full gap-2"
-      :class="{ 'pl-4': true }"
-    >
-      <div class="flex items-center gap-2.5">
+    <!-- Card Header: Contact Avatar + Name/Channel | Assignee Avatar -->
+    <div class="flex items-start justify-between w-full gap-2 pl-4">
+      <div class="flex items-center gap-2.5 min-w-0">
         <!-- Avatar with Online Indicator -->
         <div class="relative shrink-0">
           <Thumbnail
             :src="props.conversation.meta?.sender?.thumbnail"
             :username="props.conversation.meta?.sender?.name || 'Cliente'"
             size="28px"
-            class="shrink-0"
+            class="shrink-0 rounded-full"
           />
           <span
             v-if="isOnline"
             class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 border-2 border-slate-900"
           />
         </div>
+        
         <div class="flex flex-col min-w-0">
-          <span
-            class="text-xs font-semibold text-slate-200 truncate"
-          >
+          <span class="text-xs font-bold text-slate-100 truncate">
             {{ props.conversation.meta?.sender?.name || 'Cliente' }}
           </span>
-          <span class="text-[10px] text-slate-500 font-medium">
-            #{{ props.conversation.display_id || props.conversation.id }}
-          </span>
+          
+          <!-- Channel Pill (lowercase and dot badge, Image 1 Style) -->
+          <div v-if="channelMeta" class="flex items-center gap-1 mt-0.5">
+            <span :class="channelMeta.color" class="flex items-center gap-1 text-[10px] font-semibold opacity-85">
+              <span class="size-1.5 rounded-full bg-current shrink-0" />
+              <span>{{ channelMeta.name.toLowerCase() }}</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Channel Brand Icon -->
-      <span
-        v-if="channelMeta"
-        :class="[channelMeta.color]"
-        :title="channelMeta.name"
-        class="shrink-0 p-1 bg-slate-950/40 rounded-lg"
-      >
-        <Icon :icon="channelMeta.icon" class="size-3.5" />
-      </span>
+      <!-- Assignee Thumbnail on the Right (Image 1 Style) -->
+      <div class="shrink-0 flex items-center">
+        <Thumbnail
+          v-if="props.conversation.meta?.assignee"
+          :src="props.conversation.meta?.assignee?.thumbnail"
+          :username="props.conversation.meta?.assignee?.name || 'Agente'"
+          size="22px"
+          class="shrink-0 ring-2 ring-slate-950 rounded-full"
+          :title="props.conversation.meta?.assignee?.name"
+        />
+        <!-- Unassigned Placeholder -->
+        <div
+          v-else
+          class="size-[22px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer"
+          :title="t('KANBAN.CARD.NO_ASSIGNEE')"
+        >
+          <Icon icon="i-lucide-user" class="text-slate-600 size-2.5" />
+        </div>
+      </div>
     </div>
 
     <!-- Message Snippet -->
     <p
-      class="mt-2 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[28px]"
+      class="mt-3 pl-4 text-xs text-slate-400 font-normal leading-relaxed break-words line-clamp-2 min-h-[28px]"
     >
       {{ messageSnippet }}
     </p>
 
-    <!-- Badges Row: Time badge + Priority + Snooze -->
-    <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
-      <!-- Time Badge (Atrasado / Amanhã / 55m) -->
-      <span
-        v-if="timeBadge"
-        :class="[timeBadge.class]"
-        class="px-2 py-0.5 rounded text-[10px] font-semibold border"
-      >
-        {{ timeBadge.label }}
-      </span>
-
-      <!-- Priority Badge -->
-      <span
-        v-if="priorityMeta"
-        :class="[priorityMeta.colorClass]"
-        class="px-2 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1"
-      >
-        <Icon :icon="priorityMeta.icon" class="size-3 shrink-0" />
-        {{ priorityMeta.label }}
-      </span>
-
-      <!-- Snooze status -->
-      <span
-        v-if="props.conversation.status === 'snoozed'"
-        class="px-2 py-0.5 rounded text-[10px] font-semibold border border-purple-500/20 bg-purple-500/10 text-purple-400 flex items-center gap-1"
-      >
-        <Icon icon="i-lucide-clock" class="size-3 shrink-0" />
-        {{ t('KANBAN.CARD.SNOOZED') }}
-      </span>
-    </div>
-
-    <!-- Card Footer: Inbox + Assignee (compact, no timeago) -->
+    <!-- Card Footer (Due Date/Priority + Timeago/Date with icons) -->
     <div
-      class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/40"
+      class="flex items-center justify-between mt-3 pt-2.5 border-t border-slate-800/40 pl-4"
     >
-      <!-- Inbox Badge -->
-      <span
-        v-if="inbox && inbox.name"
-        class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800 text-[9px] text-slate-400 font-medium rounded truncate max-w-[180px]"
-        :title="inbox.name"
-      >
-        {{ inbox.name }}
-      </span>
-      <span v-else class="text-[9px] text-slate-600">—</span>
+      <!-- Left side: Due Date / Priority Badge / Inbox Badge -->
+      <div class="flex items-center gap-1.5 min-w-0">
+        <!-- Inbox Badge -->
+        <span
+          v-if="inbox && inbox.name"
+          class="px-1.5 py-0.5 bg-slate-950/60 border border-slate-800/60 text-[9px] text-slate-400 font-semibold rounded truncate max-w-[120px]"
+          :title="inbox.name"
+        >
+          {{ inbox.name }}
+        </span>
 
-      <!-- Assignee Thumbnail -->
-      <Thumbnail
-        v-if="props.conversation.meta?.assignee"
-        :src="props.conversation.meta?.assignee?.thumbnail"
-        :username="props.conversation.meta?.assignee?.name || 'Agente'"
-        size="16px"
-        class="shrink-0 ring-1 ring-slate-800"
-        :title="props.conversation.meta?.assignee?.name"
-      />
-      <!-- Unassigned Placeholder -->
+        <!-- Due Date Badges -->
+        <span
+          v-if="urgencyMeta"
+          :class="[urgencyMeta.badgeClass]"
+          class="px-2 py-0.5 rounded text-[10px] font-semibold border shrink-0"
+        >
+          {{ urgencyMeta.label }}
+        </span>
+
+        <!-- Priority Badge -->
+        <span
+          v-if="priorityMeta"
+          :class="[priorityMeta.colorClass]"
+          class="px-2 py-0.5 rounded text-[10px] font-semibold border flex items-center gap-1 shrink-0"
+        >
+          <Icon :icon="priorityMeta.icon" class="size-3 shrink-0" />
+          {{ priorityMeta.label }}
+        </span>
+      </div>
+
+      <!-- Right side: Clock/Calendar Timestamp (Image 1 Style) -->
       <div
-        v-else
-        class="w-[16px] h-[16px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer"
-        :title="t('KANBAN.CARD.NO_ASSIGNEE')"
+        v-if="formattedTimestamp"
+        class="flex items-center gap-1 text-[10px] font-semibold text-slate-500 shrink-0"
       >
-        <Icon icon="i-lucide-user" class="text-slate-600 size-2" />
+        <Icon :icon="formattedTimestamp.icon" class="size-3" />
+        <span>{{ formattedTimestamp.text }}</span>
       </div>
     </div>
 
-    <!-- Hover Hover Actions (Overlay) -->
+    <!-- Hover Actions (Overlay) -->
     <div
       v-if="isHovered"
       class="absolute top-2 right-2 flex items-center gap-1.5 bg-slate-900 border border-slate-700 shadow-md px-1.5 py-1 rounded-lg z-20 transition-all duration-150"
@@ -504,3 +525,5 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
+

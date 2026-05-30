@@ -546,101 +546,122 @@ const addConversationToStage = async (conversation, stage) => {
 
     <!-- 2. Kanban Board (when activePipelineId is NOT null) -->
     <template v-else>
-      <!-- Header Top Section -->
+      <!-- Header Top Section (Sleek & Aligned as in Image 1) -->
       <header
-        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-6 py-4 border-b border-slate-900 bg-slate-950 shrink-0"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-6 py-3 border-b border-slate-900 bg-slate-950 shrink-0"
       >
-        <!-- Title & Pipelines Selector -->
-        <div class="flex items-center gap-3">
-          <h2 class="text-xl font-bold tracking-tight text-slate-100 shrink-0">
-            {{ t('KANBAN.HEADER.TITLE') }}
+        <!-- Title & Total Leads count badge (Image 1 Left Side) -->
+        <div class="flex items-center gap-2.5">
+          <!-- Back button to return to Overview -->
+          <button
+            type="button"
+            class="p-1.5 -ml-1 text-slate-400 hover:text-slate-200 transition-colors bg-slate-900 border border-slate-850 hover:border-slate-800 rounded-xl"
+            title="Voltar para Funis"
+            @click="activePipelineId = null"
+          >
+            <Icon icon="i-lucide-chevron-left" class="size-4.5" />
+          </button>
+          
+          <h2 class="text-base font-bold tracking-tight text-slate-100 shrink-0">
+            {{ activePipeline?.name }}
           </h2>
-
-          <!-- Pipeline Select Dropdown -->
-          <div
-            v-if="fullConfig.pipelines.length > 0"
-            class="flex items-center gap-1.5"
+          
+          <span
+            class="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] font-bold text-slate-400 border border-slate-800"
           >
-            <select
-              v-model="activePipelineId"
-              class="px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-sm font-semibold outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer min-w-[160px]"
-            >
-              <option
-                v-for="p in fullConfig.pipelines"
-                :key="p.id"
-                :value="p.id"
-              >
-                {{ p.name }}
-              </option>
-            </select>
-
-            <!-- Edit pipeline settings gear -->
-            <button
-              type="button"
-              class="p-2 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-lg text-slate-400 hover:text-slate-200 transition-all"
-              title="Configurações do Funil"
-              @click="openEditPipeline"
-            >
-              <Icon icon="i-lucide-settings" class="size-4 shrink-0" />
-            </button>
-          </div>
-
-          <!-- Add pipeline button -->
-          <Button
-            small
-            blue
-            class="flex items-center gap-1 shrink-0"
-            @click="openAddPipeline"
-          >
-            <Icon icon="i-lucide-plus" class="size-3.5" />
-            {{ t('KANBAN.HEADER.ADD_FUNNEL') }}
-          </Button>
+            {{ getPipelineTotalLeads(activePipeline) }}
+          </span>
         </div>
 
-        <!-- Filters & Search Bar -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Live Search Bar -->
-          <div class="relative shrink-0 w-full sm:w-60">
+        <!-- Filters & Action Buttons (Image 1 Right Side) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Live Search Bar (Compact & Sleek) -->
+          <div class="relative w-44">
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="t('KANBAN.HEADER.SEARCH')"
-              class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
+              placeholder="Pesquisar..."
+              class="w-full pl-8 pr-2.5 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
             />
-            <span class="absolute left-3 top-2.5 text-slate-500">
+            <span class="absolute left-2.5 top-2 text-slate-500">
               <Icon icon="i-lucide-search" class="size-3.5" />
             </span>
           </div>
 
-          <!-- Filter Agents -->
-          <select
-            v-model="filterAgentId"
-            class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
-          >
-            <option value="">-- {{ t('KANBAN.HEADER.ALL_AGENTS') }} --</option>
-            <option
-              v-for="agent in allAgents"
-              :key="agent.id"
-              :value="agent.id"
+          <!-- Filter Agents (Compact & Premium) -->
+          <div class="relative">
+            <select
+              v-model="filterAgentId"
+              class="pl-7 pr-7 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-300 text-xs font-semibold outline-none cursor-pointer focus:border-blue-500 appearance-none min-w-[130px]"
             >
-              {{ agent.name }}
-            </option>
-          </select>
+              <option value="">Todos os agentes</option>
+              <option
+                v-for="agent in allAgents"
+                :key="agent.id"
+                :value="agent.id"
+              >
+                {{ agent.name }}
+              </option>
+            </select>
+            <span class="absolute left-2.5 top-2 text-slate-500 pointer-events-none">
+              <Icon icon="i-lucide-user" class="size-3.5" />
+            </span>
+            <span class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none">
+              <Icon icon="i-lucide-chevron-down" class="size-3" />
+            </span>
+          </div>
 
-          <!-- Filter Inboxes -->
-          <select
-            v-model="filterInboxId"
-            class="px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-300 text-xs outline-none cursor-pointer focus:border-blue-500"
-          >
-            <option value="">-- {{ t('KANBAN.HEADER.ALL_INBOXES') }} --</option>
-            <option
-              v-for="inbox in allInboxes"
-              :key="inbox.id"
-              :value="inbox.id"
+          <!-- Filter Inboxes (Compact & Premium) -->
+          <div class="relative">
+            <select
+              v-model="filterInboxId"
+              class="pl-7 pr-7 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-300 text-xs font-semibold outline-none cursor-pointer focus:border-blue-500 appearance-none min-w-[130px]"
             >
-              {{ inbox.name }}
-            </option>
-          </select>
+              <option value="">Todas as caixas</option>
+              <option
+                v-for="inbox in allInboxes"
+                :key="inbox.id"
+                :value="inbox.id"
+              >
+                {{ inbox.name }}
+              </option>
+            </select>
+            <span class="absolute left-2.5 top-2 text-slate-500 pointer-events-none">
+              <Icon icon="i-lucide-inbox" class="size-3.5" />
+            </span>
+            <span class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none">
+              <Icon icon="i-lucide-chevron-down" class="size-3" />
+            </span>
+          </div>
+
+          <!-- Order Icon -->
+          <button
+            type="button"
+            class="p-1.5 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-xl text-slate-400 hover:text-slate-200 transition-all"
+            title="Ordenar"
+          >
+            <Icon icon="i-lucide-arrow-up-down" class="size-3.5 shrink-0" />
+          </button>
+
+          <!-- Edit pipeline settings gear -->
+          <button
+            type="button"
+            class="p-1.5 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-xl text-slate-400 hover:text-slate-200 transition-all"
+            title="Configurações do Funil"
+            @click="openEditPipeline"
+          >
+            <Icon icon="i-lucide-settings" class="size-3.5 shrink-0" />
+          </button>
+
+          <!-- Add Task Button (Blue block) -->
+          <Button
+            blue
+            class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl shrink-0"
+            @click="showAddCardPopoverId = activePipeline?.stages[0]?.id || null"
+          >
+            <Icon icon="i-lucide-plus" class="size-3.5" />
+            Adicionar tarefa
+          </Button>
         </div>
       </header>
 
@@ -652,39 +673,42 @@ const addConversationToStage = async (conversation, stage) => {
           :key="stage.id"
           class="group/col flex flex-col flex-1 min-w-[280px] max-w-[550px] shrink-0 bg-slate-900/40 border border-slate-900 rounded-2xl overflow-hidden hover:border-slate-850 transition"
         >
-          <!-- Column Header Info -->
+          <!-- Column Header Info (Vibrant Full-Width Solid Colored Header as in Image 1) -->
           <div
-            class="flex items-center justify-between px-4 py-3 bg-slate-900/60 border-b border-slate-900/40 shrink-0"
+            class="flex items-center justify-between px-4 py-3 shrink-0 text-white rounded-t-2xl border-b border-slate-950/40"
+            :style="{ backgroundColor: stage.color || '#3b82f6' }"
           >
             <div class="flex items-center gap-2 min-w-0">
-              <!-- Colored Column Bullet with Glow -->
-              <span
-                class="size-2.5 rounded-full shrink-0"
-                :style="{
-                  backgroundColor: stage.color || '#3b82f6',
-                  filter: 'drop-shadow(0 0 6px ' + (stage.color || '#3b82f6') + ')',
-                }"
-              />
-              <span class="text-xs font-bold text-slate-200 truncate">{{
+              <span class="text-xs font-bold text-white truncate">{{
                 stage.title
               }}</span>
-            </div>
-
-            <div class="flex items-center gap-1">
+              
               <!-- Total Leads Counter Badge -->
               <span
-                class="px-2 py-0.5 rounded-full bg-slate-950 text-[10px] font-bold text-slate-400 border border-slate-800"
+                class="px-1.5 py-0.5 rounded-full bg-black/25 text-[10px] font-bold text-white/95"
               >
                 {{ columnsCardsMap[stage.id]?.length || 0 }}
               </span>
+            </div>
 
-              <!-- More options button -->
+            <div class="flex items-center gap-2">
+              <!-- Stage Column Settings Gear -->
               <button
                 type="button"
-                class="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors opacity-0 group-hover/col:opacity-100"
-                title="Mais opções"
+                class="text-white/80 hover:text-white transition-colors"
+                title="Configurações da Etapa"
               >
-                <Icon icon="i-lucide-ellipsis" class="size-3.5" />
+                <Icon icon="i-lucide-settings" class="size-3.5" />
+              </button>
+
+              <!-- Stage Add Card Button -->
+              <button
+                type="button"
+                class="text-white/80 hover:text-white transition-colors"
+                title="Adicionar tarefa"
+                @click="showAddCardPopoverId = stage.id"
+              >
+                <Icon icon="i-lucide-plus" class="size-4" />
               </button>
             </div>
           </div>

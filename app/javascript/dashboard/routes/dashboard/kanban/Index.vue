@@ -417,19 +417,15 @@ const addConversationToStage = async (conversation, stage) => {
           Funis
         </h2>
 
-        <div class="flex items-center gap-3">
-          <!-- Search Input -->
-          <div class="relative">
-            <input
-              v-model="pipelineSearchQuery"
-              type="text"
-              placeholder="Buscar funis..."
-              class="w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
-            />
-            <span class="absolute left-3 top-2.5 text-slate-500">
-              <Icon icon="i-lucide-search" class="size-3.5" />
-            </span>
-          </div>
+        <div class="flex items-center gap-2.5">
+          <!-- Sleek Filter Icon (Image 1 Style) -->
+          <button
+            type="button"
+            class="p-2 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-xl text-slate-400 hover:text-slate-200 transition-all"
+            title="Ordenar / Filtrar"
+          >
+            <Icon icon="i-lucide-sliders-horizontal" class="size-4 shrink-0" />
+          </button>
 
           <Button
             blue
@@ -575,15 +571,15 @@ const addConversationToStage = async (conversation, stage) => {
 
         <!-- Filters & Action Buttons (Image 1 Right Side) -->
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Live Search Bar (Compact & Sleek) -->
+          <!-- Live Search Bar (Compact & Sleek with Perfect Centering) -->
           <div class="relative w-44">
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Pesquisar..."
-              class="w-full pl-8 pr-2.5 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
+              class="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
             />
-            <span class="absolute left-2.5 top-2 text-slate-500">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center">
               <Icon icon="i-lucide-search" class="size-3.5" />
             </span>
           </div>

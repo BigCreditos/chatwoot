@@ -543,18 +543,18 @@ const actions = {
   },
 
   updateConversation({ commit, dispatch }, conversation) {
-    const {
-      meta: { sender },
-    } = conversation;
-
     commit(types.UPDATE_CONVERSATION, conversation);
 
-    dispatch('conversationLabels/setConversationLabel', {
-      id: conversation.id,
-      data: conversation.labels,
-    });
+    if (conversation.labels) {
+      dispatch('conversationLabels/setConversationLabel', {
+        id: conversation.id,
+        data: conversation.labels,
+      });
+    }
 
-    dispatch('contacts/setContact', sender);
+    if (conversation.meta?.sender) {
+      dispatch('contacts/setContact', conversation.meta.sender);
+    }
   },
 
   updateConversationLastActivity(

@@ -258,6 +258,21 @@ describe('#getters', () => {
       expect(result).toEqual(conversationList);
     });
   });
+  describe('#getWaitingChats', () => {
+    it('returns only waiting conversations where waiting_since is non-zero', () => {
+      const mockConversations = [
+        { id: 1, status: 1, waiting_since: 0 },
+        { id: 2, status: 1, waiting_since: 1683645800 },
+        { id: 3, status: 1, waiting_since: 0 },
+        { id: 4, status: 1, waiting_since: 1683645801 },
+      ];
+      const state = { allConversations: mockConversations };
+      expect(getters.getWaitingChats(state)({ status: 1 })).toEqual([
+        { id: 2, status: 1, waiting_since: 1683645800 },
+        { id: 4, status: 1, waiting_since: 1683645801 },
+      ]);
+    });
+  });
   describe('#getConversationById', () => {
     it('get conversations based on id', () => {
       const state = {

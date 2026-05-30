@@ -129,7 +129,7 @@ const getters = {
   },
   getWaitingChats: _state => activeFilters => {
     return _state.allConversations.filter(conversation => {
-      const isWaiting = !conversation.first_reply_created_at;
+      const isWaiting = !!conversation.waiting_since;
       const shouldFilter = applyPageFilters(conversation, activeFilters);
       return isWaiting && shouldFilter;
     });

@@ -34,6 +34,9 @@ export const KanbanAutomations = {
         // Skip if config is not loaded yet
         if (!config || !Array.isArray(config.pipelines)) return;
 
+        // Skip campaign conversations (broadcast start resolved, widget have campaign_id)
+        if (conversation.status === 'resolved' || conversation.campaign_id) return;
+
         for (const pipeline of config.pipelines) {
           if (!pipeline.automations?.auto_create) continue;
 

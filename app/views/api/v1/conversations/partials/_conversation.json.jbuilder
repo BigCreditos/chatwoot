@@ -64,6 +64,7 @@ end
 
 json.account_id conversation.account_id
 json.uuid conversation.uuid
+json.campaign_id conversation.campaign_id
 json.additional_attributes conversation.additional_attributes
 json.agent_last_seen_at conversation.agent_last_seen_at.to_i
 json.assignee_last_seen_at conversation.assignee_last_seen_at.to_i

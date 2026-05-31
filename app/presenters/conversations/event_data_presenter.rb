@@ -10,6 +10,7 @@ class Conversations::EventDataPresenter < SimpleDelegator
       group_title: group_title,
       group_picture: group_picture_url,
       group_contacts_count: group? ? group_member_count : 0,
+      campaign_id: campaign_id,
       id: display_id,
       inbox_id: inbox_id,
       messages: push_messages,

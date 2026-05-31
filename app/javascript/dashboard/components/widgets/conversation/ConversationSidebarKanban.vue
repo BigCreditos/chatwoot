@@ -131,25 +131,25 @@ const onPipelineChange = () => {
   activeStageId.value = null;
 };
 
-const onStageChange = async () => {
+const selectStage = async stage => {
   if (!activePipeline.value) return;
 
-  const selectedStage = activePipeline.value.stages.find(
-    s => s.id === activeStageId.value
-  );
+  if (stage) {
+    activeStageId.value = stage.id;
+  } else {
+    activeStageId.value = null;
+  }
+
   const currentLabels = [...savedLabels.value];
   const allStagesLabels = activePipeline.value.stages.map(s => s.label);
 
-  // Strip other stage labels
   const cleanLabels = currentLabels.filter(
     lbl => !allStagesLabels.includes(lbl)
   );
 
-  if (selectedStage) {
-    cleanLabels.push(selectedStage.label);
-
-    // Apply native stage automations
-    handleStageAutomations(selectedStage);
+  if (stage) {
+    cleanLabels.push(stage.label);
+    handleStageAutomations(stage);
   }
 
   try {
@@ -280,29 +280,48 @@ const handleStageAutomations = async stage => {
       </select>
     </div>
 
-    <!-- Stage dropdown -->
-    <div v-if="activePipeline" class="flex flex-col gap-1">
+    <!-- Stage visual buttons -->
+    <div v-if="activePipeline" class="flex flex-col gap-1.5">
       <label
         class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
       >
         {{ t('KANBAN.SIDEBAR.STAGE') }}
       </label>
-      <select
-        v-model="activeStageId"
-        class="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-200 text-xs focus:border-blue-500 outline-none"
-        @change="onStageChange"
-      >
-        <option :value="null">
-          {{ `-- ${t('KANBAN.SIDEBAR.NOT_IN_PIPELINE')} --` }}
-        </option>
-        <option
+      <div class="flex flex-wrap gap-1.5">
+        <!-- Remove from pipeline button -->
+        <button
+          type="button"
+          class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition-all"
+          :class="
+            activeStageId === null
+              ? 'border-slate-600 bg-slate-800 text-slate-200'
+              : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-300'
+          "
+          @click="selectStage(null)"
+        >
+          <Icon icon="i-lucide-x" class="size-3" />
+          {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
+        </button>
+        <!-- Stage colored buttons -->
+        <button
           v-for="stage in activePipeline.stages"
           :key="stage.id"
-          :value="stage.id"
+          type="button"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition-all"
+          :class="
+            activeStageId === stage.id
+              ? 'border-slate-600 bg-slate-800 text-slate-200'
+              : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-300'
+          "
+          @click="selectStage(stage)"
         >
+          <span
+            class="size-2 rounded-full shrink-0"
+            :style="{ backgroundColor: stage.color || '#3b82f6' }"
+          />
           {{ stage.title }}
-        </option>
-      </select>
+        </button>
+      </div>
     </div>
 
     <!-- Priority and Due Date Row -->

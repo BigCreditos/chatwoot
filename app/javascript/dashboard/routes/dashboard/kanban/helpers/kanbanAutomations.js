@@ -53,6 +53,11 @@ export const KanbanAutomations = {
               conversationId: conversation.id,
               labels: currentLabels,
             });
+            // Sync updated labels back to conversations store
+            store.dispatch('updateConversation', {
+              id: conversation.id,
+              labels: currentLabels,
+            });
           } catch (err) {
             console.error(
               `Automation failed: auto_create for chat #${conversation.id}`,
@@ -68,7 +73,7 @@ export const KanbanAutomations = {
       const { type, payload } = mutation;
 
       // 1. New Conversation Created/Received Automation
-      if (type === 'conversations/ADD_CONVERSATION') {
+      if (type === 'ADD_CONVERSATION') {
         const conversation = payload;
         if (!conversation || !conversation.id) return;
 
@@ -87,7 +92,7 @@ export const KanbanAutomations = {
       }
 
       // 2. Update: customer replied to an existing conversation not yet in pipeline
-      if (type === 'conversations/UPDATE_CONVERSATION') {
+      if (type === 'UPDATE_CONVERSATION') {
         const conversation = payload;
         if (!conversation || !conversation.id) return;
         if (!config || !Array.isArray(config.pipelines)) return;
@@ -103,7 +108,7 @@ export const KanbanAutomations = {
       }
 
       // 2. Conversation Resolved (Auto-Win) Automation
-      if (type === 'conversations/CHANGE_CONVERSATION_STATUS') {
+      if (type === 'CHANGE_CONVERSATION_STATUS') {
         const { conversationId, status } = payload;
         if (status !== 'resolved' || !conversationId) return;
 

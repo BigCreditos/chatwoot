@@ -22,6 +22,47 @@ export const KanbanAutomations = {
 
     reloadConfig();
 
+    // Helper: assign a conversation to the first stage of a matching pipeline
+    const tryAutoCreate = async conversation => {
+      if (!conversation || !conversation.id) return;
+      if (!config || !Array.isArray(config.pipelines)) return;
+
+      for (const pipeline of config.pipelines) {
+        if (!pipeline.automations?.auto_create) continue;
+
+        const inboxFilter = pipeline.inboxes || [];
+        if (
+          inboxFilter.length > 0 &&
+          !inboxFilter.includes(conversation.inbox_id)
+        ) {
+          continue;
+        }
+
+        const stageLabels = pipeline.stages.map(s => s.label);
+        const hasStageLabel = conversation.labels?.some(lbl =>
+          stageLabels.includes(lbl)
+        );
+
+        if (!hasStageLabel && pipeline.stages.length > 0) {
+          const firstStage = pipeline.stages[0];
+          const currentLabels = [...(conversation.labels || [])];
+          currentLabels.push(firstStage.label);
+
+          try {
+            await store.dispatch('conversationLabels/update', {
+              conversationId: conversation.id,
+              labels: currentLabels,
+            });
+          } catch (err) {
+            console.error(
+              `Automation failed: auto_create for chat #${conversation.id}`,
+              err
+            );
+          }
+        }
+      }
+    };
+
     // Subscribe to store mutations
     return store.subscribe(async (mutation, state) => {
       const { type, payload } = mutation;
@@ -34,45 +75,31 @@ export const KanbanAutomations = {
         // Skip if config is not loaded yet
         if (!config || !Array.isArray(config.pipelines)) return;
 
-        // Skip campaign conversations (broadcast start resolved, widget have campaign_id)
-        if (conversation.status === 'resolved' || conversation.campaign_id) return;
+        // Skip conversations that start resolved (native Chatwoot campaigns)
+        if (conversation.status === 'resolved') return;
 
-        for (const pipeline of config.pipelines) {
-          if (!pipeline.automations?.auto_create) continue;
+        // Skip if the conversation was initiated by the agent (outbound message)
+        const firstMsg =
+          conversation.last_non_activity_message || conversation.messages?.[0];
+        if (firstMsg && firstMsg.message_type === 1) return;
 
-          // Check inbox filter
-          const inboxFilter = pipeline.inboxes || [];
-          if (
-            inboxFilter.length > 0 &&
-            !inboxFilter.includes(conversation.inbox_id)
-          ) {
-            continue;
-          }
+        await tryAutoCreate(conversation);
+      }
 
-          // Check if conversation already has any of the stages' labels
-          const stageLabels = pipeline.stages.map(s => s.label);
-          const hasStageLabel = conversation.labels?.some(lbl =>
-            stageLabels.includes(lbl)
-          );
+      // 2. Update: customer replied to an existing conversation not yet in pipeline
+      if (type === 'conversations/UPDATE_CONVERSATION') {
+        const conversation = payload;
+        if (!conversation || !conversation.id) return;
+        if (!config || !Array.isArray(config.pipelines)) return;
+        if (conversation.status !== 'open') return;
 
-          if (!hasStageLabel && pipeline.stages.length > 0) {
-            const firstStage = pipeline.stages[0];
-            const currentLabels = [...(conversation.labels || [])];
-            currentLabels.push(firstStage.label);
+        // Skip if already in any pipeline
+        const alreadyInPipeline = config.pipelines.some(p =>
+          p.stages.some(s => conversation.labels?.includes(s.label))
+        );
+        if (alreadyInPipeline) return;
 
-            try {
-              await store.dispatch('conversationLabels/update', {
-                conversationId: conversation.id,
-                labels: currentLabels,
-              });
-            } catch (err) {
-              console.error(
-                `Automation failed: auto_create for chat #${conversation.id}`,
-                err
-              );
-            }
-          }
-        }
+        await tryAutoCreate(conversation);
       }
 
       // 2. Conversation Resolved (Auto-Win) Automation

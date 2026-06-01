@@ -17,12 +17,15 @@ const props = defineProps({
 const { t } = useI18n();
 const store = ref(useStore());
 
+const allAgents = computed(() => store.value.getters['agents/getAgents'] || []);
+
 // Configuration and state fields
 const fullConfig = ref({ pipelines: [] });
 const activePipelineId = ref(null);
 const activeStageId = ref(null);
 const priorityValue = ref('');
 const dueDateValue = ref('');
+const activeAgentId = ref('');
 
 // Computed conversation properties
 const conversation = computed(() => {
@@ -84,11 +87,12 @@ const syncConversationData = () => {
 
   const dVal = conversation.value.custom_attributes?.due_date || '';
   if (dVal) {
-    // Format YYYY-MM-DD for standard date input
     dueDateValue.value = new Date(dVal).toISOString().split('T')[0];
   } else {
     dueDateValue.value = '';
   }
+
+  activeAgentId.value = conversation.value.meta?.assignee?.id || '';
 };
 
 onMounted(() => {
@@ -173,6 +177,19 @@ const updateDueDate = async () => {
     });
   } catch (err) {
     console.error('Failed to update due date custom attribute:', err);
+  }
+};
+
+const updateAgent = async () => {
+  const id = activeAgentId.value ? Number(activeAgentId.value) : null;
+  if (!id) return;
+  try {
+    await store.value.dispatch('conversations/assignAgent', {
+      conversationId: props.conversationId,
+      agentId: id,
+    });
+  } catch (err) {
+    console.error('Failed to assign agent:', err);
   }
 };
 
@@ -342,6 +359,29 @@ const handleStageAutomations = async stage => {
           @change="updateDueDate"
         />
       </div>
+    </div>
+
+    <!-- Agent selector -->
+    <div class="flex flex-col gap-1">
+      <label
+        class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+      >
+        {{ t('KANBAN.SIDEBAR.AGENT') }}
+      </label>
+      <select
+        v-model="activeAgentId"
+        class="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-200 text-xs focus:border-blue-500 outline-none"
+        @change="updateAgent"
+      >
+        <option value="">Sem responsável</option>
+        <option
+          v-for="agent in allAgents"
+          :key="agent.id"
+          :value="agent.id"
+        >
+          {{ agent.name }}
+        </option>
+      </select>
     </div>
 
     <!-- Quick Actions -->

@@ -11,9 +11,13 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  pipelineAgents: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emit = defineEmits(['click', 'resolve']);
+const emit = defineEmits(['click', 'resolve', 'assign', 'removePipeline', 'toggleSort']);
 
 const { t } = useI18n();
 const store = ref(useStore());
@@ -21,6 +25,19 @@ const store = ref(useStore());
 // Hover state
 const isHovered = ref(false);
 const showPriorityPopover = ref(false);
+const showAssigneePopover = ref(false);
+const showMoreMenu = ref(false);
+const showDateEditor = ref(false);
+const editingDateValue = ref('');
+
+const allAgents = computed(() => store.value.getters['agents/getAgents'] || []);
+
+const filteredAgents = computed(() => {
+  if (props.pipelineAgents.length > 0) {
+    return allAgents.value.filter(a => props.pipelineAgents.includes(a.id));
+  }
+  return allAgents.value;
+});
 
 // Online indicator
 const isOnline = computed(() => {
@@ -291,6 +308,18 @@ const handleResolve = e => {
   emit('resolve', props.conversation.id);
 };
 
+const handleAssign = (e, agentId) => {
+  e.stopPropagation();
+  showAssigneePopover.value = false;
+  emit('assign', { conversationId: props.conversation.id, agentId });
+};
+
+const handleRemovePipeline = e => {
+  e.stopPropagation();
+  showMoreMenu.value = false;
+  emit('removePipeline', props.conversation.id);
+};
+
 const updatePriority = async p => {
   showPriorityPopover.value = false;
   try {
@@ -303,9 +332,45 @@ const updatePriority = async p => {
   }
 };
 
+const startEditDate = e => {
+  e.stopPropagation();
+  const dVal = dueDateValue.value;
+  if (dVal) {
+    editingDateValue.value = new Date(dVal).toISOString().split('T')[0];
+  } else {
+    editingDateValue.value = '';
+  }
+  showDateEditor.value = true;
+};
+
+const saveDate = async () => {
+  const dVal = editingDateValue.value;
+  const currentCustomAttributes = {
+    ...(props.conversation.custom_attributes || {}),
+  };
+  if (dVal) {
+    const localDate = new Date(dVal + 'T00:00:00');
+    currentCustomAttributes.due_date = localDate.toISOString();
+  } else {
+    delete currentCustomAttributes.due_date;
+  }
+  try {
+    await store.value.dispatch('conversations/updateCustomAttributes', {
+      conversationId: props.conversation.id,
+      customAttributes: currentCustomAttributes,
+    });
+  } catch (err) {
+    console.error('Failed to update due date:', err);
+  }
+  showDateEditor.value = false;
+};
+
 // Popover closing click outside
 const closePopover = () => {
   showPriorityPopover.value = false;
+  showAssigneePopover.value = false;
+  showMoreMenu.value = false;
+  showDateEditor.value = false;
 };
 
 // Document click listener for popover
@@ -314,7 +379,25 @@ const handleDocumentClick = e => {
     showPriorityPopover.value &&
     !e.target.closest('.priority-popover-trigger')
   ) {
-    closePopover();
+    showPriorityPopover.value = false;
+  }
+  if (
+    showAssigneePopover.value &&
+    !e.target.closest('.assignee-popover-trigger')
+  ) {
+    showAssigneePopover.value = false;
+  }
+  if (
+    showMoreMenu.value &&
+    !e.target.closest('.more-menu-trigger')
+  ) {
+    showMoreMenu.value = false;
+  }
+  if (
+    showDateEditor.value &&
+    !e.target.closest('.date-editor-trigger')
+  ) {
+    showDateEditor.value = false;
   }
 };
 
@@ -377,22 +460,55 @@ onUnmounted(() => {
       </div>
 
       <!-- Assignee Thumbnail on the Right (Image 1 Style) -->
-      <div class="shrink-0 flex items-center">
-        <Thumbnail
-          v-if="props.conversation.meta?.assignee"
-          :src="props.conversation.meta?.assignee?.thumbnail"
-          :username="props.conversation.meta?.assignee?.name || 'Agente'"
-          size="22px"
-          class="shrink-0 ring-2 ring-slate-950 rounded-full"
-          :title="props.conversation.meta?.assignee?.name"
-        />
-        <!-- Unassigned Placeholder -->
+      <div class="shrink-0 flex items-center relative assignee-popover-trigger">
         <div
-          v-else
-          class="size-[22px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer"
-          :title="t('KANBAN.CARD.NO_ASSIGNEE')"
+          class="cursor-pointer"
+          @click.stop="showAssigneePopover = !showAssigneePopover"
         >
-          <Icon icon="i-lucide-user" class="text-slate-600 size-2.5" />
+          <Thumbnail
+            v-if="props.conversation.meta?.assignee"
+            :src="props.conversation.meta?.assignee?.thumbnail"
+            :username="props.conversation.meta?.assignee?.name || 'Agente'"
+            size="22px"
+            class="shrink-0 ring-2 ring-slate-950 rounded-full"
+            :title="props.conversation.meta?.assignee?.name"
+          />
+          <!-- Unassigned Placeholder -->
+          <div
+            v-else
+            class="size-[22px] rounded-full bg-slate-950 flex items-center justify-center border border-dashed border-slate-800 shrink-0 cursor-pointer hover:border-slate-600 transition-colors"
+            :title="t('KANBAN.CARD.NO_ASSIGNEE')"
+          >
+            <Icon icon="i-lucide-user" class="text-slate-600 size-2.5" />
+          </div>
+        </div>
+
+        <!-- Assignee popover -->
+        <div
+          v-if="showAssigneePopover"
+          class="absolute top-7 right-0 flex flex-col min-w-[140px] bg-slate-900 border border-slate-800 shadow-xl rounded-lg overflow-hidden py-1 z-30 animate-in fade-in slide-in-from-top-1"
+        >
+          <div
+            class="px-3 py-1.5 border-b border-slate-800 text-[10px] uppercase font-bold text-slate-500"
+          >
+            Atribuir para
+          </div>
+          <button
+            v-for="agent in filteredAgents"
+            :key="agent.id"
+            type="button"
+            class="px-3 py-1.5 text-xs text-left text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
+            :class="{ 'bg-emerald-500/10': props.conversation.meta?.assignee?.id === agent.id }"
+            @click="handleAssign($event, agent.id)"
+          >
+            <Thumbnail
+              :src="agent.thumbnail"
+              :username="agent.name"
+              size="16px"
+              class="shrink-0 rounded-full"
+            />
+            <span class="truncate">{{ agent.name }}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -420,13 +536,45 @@ onUnmounted(() => {
         </span>
 
         <!-- Due Date Badges -->
-        <span
-          v-if="urgencyMeta"
-          :class="[urgencyMeta.badgeClass]"
-          class="px-2 py-0.5 rounded text-[10px] font-semibold border shrink-0"
-        >
-          {{ urgencyMeta.label }}
-        </span>
+        <div class="relative date-editor-trigger">
+          <span
+            v-if="urgencyMeta"
+            :class="[urgencyMeta.badgeClass]"
+            class="px-2 py-0.5 rounded text-[10px] font-semibold border shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+            @click.stop="startEditDate"
+          >
+            {{ urgencyMeta.label }}
+          </span>
+
+          <!-- Inline date editor popover -->
+          <div
+            v-if="showDateEditor"
+            class="absolute top-6 left-0 flex flex-col gap-1.5 bg-slate-900 border border-slate-800 shadow-xl rounded-lg p-2 z-30 min-w-[180px] animate-in fade-in slide-in-from-top-1"
+            @click.stop
+          >
+            <input
+              v-model="editingDateValue"
+              type="date"
+              class="w-full px-2 py-1 rounded border border-slate-700 bg-slate-950 text-slate-200 text-xs outline-none"
+            />
+            <div class="flex gap-1.5 justify-end">
+              <button
+                type="button"
+                class="px-2 py-0.5 rounded text-[10px] font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                @click.stop="showDateEditor = false"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                @click.stop="saveDate"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Priority Badge -->
         <span
@@ -509,6 +657,32 @@ onUnmounted(() => {
             @click="updatePriority(null)"
           >
             Nenhuma
+          </button>
+        </div>
+      </div>
+
+      <!-- "..." More options menu -->
+      <div class="relative more-menu-trigger">
+        <button
+          type="button"
+          class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
+          title="Mais opções"
+          @click.stop="showMoreMenu = !showMoreMenu"
+        >
+          <Icon icon="i-lucide-more-horizontal" class="size-3.5" />
+        </button>
+
+        <div
+          v-if="showMoreMenu"
+          class="absolute top-7 right-0 flex flex-col min-w-[130px] bg-slate-900 border border-slate-800 shadow-xl rounded-lg overflow-hidden py-1 z-30 animate-in fade-in slide-in-from-top-1"
+        >
+          <button
+            type="button"
+            class="px-3 py-1.5 text-xs text-left text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+            @click.stop="handleRemovePipeline"
+          >
+            <Icon icon="i-lucide-x-circle" class="size-3 text-rose-400" />
+            Remover do funil
           </button>
         </div>
       </div>

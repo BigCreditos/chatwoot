@@ -1,17 +1,31 @@
-/* eslint-disable no-console, no-unused-vars, no-restricted-syntax, no-continue, no-await-in-loop */
+/* eslint-disable no-console, no-restricted-syntax, no-continue, no-await-in-loop */
 import { KanbanConfigHelper } from './kanbanConfig';
 import ConversationApi from 'dashboard/api/conversations';
+
+const assignOnlineAgent = async (store, conversationId, pipeline) => {
+  const agentsList = pipeline.agents || [];
+  const allAgents = store.getters['agents/getAgents'] || [];
+  const onlineAgents = allAgents.filter(a => a.availability_status === 'online');
+  const eligible = agentsList.length > 0
+    ? onlineAgents.filter(a => agentsList.includes(a.id))
+    : onlineAgents;
+  if (eligible.length > 0) {
+    const agent = eligible[Math.floor(Math.random() * eligible.length)];
+    await store.dispatch('conversations/assignAgent', {
+      conversationId,
+      agentId: agent.id,
+    });
+  }
+};
 
 export const KanbanAutomations = {
   register(store) {
     let config = null;
-    let ready = false;
 
     const reloadConfig = async () => {
       try {
         const result = await KanbanConfigHelper.loadConfig(store);
         config = result.config;
-        ready = true;
       } catch (err) {
         console.error('Failed to load Kanban config for automations:', err);
       }
@@ -45,6 +59,10 @@ export const KanbanAutomations = {
               id: conversation.id,
               kanban_stage: firstStage.id,
             });
+
+            if (pipeline.automations?.auto_assign_agent && !conversation.meta?.assignee) {
+              await assignOnlineAgent(store, conversation.id, pipeline);
+            }
           } catch (err) {
             console.error(
               `Automation failed: auto_create for chat #${conversation.id}`,
@@ -65,7 +83,11 @@ export const KanbanAutomations = {
         if (conversation.status === 'resolved') return;
 
         const firstMsg = conversation.last_non_activity_message || conversation.messages?.[0];
-        if (firstMsg && firstMsg.message_type === 1) return;
+        if (firstMsg && firstMsg.message_type === 1) {
+          for (const pipeline of config.pipelines) {
+            if (pipeline.automations?.auto_create_skip_agent) return;
+          }
+        }
 
         await tryAutoCreate(conversation);
       }
@@ -87,7 +109,6 @@ export const KanbanAutomations = {
       if (type === 'CHANGE_CONVERSATION_STATUS') {
         const { conversationId, status } = payload;
         if (status !== 'resolved' || !conversationId) return;
-
         if (!config || !Array.isArray(config.pipelines)) return;
 
         const conversation = store.getters['conversations/getConversationById'](conversationId);

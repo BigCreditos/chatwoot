@@ -31,6 +31,9 @@ const searchQuery = ref('');
 const pipelineSearchQuery = ref('');
 const filterAgentId = ref('');
 const filterInboxId = ref('');
+const sortBy = ref('newest');
+const showSortDropdown = ref(false);
+const showSortLabel = ref('Mais recente');
 
 // Modals
 const showSettingsModal = ref(false);
@@ -211,9 +214,36 @@ const syncColumns = () => {
     newMap[stage.id] = [];
   });
 
-  // Distribute filtered conversations into stages
-  filteredConversations.value.forEach(conversation => {
-    // A conversation can only reside in one stage's label per active pipeline
+  let chats = [...filteredConversations.value];
+
+  // Apply sort
+  if (sortBy.value === 'priority') {
+    const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+    chats.sort((a, b) => {
+      const pa = priorityOrder[a.priority] ?? 4;
+      const pb = priorityOrder[b.priority] ?? 4;
+      return pa - pb;
+    });
+  } else if (sortBy.value === 'due_date') {
+    chats.sort((a, b) => {
+      const da = a.custom_attributes?.due_date ? new Date(a.custom_attributes.due_date) : null;
+      const db = b.custom_attributes?.due_date ? new Date(b.custom_attributes.due_date) : null;
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return da - db;
+    });
+  } else {
+    // 'newest' — most recent first
+    chats.sort((a, b) => {
+      const ta = a.created_at || a.timestamp || 0;
+      const tb = b.created_at || b.timestamp || 0;
+      return tb - ta;
+    });
+  }
+
+  // Distribute sorted conversations into stages
+  chats.forEach(conversation => {
     const matchedStage = activePipeline.value.stages.find(s =>
       s.id === conversation.kanban_stage
     );
@@ -384,6 +414,78 @@ const addConversationToStage = async (conversation, stage) => {
     });
   } catch (err) {
     console.error('Failed to add conversation to stage:', err);
+  }
+};
+
+// Sort handlers
+const sortOptions = [
+  { value: 'newest', label: 'Mais recente' },
+  { value: 'priority', label: 'Prioridade' },
+  { value: 'due_date', label: 'Data de vencimento' },
+];
+
+const setSort = option => {
+  sortBy.value = option.value;
+  showSortLabel.value = option.label;
+  showSortDropdown.value = false;
+};
+
+const handleAssign = ({ conversationId, agentId }) => {
+  store.dispatch('conversations/assignAgent', {
+    conversationId,
+    agentId,
+  });
+};
+
+const handleRemovePipeline = async conversationId => {
+  try {
+    await ConversationApi.update(conversationId, {
+      kanban_stage: null,
+    });
+    store.dispatch('updateConversation', {
+      id: conversationId,
+      kanban_stage: null,
+    });
+  } catch (err) {
+    console.error('Failed to remove from pipeline:', err);
+  }
+};
+
+const importOpenConversations = async () => {
+  if (!activePipeline.value) return;
+
+  const stageIds = activePipeline.value.stages.map(s => s.id);
+  const inboxFilter = activePipeline.value.inboxes || [];
+
+  const eligible = allConversations.value.filter(c => {
+    if (c.status === 'resolved') return false;
+    if (c.kanban_stage && stageIds.includes(c.kanban_stage)) return false;
+    if (inboxFilter.length > 0 && !inboxFilter.includes(c.inbox_id)) return false;
+    return true;
+  });
+
+  if (eligible.length === 0) {
+    alert('Nenhuma conversa aberta elegível para importar.');
+    return;
+  }
+
+  const firstStage = activePipeline.value.stages[0];
+  if (!firstStage) return;
+
+  const batchSize = 20;
+  for (let i = 0; i < eligible.length; i += batchSize) {
+    const batch = eligible.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(c =>
+        ConversationApi.update(c.id, { kanban_stage: firstStage.id })
+          .then(() =>
+            store.dispatch('updateConversation', {
+              id: c.id,
+              kanban_stage: firstStage.id,
+            })
+          )
+      )
+    );
   }
 };
 </script>
@@ -620,13 +722,42 @@ const addConversationToStage = async (conversation, stage) => {
             </span>
           </div>
 
-          <!-- Order Icon -->
+          <!-- Order Icon with dropdown -->
+          <div class="relative">
+            <button
+              type="button"
+              class="p-1.5 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-xl text-slate-400 hover:text-slate-200 transition-all flex items-center gap-1"
+              title="Ordenar"
+              @click="showSortDropdown = !showSortDropdown"
+            >
+              <Icon icon="i-lucide-arrow-up-down" class="size-3.5 shrink-0" />
+              <span class="text-[10px] font-semibold hidden sm:inline">{{ showSortLabel }}</span>
+            </button>
+            <div
+              v-if="showSortDropdown"
+              class="absolute top-9 right-0 flex flex-col min-w-[150px] bg-slate-900 border border-slate-800 shadow-xl rounded-lg overflow-hidden py-1 z-30 animate-in fade-in slide-in-from-top-1"
+            >
+              <button
+                v-for="opt in sortOptions"
+                :key="opt.value"
+                type="button"
+                class="px-3 py-1.5 text-xs text-left font-medium text-slate-300 hover:bg-slate-800 transition-colors"
+                :class="{ 'text-blue-400': sortBy === opt.value }"
+                @click="setSort(opt)"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Import conversations button -->
           <button
             type="button"
             class="p-1.5 border border-slate-850 hover:border-slate-800 hover:bg-slate-900/50 rounded-xl text-slate-400 hover:text-slate-200 transition-all"
-            title="Ordenar"
+            title="Importar conversas abertas"
+            @click="importOpenConversations"
           >
-            <Icon icon="i-lucide-arrow-up-down" class="size-3.5 shrink-0" />
+            <Icon icon="i-lucide-download" class="size-3.5 shrink-0" />
           </button>
 
           <!-- Edit pipeline settings gear -->
@@ -678,15 +809,6 @@ const addConversationToStage = async (conversation, stage) => {
             </div>
 
             <div class="flex items-center gap-2">
-              <!-- Stage Column Settings Gear -->
-              <button
-                type="button"
-                class="text-white/80 hover:text-white transition-colors"
-                title="Configurações da Etapa"
-              >
-                <Icon icon="i-lucide-settings" class="size-3.5" />
-              </button>
-
               <!-- Stage Add Card Button -->
               <button
                 type="button"
@@ -716,8 +838,11 @@ const addConversationToStage = async (conversation, stage) => {
               <template #item="{ element }">
                 <KanbanCard
                   :conversation="element"
+                  :pipeline-agents="activePipeline?.agents || []"
                   @click="openConversation"
                   @resolve="resolveConversation"
+                  @assign="handleAssign"
+                  @remove-pipeline="handleRemovePipeline"
                 />
               </template>
             </Draggable>

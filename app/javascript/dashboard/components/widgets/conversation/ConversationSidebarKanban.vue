@@ -4,6 +4,7 @@ import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import { KanbanConfigHelper } from '../../../routes/dashboard/kanban/helpers/kanbanConfig';
+import ConversationApi from '../../../dashboard/api/conversations';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const props = defineProps({
@@ -32,14 +33,25 @@ const conversation = computed(() => {
   );
 });
 
-// Mapped labels for active conversation
-const savedLabels = computed(() => {
-  return (
-    store.value.getters['conversationLabels/getConversationLabels'](
-      props.conversationId
-    ) || []
-  );
-});
+// Detect which pipeline stage the conversation currently occupies
+const detectConversationPipeline = () => {
+  const kanbanStage = conversation.value.kanban_stage;
+
+  for (const pipeline of fullConfig.value.pipelines) {
+    const match = pipeline.stages.find(s => s.id === kanbanStage);
+    if (match) {
+      activePipelineId.value = pipeline.id;
+      activeStageId.value = match.id;
+      return;
+    }
+  }
+
+  // Fallback to first pipeline if none matches
+  if (fullConfig.value.pipelines.length > 0) {
+    activePipelineId.value = fullConfig.value.pipelines[0].id;
+  }
+  activeStageId.value = null;
+};
 
 const activePipeline = computed(() => {
   return (
@@ -59,27 +71,6 @@ const loadPipelineConfig = async () => {
   } catch (err) {
     console.error('Failed to load Kanban config for sidebar:', err);
   }
-};
-
-const detectConversationPipeline = () => {
-  const labels = savedLabels.value;
-
-  // Find which pipeline and stage matches the conversation's active labels
-  for (const pipeline of fullConfig.value.pipelines) {
-    for (const stage of pipeline.stages) {
-      if (labels.includes(stage.label)) {
-        activePipelineId.value = pipeline.id;
-        activeStageId.value = stage.id;
-        return;
-      }
-    }
-  }
-
-  // Fallback to first pipeline if none matches
-  if (fullConfig.value.pipelines.length > 0) {
-    activePipelineId.value = fullConfig.value.pipelines[0].id;
-  }
-  activeStageId.value = null;
 };
 
 // Sync inputs from conversation properties
@@ -114,10 +105,6 @@ watch(
   }
 );
 
-watch(savedLabels, () => {
-  detectConversationPipeline();
-});
-
 watch(
   conversation,
   () => {
@@ -134,31 +121,22 @@ const onPipelineChange = () => {
 const selectStage = async stage => {
   if (!activePipeline.value) return;
 
-  if (stage) {
-    activeStageId.value = stage.id;
-  } else {
-    activeStageId.value = null;
-  }
-
-  const currentLabels = [...savedLabels.value];
-  const allStagesLabels = activePipeline.value.stages.map(s => s.label);
-
-  const cleanLabels = currentLabels.filter(
-    lbl => !allStagesLabels.includes(lbl)
-  );
-
-  if (stage) {
-    cleanLabels.push(stage.label);
-    handleStageAutomations(stage);
-  }
+  activeStageId.value = stage ? stage.id : null;
 
   try {
-    await store.value.dispatch('conversationLabels/update', {
-      conversationId: props.conversationId,
-      labels: cleanLabels,
+    await ConversationApi.update(props.conversationId, {
+      kanban_stage: stage ? stage.id : null,
     });
+    store.value.dispatch('updateConversation', {
+      id: props.conversationId,
+      kanban_stage: stage ? stage.id : null,
+    });
+
+    if (stage) {
+      handleStageAutomations(stage);
+    }
   } catch (err) {
-    console.error('Failed to update stage label:', err);
+    console.error('Failed to update stage:', err);
   }
 };
 

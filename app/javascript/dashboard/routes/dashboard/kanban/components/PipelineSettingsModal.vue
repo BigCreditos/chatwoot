@@ -51,13 +51,10 @@ const currentStep = ref(props.pipeline ? 'form' : 'select_model');
 // Load lists from store
 const allInboxes = computed(() => store.getters['inboxes/getInboxes'] || []);
 const allAgents = computed(() => store.getters['agents/getAgents'] || []);
-const allLabels = computed(() => store.getters['labels/getLabels'] || []);
-
 onMounted(() => {
   // Fetch required dependencies
   store.dispatch('inboxes/get');
   store.dispatch('agents/get');
-  store.dispatch('labels/get');
 
   if (props.pipeline) {
     // Editing existing pipeline
@@ -104,115 +101,39 @@ const selectModelTemplate = templateType => {
     name.value = '';
     description.value = '';
     stages.value = [
-      { id: 'st_1', title: 'Novo Lead', label: 'Novo Lead', color: '#3b82f6' },
+      { id: 'st_1', title: 'Novo Lead', color: '#3b82f6' },
     ];
   } else if (templateType === 'sales') {
     name.value = t('KANBAN.SETTINGS.SALES_FUNNEL');
     description.value = t('KANBAN.SETTINGS.SALES_FUNNEL_DESC');
     stages.value = [
-      { id: 'st_1', title: 'Novo Lead', label: 'Novo Lead', color: '#3b82f6' },
-      {
-        id: 'st_2',
-        title: 'Qualificando',
-        label: 'Qualificando',
-        color: '#f59e0b',
-      },
-      {
-        id: 'st_3',
-        title: 'Proposta Enviada',
-        label: 'Proposta Enviada',
-        color: '#8b5cf6',
-      },
-      {
-        id: 'st_4',
-        title: 'Negociação',
-        label: 'Negociação',
-        color: '#f97316',
-      },
-      {
-        id: 'st_5',
-        title: 'Oportunidade Perdida',
-        label: 'Oportunidade Perdida',
-        color: '#ef4444',
-        is_lost: true,
-      },
-      {
-        id: 'st_6',
-        title: 'Oportunidade Ganha',
-        label: 'Oportunidade Ganha',
-        color: '#10b981',
-        is_won: true,
-      },
+      { id: 'st_1', title: 'Novo Lead', color: '#3b82f6' },
+      { id: 'st_2', title: 'Qualificando', color: '#f59e0b' },
+      { id: 'st_3', title: 'Proposta Enviada', color: '#8b5cf6' },
+      { id: 'st_4', title: 'Negociação', color: '#f97316' },
+      { id: 'st_5', title: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
+      { id: 'st_6', title: 'Oportunidade Ganha', color: '#10b981', is_won: true },
     ];
   } else if (templateType === 'support') {
     name.value = t('KANBAN.SETTINGS.SUPPORT_FUNNEL');
     description.value = t('KANBAN.SETTINGS.SUPPORT_FUNNEL_DESC');
     stages.value = [
-      {
-        id: 'st_1',
-        title: 'Novo Ticket',
-        label: 'Novo Ticket',
-        color: '#3b82f6',
-      },
-      {
-        id: 'st_2',
-        title: 'Em Análise',
-        label: 'Em Análise',
-        color: '#f59e0b',
-      },
-      {
-        id: 'st_3',
-        title: 'Aguardando Cliente',
-        label: 'Aguardando Cliente',
-        color: '#8b5cf6',
-      },
-      {
-        id: 'st_4',
-        title: 'Cancelado',
-        label: 'Cancelado',
-        color: '#ef4444',
-        is_lost: true,
-      },
-      {
-        id: 'st_5',
-        title: 'Resolvido',
-        label: 'Resolvido',
-        color: '#10b981',
-        is_won: true,
-      },
+      { id: 'st_1', title: 'Novo Ticket', color: '#3b82f6' },
+      { id: 'st_2', title: 'Em Análise', color: '#f59e0b' },
+      { id: 'st_3', title: 'Aguardando Cliente', color: '#8b5cf6' },
+      { id: 'st_4', title: 'Cancelado', color: '#ef4444', is_lost: true },
+      { id: 'st_5', title: 'Resolvido', color: '#10b981', is_won: true },
     ];
   } else if (templateType === 'recruitment') {
     name.value = t('KANBAN.SETTINGS.RECRUITMENT_FUNNEL');
     description.value = t('KANBAN.SETTINGS.RECRUITMENT_FUNNEL_DESC');
     stages.value = [
-      {
-        id: 'st_1',
-        title: 'Candidatura',
-        label: 'Candidatura',
-        color: '#3b82f6',
-      },
-      { id: 'st_2', title: 'Triagem', label: 'Triagem', color: '#f59e0b' },
-      {
-        id: 'st_3',
-        title: 'Entrevista',
-        label: 'Entrevista',
-        color: '#8b5cf6',
-      },
-      { id: 'st_4', title: 'Proposta', label: 'Proposta', color: '#f97316' },
-      {
-        id: 'st_5',
-        title: 'Rejeitado',
-        label: 'Rejeitado',
-        color: '#ef4444',
-        is_lost: true,
-      },
-      {
-        id: 'st_6',
-        title: 'Contratado',
-        label: 'Contratado',
-        color: '#10b981',
-        is_won: true,
-      },
+      { id: 'st_1', title: 'Candidatura', color: '#3b82f6' },
+      { id: 'st_2', title: 'Triagem', color: '#f59e0b' },
+      { id: 'st_3', title: 'Entrevista', color: '#8b5cf6' },
+      { id: 'st_4', title: 'Proposta', color: '#f97316' },
+      { id: 'st_5', title: 'Rejeitado', color: '#ef4444', is_lost: true },
+      { id: 'st_6', title: 'Contratado', color: '#10b981', is_won: true },
     ];
   }
 
@@ -235,7 +156,6 @@ const addStage = () => {
   stages.value.push({
     id: newId,
     title: `Etapa ${stages.value.length + 1}`,
-    label: `Etapa ${stages.value.length + 1}`,
     color: '#3b82f6',
   });
 };
@@ -297,7 +217,6 @@ const handleSave = () => {
     stages: stages.value.map(s => ({
       ...s,
       title: s.title.trim(),
-      label: s.label.trim(),
     })),
     inboxes: inboxes.value,
     agents: agents.value,
@@ -535,37 +454,23 @@ const handleSave = () => {
                       class="w-full px-3 py-1.5 rounded-md border border-slate-700 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none"
                     />
                   </div>
+                  <!-- Color picker -->
                   <div class="space-y-1">
                     <label
-                      class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
+                      class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
                     >
-                      {{ t('KANBAN.SETTINGS.STAGE_LABEL') }} (Chatwoot Label)
+                      {{ t('KANBAN.SETTINGS.STAGE_COLOR') }}
                     </label>
-                    <input
-                      v-model="stage.label"
-                      type="text"
-                      list="available-labels-list"
-                      class="w-full px-3 py-1.5 rounded-md border border-slate-700 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <!-- Color picker -->
-                <div class="space-y-1 min-w-[70px]">
-                  <label
-                    class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block"
-                  >
-                    {{ t('KANBAN.SETTINGS.STAGE_COLOR') }}
-                  </label>
-                  <div class="flex items-center gap-1.5">
-                    <input
-                      v-model="stage.color"
-                      type="color"
-                      class="w-8 h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer overflow-hidden p-0"
-                    />
-                    <span class="text-xs text-slate-400 font-mono uppercase">{{
-                      stage.color
-                    }}</span>
+                    <div class="flex items-center gap-1.5">
+                      <input
+                        v-model="stage.color"
+                        type="color"
+                        class="w-8 h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer overflow-hidden p-0"
+                      />
+                      <span class="text-xs text-slate-400 font-mono uppercase">{{
+                        stage.color
+                      }}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -939,9 +844,4 @@ const handleSave = () => {
       </div>
     </div>
   </div>
-
-  <!-- Available labels list for HTML5 autocomplete -->
-  <datalist id="available-labels-list">
-    <option v-for="label in allLabels" :key="label.id" :value="label.title" />
-  </datalist>
 </template>

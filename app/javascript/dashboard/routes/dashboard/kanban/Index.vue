@@ -15,6 +15,7 @@ import KanbanCard from './components/KanbanCard.vue';
 import PipelineSettingsModal from './components/PipelineSettingsModal.vue';
 
 // Config Storage Helper
+import ConversationApi from 'dashboard/api/conversations';
 import { KanbanConfigHelper } from './helpers/kanbanConfig';
 
 const { t } = useI18n();
@@ -93,7 +94,7 @@ const selectPipeline = pipeline => {
 };
 
 const getStageLeadsCount = stage => {
-  return allConversations.value.filter(c => c.labels?.includes(stage.label))
+  return allConversations.value.filter(c => c.kanban_stage === stage.id)
     .length;
 };
 
@@ -116,8 +117,9 @@ const filteredPipelines = computed(() => {
 });
 
 const getPipelineUniqueAgents = pipeline => {
+  const stageIds = pipeline.stages.map(s => s.id);
   const pipelineConversations = allConversations.value.filter(c =>
-    pipeline.stages.some(stage => c.labels?.includes(stage.label))
+    stageIds.includes(c.kanban_stage)
   );
   const agentsMap = new Map();
   pipelineConversations.forEach(c => {
@@ -130,8 +132,9 @@ const getPipelineUniqueAgents = pipeline => {
 };
 
 const getPipelineUniqueInboxes = pipeline => {
+  const stageIds = pipeline.stages.map(s => s.id);
   const pipelineConversations = allConversations.value.filter(c =>
-    pipeline.stages.some(stage => c.labels?.includes(stage.label))
+    stageIds.includes(c.kanban_stage)
   );
   const inboxesMap = new Map();
   pipelineConversations.forEach(c => {
@@ -212,7 +215,7 @@ const syncColumns = () => {
   filteredConversations.value.forEach(conversation => {
     // A conversation can only reside in one stage's label per active pipeline
     const matchedStage = activePipeline.value.stages.find(s =>
-      conversation.labels?.includes(s.label)
+      s.id === conversation.kanban_stage
     );
     if (matchedStage) {
       newMap[matchedStage.id].push(conversation);
@@ -235,21 +238,14 @@ watch(
 const onCardDragChange = async (event, targetStage) => {
   if (event.added) {
     const conversation = event.added.element;
-    const currentLabels = [...(conversation.labels || [])];
-    const allStagesLabels = activePipeline.value.stages.map(s => s.label);
-
-    // Remove any label matching any stage in this pipeline
-    const cleanLabels = currentLabels.filter(
-      lbl => !allStagesLabels.includes(lbl)
-    );
-
-    // Add target stage's label
-    cleanLabels.push(targetStage.label);
 
     try {
-      await store.dispatch('conversationLabels/update', {
-        conversationId: conversation.id,
-        labels: cleanLabels,
+      await ConversationApi.update(conversation.id, {
+        kanban_stage: targetStage.id,
+      });
+      store.dispatch('updateConversation', {
+        id: conversation.id,
+        kanban_stage: targetStage.id,
       });
 
       // 1. Auto resolve when dragging to a won/lost column
@@ -263,7 +259,7 @@ const onCardDragChange = async (event, targetStage) => {
         });
       }
     } catch (err) {
-      console.error('Failed to update stage label via drag:', err);
+      console.error('Failed to update stage via drag:', err);
     }
   }
 };
@@ -326,9 +322,6 @@ const savePipelineConfig = async updatedPipeline => {
     // 1. Save serialized JSON into hidden label description
     await KanbanConfigHelper.saveConfig(store, configLabelId.value, newConfig);
 
-    // 2. Ensure mapped labels exist natively in the account
-    await KanbanConfigHelper.ensureMappedLabelsExist(store, updatedPipeline);
-
     // Re-fetch config to refresh states
     await loadKanbanConfig();
     activePipelineId.value = updatedPipeline.id;
@@ -369,28 +362,25 @@ const deleteActivePipeline = async () => {
 const eligibleConversationsForInclusion = computed(() => {
   if (!activePipeline.value) return [];
 
-  const allStagesLabels = activePipeline.value.stages.map(s => s.label);
+  const stageIds = activePipeline.value.stages.map(s => s.id);
   return allConversations.value.filter(c => {
-    // Must NOT have any label from this pipeline
-    const hasPipelineLabel = c.labels?.some(lbl =>
-      allStagesLabels.includes(lbl)
-    );
-    // Status must not be resolved
+    const hasPipelineStage = c.kanban_stage && stageIds.includes(c.kanban_stage);
     const isOpen = c.status !== 'resolved';
-    return !hasPipelineLabel && isOpen;
+    return !hasPipelineStage && isOpen;
   });
 });
 
 // Add task quick action: immediately assigns the conversation to the first stage
 const addConversationToStage = async (conversation, stage) => {
   showAddCardPopoverId.value = null;
-  const currentLabels = [...(conversation.labels || [])];
-  currentLabels.push(stage.label);
 
   try {
-    await store.dispatch('conversationLabels/update', {
-      conversationId: conversation.id,
-      labels: currentLabels,
+    await ConversationApi.update(conversation.id, {
+      kanban_stage: stage.id,
+    });
+    store.dispatch('updateConversation', {
+      id: conversation.id,
+      kanban_stage: stage.id,
     });
   } catch (err) {
     console.error('Failed to add conversation to stage:', err);

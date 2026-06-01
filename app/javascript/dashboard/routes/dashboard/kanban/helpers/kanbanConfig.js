@@ -13,39 +13,12 @@ const DEFAULT_PIPELINE = {
   description:
     'Acompanhe seus leads de vendas desde o contato inicial até o fechamento do negócio.',
   stages: [
-    { id: 'stage_1', title: 'Novo Lead', label: 'Novo Lead', color: '#3b82f6' },
-    {
-      id: 'stage_2',
-      title: 'Qualificando',
-      label: 'Qualificando',
-      color: '#f59e0b',
-    },
-    {
-      id: 'stage_3',
-      title: 'Proposta Enviada',
-      label: 'Proposta Enviada',
-      color: '#8b5cf6',
-    },
-    {
-      id: 'stage_4',
-      title: 'Negociação',
-      label: 'Negociação',
-      color: '#f97316',
-    },
-    {
-      id: 'stage_5',
-      title: 'Oportunidade Perdida',
-      label: 'Oportunidade Perdida',
-      color: '#ef4444',
-      is_lost: true,
-    },
-    {
-      id: 'stage_6',
-      title: 'Oportunidade Ganha',
-      label: 'Oportunidade Ganha',
-      color: '#10b981',
-      is_won: true,
-    },
+    { id: 'stage_1', title: 'Novo Lead', color: '#3b82f6' },
+    { id: 'stage_2', title: 'Qualificando', color: '#f59e0b' },
+    { id: 'stage_3', title: 'Proposta Enviada', color: '#8b5cf6' },
+    { id: 'stage_4', title: 'Negociação', color: '#f97316' },
+    { id: 'stage_5', title: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
+    { id: 'stage_6', title: 'Oportunidade Ganha', color: '#10b981', is_won: true },
   ],
   inboxes: [],
   agents: [],
@@ -146,36 +119,4 @@ export const KanbanConfigHelper = {
     });
   },
 
-  /**
-   * Automatically creates standard Chatwoot labels for each column if they do not exist
-   */
-  async ensureMappedLabelsExist(store, pipeline) {
-    const activeLabels = store.getters['labels/getLabels'] || [];
-    const activeLabelNames = new Set(activeLabels.map(l => l.title));
-
-    for (const stage of pipeline.stages) {
-      if (!stage.label || stage.label === CONFIG_LABEL_TITLE) continue;
-
-      const normalizedTitle = stage.label
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/[^a-z0-9_\-\p{L}]/gu, '');
-
-      if (activeLabelNames.has(normalizedTitle)) continue;
-
-      try {
-        await store.dispatch('labels/create', {
-          title: normalizedTitle,
-          description: `Stage label for pipeline: ${pipeline.name}`,
-          color: stage.color || '#3b82f6',
-          show_on_sidebar: true,
-        });
-      } catch (e) {
-        console.error(`Failed to auto-create stage label: ${stage.label}`, e);
-      }
-    }
-
-    // Refresh labels to make sure the app has the new ones
-    await store.dispatch('labels/get');
-  },
 };

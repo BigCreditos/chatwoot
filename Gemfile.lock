@@ -195,6 +195,7 @@ GEM
     crack (1.0.0)
       bigdecimal
       rexml
+    crass (1.0.6)
     cronex (0.15.0)
       tzinfo
       unicode (>= 0.4.4.5)
@@ -335,6 +336,9 @@ GEM
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
+    ffi-compiler (1.0.1)
+      ffi (>= 1.0.0)
+      rake
     firecrawl-sdk (1.4.1)
     flag_shih_tzu (0.3.23)
     foreman (0.87.2)
@@ -593,11 +597,11 @@ GEM
     nokogiri (1.19.3)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.19.1-arm64-darwin)
+    nokogiri (1.19.3-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.1-x86_64-darwin)
+    nokogiri (1.19.3-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.19.1-x86_64-linux-gnu)
+    nokogiri (1.19.3-x86_64-linux-gnu)
       racc (~> 1.4)
     oauth (1.1.0)
       oauth-tty (~> 1.0, >= 1.0.1)
@@ -669,7 +673,6 @@ GEM
       activerecord (>= 5.2)
       activesupport (>= 5.2)
     pgvector (0.1.1)
-    phonelib (0.10.17)
     prism (1.4.0)
     procore-sift (1.0.0)
       activerecord (>= 6.1)
@@ -963,7 +966,7 @@ GEM
     time_diff (0.3.0)
       activesupport
       i18n
-    timeout (0.4.3)
+    timeout (0.6.1)
     trailblazer-option (0.1.2)
     twilio-ruby (7.6.0)
       faraday (>= 0.9, < 3.0)
@@ -980,6 +983,7 @@ GEM
       execjs (>= 0.3.0, < 3)
     unf (0.1.4)
       unf_ext
+    unf_ext (0.0.8.2)
     unicode (0.4.4.5)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
@@ -992,11 +996,13 @@ GEM
       activemodel (>= 3.2)
       mail (~> 2.5)
     version_gem (1.1.4)
-    vite_rails (3.0.17)
-      railties (>= 5.1, < 8)
+    vite_rails (3.10.0)
+      railties (>= 5.1, < 9)
       vite_ruby (~> 3.0, >= 3.2.2)
-    vite_ruby (3.8.0)
+    vite_ruby (3.10.2)
       dry-cli (>= 0.7, < 2)
+      logger (~> 1.6)
+      mutex_m
       rack-proxy (~> 0.6, >= 0.6.1)
       zeitwerk (~> 2.2)
     warden (1.2.9)
@@ -1057,7 +1063,6 @@ DEPENDENCIES
   byebug
   cld3 (~> 3.7)
   climate_control
-  coderay (~> 1.1)
   commonmarker
   csv-safe
   database_cleaner
@@ -1076,6 +1081,7 @@ DEPENDENCIES
   factory_bot_rails (>= 6.4.3)
   faker
   faraday_middleware-aws-sigv4
+  fcm
   firecrawl-sdk (~> 1.0)
   flag_shih_tzu
   foreman
@@ -1108,7 +1114,6 @@ DEPENDENCIES
   lograge (~> 0.14.0)
   maxminddb
   meta_request (>= 0.8.3)
-  method_source (~> 1.1)
   mock_redis
   neighbor
   net-smtp (~> 0.3.4)
@@ -1125,7 +1130,6 @@ DEPENDENCIES
   pg
   pg_search
   pgvector
-  phonelib
   procore-sift
   pry-rails
   puma

@@ -44,7 +44,7 @@ const showAddCardPopoverId = ref(null); // ID of the column where "+ Adicionar t
 const allAgents = computed(() => store.getters['agents/getAgents'] || []);
 const allInboxes = computed(() => store.getters['inboxes/getInboxes'] || []);
 const allConversations = computed(
-  () => store.getters['conversations/getAllConversations'] || []
+  () => store.getters.getAllConversations || []
 );
 
 // Active pipeline

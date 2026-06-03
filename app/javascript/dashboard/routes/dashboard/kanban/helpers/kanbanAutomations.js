@@ -20,25 +20,24 @@ const assignOnlineAgent = async (store, conversationId, pipeline) => {
 
 export const KanbanAutomations = {
   register(store) {
-    let config = null;
+    const configPromise = KanbanConfigHelper.loadConfig(store);
 
-    const reloadConfig = async () => {
+    const getConfig = async () => {
       try {
-        const result = await KanbanConfigHelper.loadConfig(store);
-        config = result.config;
+        const result = await configPromise;
+        return result.config;
       } catch (err) {
         console.error('Failed to load Kanban config for automations:', err);
+        return null;
       }
     };
 
-    reloadConfig();
-
-    const tryAutoCreate = async conversation => {
+    const tryAutoCreate = async (conversation, config, isAgentFirstMsg) => {
       if (!conversation || !conversation.id) return;
-      if (!config || !Array.isArray(config.pipelines)) return;
 
       for (const pipeline of config.pipelines) {
         if (!pipeline.automations?.auto_create) continue;
+        if (isAgentFirstMsg && pipeline.automations?.auto_create_skip_agent) continue;
 
         const inboxFilter = pipeline.inboxes || [];
         if (inboxFilter.length > 0 && !inboxFilter.includes(conversation.inbox_id)) {
@@ -73,29 +72,26 @@ export const KanbanAutomations = {
       }
     };
 
-    return store.subscribe(async (mutation, state) => {
+    return store.subscribe(async (mutation) => {
       const { type, payload } = mutation;
+
+      const config = await getConfig();
+      if (!config || !Array.isArray(config.pipelines)) return;
 
       if (type === 'ADD_CONVERSATION') {
         const conversation = payload;
         if (!conversation || !conversation.id) return;
-        if (!config || !Array.isArray(config.pipelines)) return;
         if (conversation.status === 'resolved') return;
 
         const firstMsg = conversation.last_non_activity_message || conversation.messages?.[0];
-        if (firstMsg && firstMsg.message_type === 1) {
-          for (const pipeline of config.pipelines) {
-            if (pipeline.automations?.auto_create_skip_agent) return;
-          }
-        }
+        const isAgentFirstMsg = firstMsg && firstMsg.message_type === 1;
 
-        await tryAutoCreate(conversation);
+        await tryAutoCreate(conversation, config, isAgentFirstMsg);
       }
 
       if (type === 'UPDATE_CONVERSATION') {
         const conversation = payload;
         if (!conversation || !conversation.id) return;
-        if (!config || !Array.isArray(config.pipelines)) return;
         if (conversation.status !== 'open') return;
 
         const alreadyInPipeline = config.pipelines.some(p =>
@@ -103,15 +99,14 @@ export const KanbanAutomations = {
         );
         if (alreadyInPipeline) return;
 
-        await tryAutoCreate(conversation);
+        await tryAutoCreate(conversation, config);
       }
 
       if (type === 'CHANGE_CONVERSATION_STATUS') {
         const { conversationId, status } = payload;
         if (status !== 'resolved' || !conversationId) return;
-        if (!config || !Array.isArray(config.pipelines)) return;
 
-        const conversation = store.getters['conversations/getConversationById'](conversationId);
+        const conversation = store.getters.getConversationById(conversationId);
         if (!conversation) return;
 
         for (const pipeline of config.pipelines) {

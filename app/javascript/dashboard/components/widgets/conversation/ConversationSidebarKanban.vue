@@ -30,7 +30,7 @@ const activeAgentId = ref('');
 // Computed conversation properties
 const conversation = computed(() => {
   return (
-    store.value.getters['conversations/getConversation'](
+    store.value.getters.getConversationById(
       props.conversationId
     ) || {}
   );
@@ -373,7 +373,7 @@ const handleStageAutomations = async stage => {
         class="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-slate-200 text-xs focus:border-blue-500 outline-none"
         @change="updateAgent"
       >
-        <option value="">Sem responsável</option>
+        <option value="">{{ t('KANBAN.SIDEBAR.NO_AGENT') }}</option>
         <option
           v-for="agent in allAgents"
           :key="agent.id"

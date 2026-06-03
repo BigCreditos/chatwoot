@@ -66,6 +66,8 @@
       "NOT_IN_PIPELINE": "Not in funnel",
       "ADD_TO_PIPELINE": "Add to funnel",
       "PRIORITY_NONE": "None",
+      "AGENT": "Agent",
+      "NO_AGENT": "Unassigned",
       "RESOLVE_CONVERSATION": "Resolve Conversation",
       "CONVERSATION_RESOLVED": "Conversation Resolved"
     },

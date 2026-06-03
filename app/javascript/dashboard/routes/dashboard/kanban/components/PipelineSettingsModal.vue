@@ -353,34 +353,67 @@ const handleSave = () => {
               <p class="text-xs text-slate-400 leading-relaxed">
                 {{ t('KANBAN.SETTINGS.RECRUITMENT_FUNNEL_DESC') }}
               </p>
-                </div>
-              </div>
+            </div>
+          </div>
+        </template>
 
-              <div
-                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
-              >
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
-                  <input
-                    v-model="automations.auto_create_skip_agent"
-                    type="checkbox"
-                    class="sr-only peer"
-                  />
-                  <div
-                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
-                  />
+        <div v-else class="space-y-8">
+          <!-- Basic Info Section -->
+          <div class="space-y-4">
+            <h4
+              class="text-sm font-medium uppercase tracking-wider text-slate-400"
+            >
+              {{ t('KANBAN.SETTINGS.BASIC_INFO') }}
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-300">
+                  {{ t('KANBAN.SETTINGS.FUNNEL_NAME') }} *
                 </label>
-                <div class="space-y-1.5 flex-1 min-w-0">
-                  <label
-                    class="text-sm font-medium text-slate-200 cursor-pointer block"
-                  >
-                    Ignorar se primeira mensagem foi do agente
-                  </label>
-                  <p class="text-xs text-slate-500">
-                    Conversas iniciadas pelo atendente (disparo manual ou campanha) não serão automaticamente adicionadas ao funil.
-                  </p>
-                </div>
+                <input
+                  v-model="name"
+                  type="text"
+                  class="w-full px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  placeholder="Ex: Pipeline de Vendas"
+                />
               </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-300">
+                  {{ t('KANBAN.SETTINGS.FUNNEL_DESC') }}
+                </label>
+                <textarea
+                  v-model="description"
+                  rows="3"
+                  class="w-full px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
+                  placeholder="Breve descrição sobre a finalidade do funil"
+                ></textarea>
+              </div>
+            </div>
+          </div>
 
+          <hr class="border-slate-800" />
+
+          <!-- Stages Section -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h4
+                class="text-sm font-medium uppercase tracking-wider text-slate-400"
+              >
+                {{ t('KANBAN.SETTINGS.STAGES') }}
+              </h4>
+              <Button
+                small
+                blue
+                solid
+                class="flex items-center gap-1.5"
+                @click="addStage"
+              >
+                <Icon icon="i-lucide-plus" class="size-4" />
+                {{ t('KANBAN.SETTINGS.ADD_STAGE') }}
+              </Button>
+            </div>
+
+            <div class="space-y-3">
               <div
                 v-for="(stage, index) in stages"
                 :key="stage.id"
@@ -588,7 +621,31 @@ const handleSave = () => {
               <div
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <!-- Toggle Switch -->
+                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                  <input
+                    v-model="automations.auto_create_skip_agent"
+                    type="checkbox"
+                    class="sr-only peer"
+                  />
+                  <div
+                    class="w-9 h-5 bg-slate-700 rounded-full peer peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"
+                  />
+                </label>
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <label
+                    class="text-sm font-medium text-slate-200 cursor-pointer block"
+                  >
+                    Ignorar se primeira mensagem foi do agente
+                  </label>
+                  <p class="text-xs text-slate-500">
+                    Conversas iniciadas pelo atendente (disparo manual ou campanha) não serão automaticamente adicionadas ao funil.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
+              >
                 <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
                   <input
                     v-model="automations.auto_assign_agent"
@@ -760,7 +817,7 @@ const handleSave = () => {
               </div>
             </div>
           </div>
-        </template>
+        </div>
       </div>
 
       <!-- Footer Actions -->

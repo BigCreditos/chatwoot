@@ -4,7 +4,7 @@ import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import { KanbanConfigHelper } from '../../../routes/dashboard/kanban/helpers/kanbanConfig';
-import ConversationApi from '../../../dashboard/api/conversations';
+import ConversationApi from '../../../api/conversations';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const props = defineProps({

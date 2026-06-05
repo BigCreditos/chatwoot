@@ -255,10 +255,13 @@ const syncColumns = () => {
   columnsCardsMap.value = newMap;
 };
 
+let skipColumnSync = false;
+
 // Sync lists when chats or active pipeline modifies
 watch(
   [filteredConversations, activePipeline],
   () => {
+    if (skipColumnSync) return;
     syncColumns();
   },
   { deep: true, immediate: true }
@@ -269,6 +272,7 @@ const onCardDragChange = async (event, targetStage) => {
   if (event.added) {
     const conversation = event.added.element;
 
+    skipColumnSync = true;
     try {
       await ConversationApi.update(conversation.id, {
         kanban_stage: targetStage.id,
@@ -278,7 +282,6 @@ const onCardDragChange = async (event, targetStage) => {
         kanban_stage: targetStage.id,
       });
 
-      // 1. Auto resolve when dragging to a won/lost column
       if (
         activePipeline.value.automations?.auto_resolve_on_won_lost &&
         (targetStage.is_won || targetStage.is_lost)
@@ -290,6 +293,8 @@ const onCardDragChange = async (event, targetStage) => {
       }
     } catch (err) {
       console.error('Failed to update stage via drag:', err);
+    } finally {
+      skipColumnSync = false;
     }
   }
 };

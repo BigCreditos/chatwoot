@@ -113,9 +113,8 @@ const {
   isCollapsed,
   setSidebarWidth,
   saveWidth,
-  snapToCollapsed,
   snapToExpanded,
-  COLLAPSED_THRESHOLD,
+  MIN_WIDTH,
 } = useSidebarResize();
 
 // On mobile, sidebar is always expanded (flyout mode)
@@ -164,18 +163,12 @@ const onResizeEnd = () => {
 
   isResizing.value = false;
   Object.assign(document.body.style, { cursor: '', userSelect: '' });
-
-  // Snap to collapsed state if below threshold
-  if (sidebarWidth.value < COLLAPSED_THRESHOLD) {
-    snapToCollapsed();
-  } else {
-    saveWidth();
-  }
+  saveWidth();
 };
 
 const onResizeHandleDoubleClick = () => {
-  if (isCollapsed.value) snapToExpanded();
-  else snapToCollapsed();
+  if (sidebarWidth.value <= MIN_WIDTH) snapToExpanded();
+  else setSidebarWidth(MIN_WIDTH);
 };
 
 // Support both mouse and touch events

@@ -3,6 +3,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
+import { vOnClickOutside } from '@vueuse/core';
 import { KanbanConfigHelper } from '../../../routes/dashboard/kanban/helpers/kanbanConfig';
 import ConversationApi from '../../../api/conversations';
 
@@ -19,6 +20,7 @@ const store = ref(useStore());
 const fullConfig = ref({ pipelines: [] });
 const activePipelineId = ref(null);
 const activeStageId = ref(null);
+const stageDropdownOpen = ref(false);
 
 const conversation = computed(() => {
   return (
@@ -50,6 +52,13 @@ const activePipeline = computed(() => {
   return (
     fullConfig.value.pipelines.find(p => p.id === activePipelineId.value) ||
     null
+  );
+});
+
+const currentStage = computed(() => {
+  if (!activePipeline.value || !activeStageId.value) return null;
+  return (
+    activePipeline.value.stages.find(s => s.id === activeStageId.value) || null
   );
 });
 
@@ -165,43 +174,55 @@ const handleStageAutomations = async stage => {
       </select>
     </div>
 
-    <div v-if="activePipeline" class="flex flex-col gap-1.5">
+    <div v-if="activePipeline" class="flex flex-col gap-1">
       <label
         class="text-[10px] uppercase font-bold tracking-wider text-slate-500"
       >
         {{ t('KANBAN.SIDEBAR.STAGE') }}
       </label>
-      <div class="flex flex-wrap gap-1.5">
+      <div class="relative" v-on-click-outside="stageDropdownOpen = false">
         <button
           type="button"
-          class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition-all"
-          :class="
-            activeStageId === null
-              ? 'border-slate-600 bg-slate-800 text-slate-200'
-              : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-300'
-          "
-          @click="selectStage(null)"
-        >
-          {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
-        </button>
-        <button
-          v-for="stage in activePipeline.stages"
-          :key="stage.id"
-          type="button"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold transition-all"
-          :class="
-            activeStageId === stage.id
-              ? 'border-slate-600 bg-slate-800 text-slate-200'
-              : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700 hover:text-slate-300'
-          "
-          @click="selectStage(stage)"
+          class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-200 hover:border-slate-700 transition-all"
+          @click="stageDropdownOpen = !stageDropdownOpen"
         >
           <span
+            v-if="currentStage"
             class="size-2 rounded-full shrink-0"
-            :style="{ backgroundColor: stage.color || '#3b82f6' }"
+            :style="{ backgroundColor: currentStage.color || '#3b82f6' }"
           />
-          {{ stage.title }}
+          <span class="flex-1 text-left truncate">
+            {{ currentStage ? currentStage.title : t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
+          </span>
+          <div class="i-lucide-chevron-down size-3 text-slate-400 shrink-0" />
         </button>
+        <div
+          v-if="stageDropdownOpen"
+          class="absolute z-50 mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 shadow-xl overflow-hidden"
+        >
+          <button
+            type="button"
+            class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-400 hover:bg-slate-800 transition-colors"
+            :class="{ 'bg-slate-800 text-slate-200': activeStageId === null }"
+            @click="selectStage(null); stageDropdownOpen = false"
+          >
+            {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
+          </button>
+          <button
+            v-for="stage in activePipeline.stages"
+            :key="stage.id"
+            type="button"
+            class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 transition-colors"
+            :class="{ 'bg-slate-800': activeStageId === stage.id }"
+            @click="selectStage(stage); stageDropdownOpen = false"
+          >
+            <span
+              class="size-2 rounded-full shrink-0"
+              :style="{ backgroundColor: stage.color || '#3b82f6' }"
+            />
+            {{ stage.title }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

@@ -14,6 +14,7 @@ const props = defineProps({
   badgeCount: { type: [Number, String], default: 0 },
   description: { type: String, default: '' },
   subgroup: { type: Boolean, default: false },
+  pipeline: { type: Boolean, default: false },
 });
 
 const { resolvePermissions, resolveFeatureFlag } = useSidebarContext();
@@ -41,7 +42,8 @@ const shouldRenderComponent = computed(() => {
           ? 'min-h-9 items-start'
           : 'h-8 items-center',
         subgroup ? 'ltr:pl-8 rtl:pr-8' : '',
-        active ? 'text-n-slate-12 bg-n-alpha-2 active' : '',
+        active && pipeline ? 'text-n-slate-12 bg-slate-800 rounded-lg' : '',
+        active && !pipeline ? 'text-n-slate-12 bg-n-alpha-2 active' : '',
       ]"
     >
       <component

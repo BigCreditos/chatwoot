@@ -365,6 +365,7 @@ const menuItems = computed(() => {
             name: `Pipeline-${pipeline.id}`,
             label: pipeline.name,
             description: `Pipeline de ${pipeline.name}`,
+            pipeline: true,
             to: {
               name: 'kanban_dashboard',
               query: { pipeline_id: pipeline.id },

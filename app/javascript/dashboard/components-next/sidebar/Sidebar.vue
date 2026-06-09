@@ -877,7 +877,7 @@ const menuItems = computed(() => {
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
-        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
+        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen && isMobile,
         'transition-transform duration-200 ease-out md:transition-[width]':
           !isResizing,
       },

@@ -67,6 +67,7 @@ useEventListener(scrollableContainer, 'scroll', () => {
         v-bind="child"
         :key="child.name"
         :active="activeChild?.name === child.name"
+        subgroup
       />
     </div>
     <div

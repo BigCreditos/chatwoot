@@ -346,11 +346,11 @@ const menuItems = computed(() => {
         {
           name: 'FunnelsHeader',
           label: 'Funis',
-          icon: 'i-lucide-folder',
           activeOn: ['kanban_dashboard'],
           children: kanbanPipelines.value.map(pipeline => ({
             name: `Pipeline-${pipeline.id}`,
             label: pipeline.name,
+            description: `Pipeline de ${pipeline.name}`,
             to: {
               name: 'kanban_dashboard',
               query: { pipeline_id: pipeline.id },

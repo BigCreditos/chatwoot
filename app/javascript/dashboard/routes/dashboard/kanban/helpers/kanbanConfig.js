@@ -17,8 +17,18 @@ const DEFAULT_PIPELINE = {
     { id: 'stage_2', title: 'Qualificando', color: '#f59e0b' },
     { id: 'stage_3', title: 'Proposta Enviada', color: '#8b5cf6' },
     { id: 'stage_4', title: 'Negociação', color: '#f97316' },
-    { id: 'stage_5', title: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
-    { id: 'stage_6', title: 'Oportunidade Ganha', color: '#10b981', is_won: true },
+    {
+      id: 'stage_5',
+      title: 'Oportunidade Perdida',
+      color: '#ef4444',
+      is_lost: true,
+    },
+    {
+      id: 'stage_6',
+      title: 'Oportunidade Ganha',
+      color: '#10b981',
+      is_won: true,
+    },
   ],
   inboxes: [],
   agents: [],
@@ -118,5 +128,4 @@ export const KanbanConfigHelper = {
       show_on_sidebar: false,
     });
   },
-
 };

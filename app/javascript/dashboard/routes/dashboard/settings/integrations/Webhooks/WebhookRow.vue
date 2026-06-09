@@ -38,7 +38,9 @@ const subscribedEvents = computed(() => {
   <BaseTableRow :item="webhook">
     <template #default>
       <BaseTableCell>
-        <div class="flex items-center gap-2 font-medium break-words text-n-slate-12">
+        <div
+          class="flex items-center gap-2 font-medium break-words text-n-slate-12"
+        >
           <template v-if="webhook.name">
             {{ webhook.name }}
             <span class="text-n-slate-11">

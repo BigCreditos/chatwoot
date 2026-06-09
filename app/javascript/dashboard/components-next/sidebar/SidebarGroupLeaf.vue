@@ -40,7 +40,7 @@ const shouldRenderComponent = computed(() => {
         description
           ? 'min-h-9 items-start'
           : 'h-8 items-center',
-        subgroup ? 'ltr:pl-5 rtl:pr-5' : '',
+        subgroup ? 'ltr:pl-8 rtl:pr-8' : '',
         active ? 'text-n-slate-12 bg-n-alpha-2 active' : '',
       ]"
     >

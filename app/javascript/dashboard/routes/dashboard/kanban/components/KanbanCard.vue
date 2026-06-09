@@ -17,7 +17,13 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['click', 'resolve', 'assign', 'removePipeline', 'toggleSort']);
+const emit = defineEmits([
+  'click',
+  'resolve',
+  'assign',
+  'removePipeline',
+  'toggleSort',
+]);
 
 const { t } = useI18n();
 const store = ref(useStore());
@@ -79,8 +85,16 @@ const timeBadge = computed(() => {
   if (dVal) {
     const dueDate = new Date(dVal);
     const today = new Date();
-    const dDate = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-    const tDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dDate = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate()
+    );
+    const tDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     const diffDays = Math.floor((dDate - tDate) / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
@@ -125,13 +139,12 @@ const formattedTimestamp = computed(() => {
       text: timeAgo.value,
       icon: 'i-lucide-clock',
     };
-  } else {
-    const options = { day: 'numeric', month: 'short' };
-    return {
-      text: date.toLocaleDateString('pt-BR', options),
-      icon: 'i-lucide-calendar',
-    };
   }
+  const options = { day: 'numeric', month: 'short' };
+  return {
+    text: date.toLocaleDateString('pt-BR', options),
+    icon: 'i-lucide-calendar',
+  };
 });
 
 // Inbox & Channel Helpers
@@ -387,16 +400,10 @@ const handleDocumentClick = e => {
   ) {
     showAssigneePopover.value = false;
   }
-  if (
-    showMoreMenu.value &&
-    !e.target.closest('.more-menu-trigger')
-  ) {
+  if (showMoreMenu.value && !e.target.closest('.more-menu-trigger')) {
     showMoreMenu.value = false;
   }
-  if (
-    showDateEditor.value &&
-    !e.target.closest('.date-editor-trigger')
-  ) {
+  if (showDateEditor.value && !e.target.closest('.date-editor-trigger')) {
     showDateEditor.value = false;
   }
 };
@@ -415,7 +422,9 @@ onUnmounted(() => {
   <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
   <div
     class="group relative flex flex-col p-3.5 rounded-xl border bg-slate-900 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing hover:border-slate-700/80"
-    :class="urgencyMeta ? urgencyMeta.borderClass : 'border-slate-850 bg-slate-900/90'"
+    :class="
+      urgencyMeta ? urgencyMeta.borderClass : 'border-slate-850 bg-slate-900/90'
+    "
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @click="emit('click', props.conversation.id)"
@@ -443,15 +452,18 @@ onUnmounted(() => {
             class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 border-2 border-slate-900"
           />
         </div>
-        
+
         <div class="flex flex-col min-w-0">
           <span class="text-xs font-bold text-slate-100 truncate">
             {{ props.conversation.meta?.sender?.name || 'Cliente' }}
           </span>
-          
+
           <!-- Channel Pill (lowercase and dot badge, Image 1 Style) -->
           <div v-if="channelMeta" class="flex items-center gap-1 mt-0.5">
-            <span :class="channelMeta.color" class="flex items-center gap-1 text-[10px] font-semibold opacity-85">
+            <span
+              :class="channelMeta.color"
+              class="flex items-center gap-1 text-[10px] font-semibold opacity-85"
+            >
               <span class="size-1.5 rounded-full bg-current shrink-0" />
               <span>{{ channelMeta.name.toLowerCase() }}</span>
             </span>
@@ -498,7 +510,10 @@ onUnmounted(() => {
             :key="agent.id"
             type="button"
             class="px-3 py-1.5 text-xs text-left text-slate-300 hover:bg-slate-800 transition-colors flex items-center gap-2"
-            :class="{ 'bg-emerald-500/10': props.conversation.meta?.assignee?.id === agent.id }"
+            :class="{
+              'bg-emerald-500/10':
+                props.conversation.meta?.assignee?.id === agent.id,
+            }"
             @click="handleAssign($event, agent.id)"
           >
             <Thumbnail
@@ -699,5 +714,3 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
-
-

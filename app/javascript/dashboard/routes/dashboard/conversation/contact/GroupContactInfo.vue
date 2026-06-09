@@ -42,7 +42,9 @@ export default {
       class="mb-2"
       rounded-full
     />
-    <h3 class="text-base font-semibold text-n-slate-12 text-center truncate max-w-full">
+    <h3
+      class="text-base font-semibold text-n-slate-12 text-center truncate max-w-full"
+    >
       {{ groupName }}
     </h3>
     <span v-if="memberCount" class="text-xs text-n-slate-11 mt-1">

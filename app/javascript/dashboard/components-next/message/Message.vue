@@ -545,7 +545,9 @@ const messageAttachments = computed(() => {
 });
 
 const shouldShowDeletedMediaNotice = computed(() => {
-  return isDeletedContentPreserved.value && componentToRender.value !== TextBubble;
+  return (
+    isDeletedContentPreserved.value && componentToRender.value !== TextBubble
+  );
 });
 
 const longPressStartPoint = ref(null);

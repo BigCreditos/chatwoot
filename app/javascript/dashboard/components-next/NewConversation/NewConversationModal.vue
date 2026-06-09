@@ -305,7 +305,9 @@ const onSubmit = async () => {
       const searchResponse = await ContactAPI.search(cleanPhone);
       const foundContact = (searchResponse.data?.payload || [])
         .filter(isValidContact)
-        .find(c => normalizePhone(c.phone_number) === normalizePhone(cleanPhone));
+        .find(
+          c => normalizePhone(c.phone_number) === normalizePhone(cleanPhone)
+        );
       if (foundContact) {
         contact = foundContact;
         if (
@@ -386,7 +388,9 @@ const onSubmit = async () => {
       try {
         contact = await store.dispatch('contacts/create', {
           name: state.contactName.trim() || cleanPhone,
-          phone_number: cleanPhone.startsWith('+') ? cleanPhone : `+${normalizePhone(cleanPhone)}`,
+          phone_number: cleanPhone.startsWith('+')
+            ? cleanPhone
+            : `+${normalizePhone(cleanPhone)}`,
         });
       } catch (error) {
         if (

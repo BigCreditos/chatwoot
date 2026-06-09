@@ -103,6 +103,14 @@ export default {
       immediate: true,
     },
   },
+  mounted() {
+    this.unsubscribeAutomations = KanbanAutomations.register(this.$store);
+  },
+  beforeUnmount() {
+    if (this.unsubscribeAutomations) {
+      this.unsubscribeAutomations();
+    }
+  },
   methods: {
     toggleMobileSidebar() {
       this.isMobileSidebarOpen = !this.isMobileSidebarOpen;
@@ -126,14 +134,6 @@ export default {
     closeKeyShortcutModal() {
       this.showShortcutModal = false;
     },
-  },
-  mounted() {
-    this.unsubscribeAutomations = KanbanAutomations.register(this.$store);
-  },
-  beforeUnmount() {
-    if (this.unsubscribeAutomations) {
-      this.unsubscribeAutomations();
-    }
   },
 };
 </script>

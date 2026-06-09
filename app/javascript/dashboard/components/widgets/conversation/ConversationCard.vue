@@ -177,7 +177,9 @@ watch(
           />
         </div>
       </div>
-      <div class="flex items-baseline mx-2 my-0 min-w-0 ltr:pr-16 rtl:pl-16 gap-1.5 overflow-hidden">
+      <div
+        class="flex items-baseline mx-2 my-0 min-w-0 ltr:pr-16 rtl:pl-16 gap-1.5 overflow-hidden"
+      >
         <h4
           class="conversation--user text-sm capitalize pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap text-n-slate-12 shrink"
           :class="hasUnread ? 'font-semibold' : 'font-medium'"

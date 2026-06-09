@@ -5,10 +5,13 @@ import ConversationApi from 'dashboard/api/conversations';
 const assignOnlineAgent = async (store, conversationId, pipeline) => {
   const agentsList = pipeline.agents || [];
   const allAgents = store.getters['agents/getAgents'] || [];
-  const onlineAgents = allAgents.filter(a => a.availability_status === 'online');
-  const eligible = agentsList.length > 0
-    ? onlineAgents.filter(a => agentsList.includes(a.id))
-    : onlineAgents;
+  const onlineAgents = allAgents.filter(
+    a => a.availability_status === 'online'
+  );
+  const eligible =
+    agentsList.length > 0
+      ? onlineAgents.filter(a => agentsList.includes(a.id))
+      : onlineAgents;
   if (eligible.length > 0) {
     const agent = eligible[Math.floor(Math.random() * eligible.length)];
     await store.dispatch('conversations/assignAgent', {
@@ -37,15 +40,21 @@ export const KanbanAutomations = {
 
       for (const pipeline of config.pipelines) {
         if (!pipeline.automations?.auto_create) continue;
-        if (isAgentFirstMsg && pipeline.automations?.auto_create_skip_agent) continue;
+        if (isAgentFirstMsg && pipeline.automations?.auto_create_skip_agent)
+          continue;
 
         const inboxFilter = pipeline.inboxes || [];
-        if (inboxFilter.length > 0 && !inboxFilter.includes(conversation.inbox_id)) {
+        if (
+          inboxFilter.length > 0 &&
+          !inboxFilter.includes(conversation.inbox_id)
+        ) {
           continue;
         }
 
         const stageIds = pipeline.stages.map(s => s.id);
-        const hasStage = conversation.kanban_stage && stageIds.includes(conversation.kanban_stage);
+        const hasStage =
+          conversation.kanban_stage &&
+          stageIds.includes(conversation.kanban_stage);
 
         if (!hasStage && pipeline.stages.length > 0) {
           const firstStage = pipeline.stages[0];
@@ -59,7 +68,10 @@ export const KanbanAutomations = {
               kanban_stage: firstStage.id,
             });
 
-            if (pipeline.automations?.auto_assign_agent && !conversation.meta?.assignee) {
+            if (
+              pipeline.automations?.auto_assign_agent &&
+              !conversation.meta?.assignee
+            ) {
               await assignOnlineAgent(store, conversation.id, pipeline);
             }
           } catch (err) {
@@ -72,7 +84,7 @@ export const KanbanAutomations = {
       }
     };
 
-    return store.subscribe(async (mutation) => {
+    return store.subscribe(async mutation => {
       const { type, payload } = mutation;
 
       const config = await getConfig();
@@ -83,7 +95,8 @@ export const KanbanAutomations = {
         if (!conversation || !conversation.id) return;
         if (conversation.status === 'resolved') return;
 
-        const firstMsg = conversation.last_non_activity_message || conversation.messages?.[0];
+        const firstMsg =
+          conversation.last_non_activity_message || conversation.messages?.[0];
         const isAgentFirstMsg = firstMsg && firstMsg.message_type === 1;
 
         await tryAutoCreate(conversation, config, isAgentFirstMsg);
@@ -115,7 +128,9 @@ export const KanbanAutomations = {
           const currentStageId = conversation.kanban_stage;
           if (!currentStageId) continue;
 
-          const currentStage = pipeline.stages.find(s => s.id === currentStageId);
+          const currentStage = pipeline.stages.find(
+            s => s.id === currentStageId
+          );
           if (!currentStage) continue;
 
           const wonStage = pipeline.stages.find(s => s.is_won);

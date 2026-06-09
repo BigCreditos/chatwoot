@@ -165,7 +165,9 @@ onMounted(() => {
           :title="$t('KANBAN.SIDEBAR.SECTION_TITLE')"
           :is-open="isContactSidebarItemOpen('is_kanban_sidebar_open')"
           compact
-          @toggle="value => toggleSidebarUIState('is_kanban_sidebar_open', value)"
+          @toggle="
+            value => toggleSidebarUIState('is_kanban_sidebar_open', value)
+          "
         >
           <ConversationSidebarKanban :conversation-id="conversationId" />
         </AccordionItem>

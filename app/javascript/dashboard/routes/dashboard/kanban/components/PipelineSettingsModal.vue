@@ -103,9 +103,7 @@ const selectModelTemplate = templateType => {
   if (templateType === 'empty') {
     name.value = '';
     description.value = '';
-    stages.value = [
-      { id: 'st_1', title: 'Novo Lead', color: '#3b82f6' },
-    ];
+    stages.value = [{ id: 'st_1', title: 'Novo Lead', color: '#3b82f6' }];
   } else if (templateType === 'sales') {
     name.value = t('KANBAN.SETTINGS.SALES_FUNNEL');
     description.value = t('KANBAN.SETTINGS.SALES_FUNNEL_DESC');
@@ -114,8 +112,18 @@ const selectModelTemplate = templateType => {
       { id: 'st_2', title: 'Qualificando', color: '#f59e0b' },
       { id: 'st_3', title: 'Proposta Enviada', color: '#8b5cf6' },
       { id: 'st_4', title: 'Negociação', color: '#f97316' },
-      { id: 'st_5', title: 'Oportunidade Perdida', color: '#ef4444', is_lost: true },
-      { id: 'st_6', title: 'Oportunidade Ganha', color: '#10b981', is_won: true },
+      {
+        id: 'st_5',
+        title: 'Oportunidade Perdida',
+        color: '#ef4444',
+        is_lost: true,
+      },
+      {
+        id: 'st_6',
+        title: 'Oportunidade Ganha',
+        color: '#10b981',
+        is_won: true,
+      },
     ];
   } else if (templateType === 'support') {
     name.value = t('KANBAN.SETTINGS.SUPPORT_FUNNEL');
@@ -386,7 +394,7 @@ const handleSave = () => {
                   rows="3"
                   class="w-full px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-200 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none"
                   placeholder="Breve descrição sobre a finalidade do funil"
-                ></textarea>
+                />
               </div>
             </div>
           </div>
@@ -471,9 +479,9 @@ const handleSave = () => {
                         type="color"
                         class="w-8 h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer overflow-hidden p-0"
                       />
-                      <span class="text-xs text-slate-400 font-mono uppercase">{{
-                        stage.color
-                      }}</span>
+                      <span
+                        class="text-xs text-slate-400 font-mono uppercase"
+                        >{{ stage.color }}</span>
                     </div>
                   </div>
                 </div>
@@ -543,7 +551,9 @@ const handleSave = () => {
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
                 <!-- Toggle Switch -->
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_create"
                     type="checkbox"
@@ -584,7 +594,7 @@ const handleSave = () => {
                         <Icon icon="i-lucide-inbox" class="size-3 shrink-0" />
                         <span class="truncate max-w-[80px]">{{
                           allInboxes.find(i => i.id === inboxId)?.name ||
-                            inboxId
+                          inboxId
                         }}</span>
                         <button
                           type="button"
@@ -621,7 +631,9 @@ const handleSave = () => {
               <div
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_create_skip_agent"
                     type="checkbox"
@@ -638,7 +650,8 @@ const handleSave = () => {
                     Ignorar se primeira mensagem foi do agente
                   </label>
                   <p class="text-xs text-slate-500">
-                    Conversas iniciadas pelo atendente (disparo manual ou campanha) não serão automaticamente adicionadas ao funil.
+                    Conversas iniciadas pelo atendente (disparo manual ou
+                    campanha) não serão automaticamente adicionadas ao funil.
                   </p>
                 </div>
               </div>
@@ -646,7 +659,9 @@ const handleSave = () => {
               <div
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_assign_agent"
                     type="checkbox"
@@ -688,14 +703,17 @@ const handleSave = () => {
                         class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold"
                       >
                         <Thumbnail
-                          :src="allAgents.find(a => a.id === agentId)?.thumbnail"
-                          :username="allAgents.find(a => a.id === agentId)?.name || ''"
+                          :src="
+                            allAgents.find(a => a.id === agentId)?.thumbnail
+                          "
+                          :username="
+                            allAgents.find(a => a.id === agentId)?.name || ''
+                          "
                           size="14px"
                           class="shrink-0 rounded-full"
                         />
                         <span class="truncate max-w-[60px]">{{
-                          allAgents.find(a => a.id === agentId)?.name ||
-                            agentId
+                          allAgents.find(a => a.id === agentId)?.name || agentId
                         }}</span>
                         <button
                           type="button"
@@ -739,7 +757,9 @@ const handleSave = () => {
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
                 <!-- Toggle Switch -->
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_assign_conversation"
                     type="checkbox"
@@ -766,7 +786,9 @@ const handleSave = () => {
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
                 <!-- Toggle Switch -->
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_resolve_on_won_lost"
                     type="checkbox"
@@ -793,7 +815,9 @@ const handleSave = () => {
                 class="flex items-start gap-4 p-4 rounded-xl border border-slate-800 bg-slate-950/20"
               >
                 <!-- Toggle Switch -->
-                <label class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0">
+                <label
+                  class="relative inline-flex items-center cursor-pointer mt-0.5 shrink-0"
+                >
                   <input
                     v-model="automations.auto_win_on_resolve"
                     type="checkbox"
@@ -852,9 +876,7 @@ const handleSave = () => {
               class="size-4"
             />
             {{
-              currentStep === 'form' && !props.pipeline
-                ? 'Voltar'
-                : 'Cancelar'
+              currentStep === 'form' && !props.pipeline ? 'Voltar' : 'Cancelar'
             }}
           </Button>
           <Button

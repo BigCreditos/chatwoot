@@ -97,8 +97,7 @@ const selectPipeline = pipeline => {
 };
 
 const getStageLeadsCount = stage => {
-  return allConversations.value.filter(c => c.kanban_stage === stage.id)
-    .length;
+  return allConversations.value.filter(c => c.kanban_stage === stage.id).length;
 };
 
 const getPipelineTotalLeads = pipeline => {
@@ -152,12 +151,30 @@ const getPipelineUniqueInboxes = pipeline => {
 
 const getInboxChannelMeta = inbox => {
   const ch = (inbox.channel_type || '').toLowerCase();
-  if (ch.includes('whatsapp')) return { icon: 'i-lucide-phone', color: 'text-emerald-500', name: 'WhatsApp' };
-  if (ch.includes('email')) return { icon: 'i-lucide-mail', color: 'text-cyan-500', name: 'E-mail' };
-  if (ch.includes('instagram')) return { icon: 'i-lucide-instagram', color: 'text-pink-500', name: 'Instagram' };
-  if (ch.includes('facebook')) return { icon: 'i-lucide-facebook', color: 'text-blue-600', name: 'Facebook' };
-  if (ch.includes('twitter')) return { icon: 'i-lucide-twitter', color: 'text-sky-400', name: 'Twitter' };
-  if (ch.includes('telegram')) return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
+  if (ch.includes('whatsapp'))
+    return {
+      icon: 'i-lucide-phone',
+      color: 'text-emerald-500',
+      name: 'WhatsApp',
+    };
+  if (ch.includes('email'))
+    return { icon: 'i-lucide-mail', color: 'text-cyan-500', name: 'E-mail' };
+  if (ch.includes('instagram'))
+    return {
+      icon: 'i-lucide-instagram',
+      color: 'text-pink-500',
+      name: 'Instagram',
+    };
+  if (ch.includes('facebook'))
+    return {
+      icon: 'i-lucide-facebook',
+      color: 'text-blue-600',
+      name: 'Facebook',
+    };
+  if (ch.includes('twitter'))
+    return { icon: 'i-lucide-twitter', color: 'text-sky-400', name: 'Twitter' };
+  if (ch.includes('telegram'))
+    return { icon: 'i-lucide-send', color: 'text-sky-500', name: 'Telegram' };
   return { icon: 'i-lucide-globe', color: 'text-slate-400', name: 'Web Chat' };
 };
 
@@ -226,8 +243,12 @@ const syncColumns = () => {
     });
   } else if (sortBy.value === 'due_date') {
     chats.sort((a, b) => {
-      const da = a.custom_attributes?.due_date ? new Date(a.custom_attributes.due_date) : null;
-      const db = b.custom_attributes?.due_date ? new Date(b.custom_attributes.due_date) : null;
+      const da = a.custom_attributes?.due_date
+        ? new Date(a.custom_attributes.due_date)
+        : null;
+      const db = b.custom_attributes?.due_date
+        ? new Date(b.custom_attributes.due_date)
+        : null;
       if (!da && !db) return 0;
       if (!da) return 1;
       if (!db) return -1;
@@ -244,8 +265,8 @@ const syncColumns = () => {
 
   // Distribute sorted conversations into stages
   chats.forEach(conversation => {
-    const matchedStage = activePipeline.value.stages.find(s =>
-      s.id === conversation.kanban_stage
+    const matchedStage = activePipeline.value.stages.find(
+      s => s.id === conversation.kanban_stage
     );
     if (matchedStage) {
       newMap[matchedStage.id].push(conversation);
@@ -399,7 +420,8 @@ const eligibleConversationsForInclusion = computed(() => {
 
   const stageIds = activePipeline.value.stages.map(s => s.id);
   return allConversations.value.filter(c => {
-    const hasPipelineStage = c.kanban_stage && stageIds.includes(c.kanban_stage);
+    const hasPipelineStage =
+      c.kanban_stage && stageIds.includes(c.kanban_stage);
     const isOpen = c.status !== 'resolved';
     return !hasPipelineStage && isOpen;
   });
@@ -465,7 +487,8 @@ const importOpenConversations = async () => {
   const eligible = allConversations.value.filter(c => {
     if (c.status === 'resolved') return false;
     if (c.kanban_stage && stageIds.includes(c.kanban_stage)) return false;
-    if (inboxFilter.length > 0 && !inboxFilter.includes(c.inbox_id)) return false;
+    if (inboxFilter.length > 0 && !inboxFilter.includes(c.inbox_id))
+      return false;
     return true;
   });
 
@@ -482,13 +505,12 @@ const importOpenConversations = async () => {
     const batch = eligible.slice(i, i + batchSize);
     await Promise.all(
       batch.map(c =>
-        ConversationApi.update(c.id, { kanban_stage: firstStage.id })
-          .then(() =>
-            store.dispatch('updateConversation', {
-              id: c.id,
-              kanban_stage: firstStage.id,
-            })
-          )
+        ConversationApi.update(c.id, { kanban_stage: firstStage.id }).then(() =>
+          store.dispatch('updateConversation', {
+            id: c.id,
+            kanban_stage: firstStage.id,
+          })
+        )
       )
     );
   }
@@ -582,7 +604,10 @@ const importOpenConversations = async () => {
                   :title="inbox.name"
                   class="shrink-0 p-1 bg-slate-950/60 border border-slate-800 rounded-lg"
                 >
-                  <Icon :icon="getInboxChannelMeta(inbox).icon" class="size-3.5" />
+                  <Icon
+                    :icon="getInboxChannelMeta(inbox).icon"
+                    class="size-3.5"
+                  />
                 </span>
                 <span
                   v-if="getPipelineUniqueInboxes(p).length > 4"
@@ -654,11 +679,13 @@ const importOpenConversations = async () => {
           >
             <Icon icon="i-lucide-chevron-left" class="size-4.5" />
           </button>
-          
-          <h2 class="text-base font-bold tracking-tight text-slate-100 shrink-0">
+
+          <h2
+            class="text-base font-bold tracking-tight text-slate-100 shrink-0"
+          >
             {{ activePipeline?.name }}
           </h2>
-          
+
           <span
             class="px-2 py-0.5 rounded-full bg-slate-900 text-[10px] font-bold text-slate-400 border border-slate-800"
           >
@@ -676,7 +703,9 @@ const importOpenConversations = async () => {
               placeholder="Pesquisar..."
               class="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-850 bg-slate-900 text-slate-200 text-xs focus:border-blue-500 outline-none placeholder:text-slate-500"
             />
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center">
+            <span
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center"
+            >
               <Icon icon="i-lucide-search" class="size-3.5" />
             </span>
           </div>
@@ -696,10 +725,14 @@ const importOpenConversations = async () => {
                 {{ agent.name }}
               </option>
             </select>
-            <span class="absolute left-2.5 top-2 text-slate-500 pointer-events-none">
+            <span
+              class="absolute left-2.5 top-2 text-slate-500 pointer-events-none"
+            >
               <Icon icon="i-lucide-user" class="size-3.5" />
             </span>
-            <span class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none">
+            <span
+              class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none"
+            >
               <Icon icon="i-lucide-chevron-down" class="size-3" />
             </span>
           </div>
@@ -719,10 +752,14 @@ const importOpenConversations = async () => {
                 {{ inbox.name }}
               </option>
             </select>
-            <span class="absolute left-2.5 top-2 text-slate-500 pointer-events-none">
+            <span
+              class="absolute left-2.5 top-2 text-slate-500 pointer-events-none"
+            >
               <Icon icon="i-lucide-inbox" class="size-3.5" />
             </span>
-            <span class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none">
+            <span
+              class="absolute right-2.5 top-2.5 text-slate-500 pointer-events-none"
+            >
               <Icon icon="i-lucide-chevron-down" class="size-3" />
             </span>
           </div>
@@ -736,7 +773,9 @@ const importOpenConversations = async () => {
               @click="showSortDropdown = !showSortDropdown"
             >
               <Icon icon="i-lucide-arrow-up-down" class="size-3.5 shrink-0" />
-              <span class="text-[10px] font-semibold hidden sm:inline">{{ showSortLabel }}</span>
+              <span class="text-[10px] font-semibold hidden sm:inline">{{
+                showSortLabel
+              }}</span>
             </button>
             <div
               v-if="showSortDropdown"
@@ -779,7 +818,9 @@ const importOpenConversations = async () => {
           <Button
             blue
             class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl shrink-0"
-            @click="showAddCardPopoverId = activePipeline?.stages[0]?.id || null"
+            @click="
+              showAddCardPopoverId = activePipeline?.stages[0]?.id || null
+            "
           >
             <Icon icon="i-lucide-plus" class="size-3.5" />
             Adicionar tarefa
@@ -804,7 +845,7 @@ const importOpenConversations = async () => {
               <span class="text-xs font-bold text-white truncate">{{
                 stage.title
               }}</span>
-              
+
               <!-- Total Leads Counter Badge -->
               <span
                 class="px-1.5 py-0.5 rounded-full bg-black/25 text-[10px] font-bold text-white/95"

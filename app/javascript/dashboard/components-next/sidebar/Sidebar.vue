@@ -346,6 +346,7 @@ const menuItems = computed(() => {
         {
           name: 'FunnelsHeader',
           label: 'Funis',
+          icon: h('span', { class: 'i-lucide-equal size-3' }),
           activeOn: ['kanban_dashboard'],
           children: kanbanPipelines.value.map(pipeline => ({
             name: `Pipeline-${pipeline.id}`,
@@ -873,16 +874,23 @@ const menuItems = computed(() => {
         ],
       },
     ]"
-    class="bg-n-background flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[200px] md:w-auto md:relative md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-n-weak"
+    class="bg-n-background flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[200px] md:w-auto md:relative md:flex-shrink-0 ltr:border-r rtl:border-l border-n-weak"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
-        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
-        'transition-transform duration-200 ease-out md:transition-[width]':
-          !isResizing,
+        'transition-transform duration-200 ease-out': !isResizing && isMobile,
+        'transition-[width] duration-200 ease-out': !isResizing && !isMobile,
       },
     ]"
-    :style="isMobile ? undefined : { width: `${sidebarWidth}px` }"
+    :style="{
+      transform:
+        isMobile && !isMobileSidebarOpen
+          ? isRTL
+            ? 'translateX(100%)'
+            : 'translateX(-100%)'
+          : undefined,
+      width: !isMobile ? `${sidebarWidth}px` : undefined,
+    }"
   >
     <section
       class="grid"

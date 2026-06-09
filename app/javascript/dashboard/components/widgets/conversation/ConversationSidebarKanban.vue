@@ -3,7 +3,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
-import { vOnClickOutside } from '@vueuse/core';
+import { vOnClickOutside } from '@vueuse/components';
 import { KanbanConfigHelper } from '../../../routes/dashboard/kanban/helpers/kanbanConfig';
 import ConversationApi from '../../../api/conversations';
 
@@ -23,11 +23,7 @@ const activeStageId = ref(null);
 const stageDropdownOpen = ref(false);
 
 const conversation = computed(() => {
-  return (
-    store.value.getters.getConversationById(
-      props.conversationId
-    ) || {}
-  );
+  return store.value.getters.getConversationById(props.conversationId) || {};
 });
 
 const detectConversationPipeline = () => {
@@ -180,7 +176,7 @@ const handleStageAutomations = async stage => {
       >
         {{ t('KANBAN.SIDEBAR.STAGE') }}
       </label>
-      <div class="relative" v-on-click-outside="stageDropdownOpen = false">
+      <div v-on-click-outside="(stageDropdownOpen = false)" class="relative">
         <button
           type="button"
           class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-200 hover:border-slate-700 transition-all"
@@ -192,7 +188,11 @@ const handleStageAutomations = async stage => {
             :style="{ backgroundColor: currentStage.color || '#3b82f6' }"
           />
           <span class="flex-1 text-left truncate">
-            {{ currentStage ? currentStage.title : t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
+            {{
+              currentStage
+                ? currentStage.title
+                : t('KANBAN.SIDEBAR.NOT_IN_PIPELINE')
+            }}
           </span>
           <div class="i-lucide-chevron-down size-3 text-slate-400 shrink-0" />
         </button>
@@ -204,7 +204,10 @@ const handleStageAutomations = async stage => {
             type="button"
             class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-400 hover:bg-slate-800 transition-colors"
             :class="{ 'bg-slate-800 text-slate-200': activeStageId === null }"
-            @click="selectStage(null); stageDropdownOpen = false"
+            @click="
+              selectStage(null);
+              stageDropdownOpen = false;
+            "
           >
             {{ t('KANBAN.SIDEBAR.NOT_IN_PIPELINE') }}
           </button>
@@ -214,7 +217,10 @@ const handleStageAutomations = async stage => {
             type="button"
             class="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 transition-colors"
             :class="{ 'bg-slate-800': activeStageId === stage.id }"
-            @click="selectStage(stage); stageDropdownOpen = false"
+            @click="
+              selectStage(stage);
+              stageDropdownOpen = false;
+            "
           >
             <span
               class="size-2 rounded-full shrink-0"

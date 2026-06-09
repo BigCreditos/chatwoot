@@ -136,6 +136,7 @@ const {
   setSidebarWidth,
   saveWidth,
   snapToExpanded,
+  toggleCollapse,
   MIN_WIDTH,
 } = useSidebarResize();
 
@@ -198,6 +199,12 @@ useEventListener(document, 'mousemove', onResizeMove);
 useEventListener(document, 'mouseup', onResizeEnd);
 useEventListener(document, 'touchmove', onResizeMove, { passive: true });
 useEventListener(document, 'touchend', onResizeEnd);
+
+useEventListener('keydown', e => {
+  if (e.key === '[' || e.key.toLowerCase() === 'm') {
+    if (!e.ctrlKey && !e.metaKey) toggleCollapse();
+  }
+});
 
 const labels = useMapGetter('labels/getLabelsOnSidebar');
 
@@ -922,6 +929,13 @@ const menuItems = computed(() => {
             is-collapsed
             @show-create-account-modal="emit('showCreateAccountModal')"
           />
+          <button
+            class="flex items-center justify-center size-8 rounded-lg text-n-slate-11 hover:bg-n-alpha-2"
+            title="Expandir sidebar"
+            @click="toggleCollapse"
+          >
+            <span class="i-lucide-chevron-right size-4" />
+          </button>
         </template>
         <template v-else>
           <div class="grid flex-shrink-0 place-content-center size-6">
@@ -932,6 +946,13 @@ const menuItems = computed(() => {
             class="flex-grow -mx-1 min-w-0"
             @show-create-account-modal="emit('showCreateAccountModal')"
           />
+          <button
+            class="flex-shrink-0 size-8 grid place-content-center rounded-lg text-n-slate-11 hover:bg-n-alpha-2"
+            title="Recolher sidebar"
+            @click="toggleCollapse"
+          >
+            <span class="i-lucide-chevron-left size-4" />
+          </button>
         </template>
       </div>
       <div

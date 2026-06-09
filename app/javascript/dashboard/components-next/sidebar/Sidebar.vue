@@ -873,11 +873,11 @@ const menuItems = computed(() => {
         ],
       },
     ]"
-    class="bg-n-background flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[200px] md:w-auto md:relative flex-shrink-0 min-w-[260px] md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-n-weak"
+    class="bg-n-background flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[200px] md:w-auto md:relative md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-n-weak"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
-        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen && isMobile,
+        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
         'transition-transform duration-200 ease-out md:transition-[width]':
           !isResizing,
       },
@@ -885,7 +885,7 @@ const menuItems = computed(() => {
     :style="isMobile ? undefined : { width: `${sidebarWidth}px` }"
   >
     <section
-      class="grid min-w-0"
+      class="grid"
       :class="isEffectivelyCollapsed ? 'mt-3 mb-6 gap-4' : 'mt-1 mb-4 gap-2'"
     >
       <div

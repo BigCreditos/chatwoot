@@ -94,12 +94,16 @@ const hasConversationUnreadCounts = computed(() => {
 const fetchConversationUnreadCounts = ([currentAccountId, isEnabled]) => {
   if (!currentAccountId) return;
 
-  if (!isEnabled) {
-    store.dispatch('conversationUnreadCounts/clear');
-    return;
-  }
+  try {
+    if (!isEnabled) {
+      store.dispatch('conversationUnreadCounts/clear');
+      return;
+    }
 
-  store.dispatch('conversationUnreadCounts/get');
+    store.dispatch('conversationUnreadCounts/get');
+  } catch {
+    // conversationUnreadCounts module not registered
+  }
 };
 
 const toggleShortcutModalFn = show => {
@@ -196,13 +200,22 @@ useEventListener(document, 'touchmove', onResizeMove, { passive: true });
 useEventListener(document, 'touchend', onResizeEnd);
 
 const labels = useMapGetter('labels/getLabelsOnSidebar');
-const getInboxUnreadCount = useMapGetter(
+
+const safeUnreadCountGetter = key => {
+  const source = useMapGetter(key);
+  return computed(() => {
+    const fn = source.value;
+    return (...args) => (typeof fn === 'function' ? fn(...args) : 0);
+  });
+};
+
+const getInboxUnreadCount = safeUnreadCountGetter(
   'conversationUnreadCounts/getInboxUnreadCount'
 );
-const getLabelUnreadCount = useMapGetter(
+const getLabelUnreadCount = safeUnreadCountGetter(
   'conversationUnreadCounts/getLabelUnreadCount'
 );
-const getTeamUnreadCount = useMapGetter(
+const getTeamUnreadCount = safeUnreadCountGetter(
   'conversationUnreadCounts/getTeamUnreadCount'
 );
 const teams = useMapGetter('teams/getMyTeams');

@@ -97,6 +97,12 @@ class ActionService
     end
   end
 
+  def add_contact_label(labels)
+    return if labels.blank?
+
+    @conversation.contact&.add_labels(labels)
+  end
+
   private
 
   def last_responding_agent_id

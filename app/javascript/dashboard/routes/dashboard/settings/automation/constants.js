@@ -105,6 +105,10 @@ export const AUTOMATIONS = {
         name: 'REMOVE_ASSIGNED_TEAM',
       },
       {
+        key: 'add_contact_label',
+        name: 'ADD_CONTACT_LABEL',
+      },
+      {
         key: 'add_label',
         name: 'ADD_LABEL',
       },
@@ -249,6 +253,10 @@ export const AUTOMATIONS = {
       {
         key: 'remove_assigned_team',
         name: 'REMOVE_ASSIGNED_TEAM',
+      },
+      {
+        key: 'add_contact_label',
+        name: 'ADD_CONTACT_LABEL',
       },
       {
         key: 'assign_agent',
@@ -401,6 +409,10 @@ export const AUTOMATIONS = {
         name: 'REMOVE_ASSIGNED_TEAM',
       },
       {
+        key: 'add_contact_label',
+        name: 'ADD_CONTACT_LABEL',
+      },
+      {
         key: 'assign_agent',
         name: 'ASSIGN_AGENT',
       },
@@ -545,6 +557,10 @@ export const AUTOMATIONS = {
         name: 'REMOVE_ASSIGNED_TEAM',
       },
       {
+        key: 'add_contact_label',
+        name: 'ADD_CONTACT_LABEL',
+      },
+      {
         key: 'assign_agent',
         name: 'ASSIGN_AGENT',
       },
@@ -679,6 +695,10 @@ export const AUTOMATIONS = {
         name: 'REMOVE_ASSIGNED_TEAM',
       },
       {
+        key: 'add_contact_label',
+        name: 'ADD_CONTACT_LABEL',
+      },
+      {
         key: 'send_email_to_team',
         name: 'SEND_EMAIL_TO_TEAM',
       },
@@ -749,6 +769,11 @@ export const AUTOMATION_ACTION_TYPES = [
   {
     key: 'add_label',
     label: 'ADD_LABEL',
+    inputType: 'multi_select',
+  },
+  {
+    key: 'add_contact_label',
+    label: 'ADD_CONTACT_LABEL',
     inputType: 'multi_select',
   },
   {

@@ -108,6 +108,7 @@ export const getActionOptions = ({
     assign_team: addNoneToListFn ? addNoneToListFn(teams) : teams,
     send_email_to_team: teams,
     add_label: generateConditionOptions(labels, 'title'),
+    add_contact_label: generateConditionOptions(labels, 'title'),
     remove_label: generateConditionOptions(labels, 'title'),
     remove_participants: [],
     change_priority: priorityOptions,

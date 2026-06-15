@@ -15,7 +15,21 @@ module AccountSettingsSchema
         'captain_auto_resolve_mode': { 'type': %w[string null], 'enum': ['evaluated', 'legacy', 'disabled', nil] },
         'conversation_required_attributes': {
           'type': %w[array null],
-          'items': { 'type': 'string' }
+          'items': {
+            'oneOf': [
+              { 'type': 'string' },
+              {
+                'type': 'object',
+                'properties': {
+                  'attribute_key': { 'type': 'string' },
+                  'inbox_id': { 'type': %w[integer string] },
+                  'apply_to_groups': { 'type': %w[boolean null] }
+                },
+                'required': %w[attribute_key inbox_id],
+                'additionalProperties': false
+              }
+            ]
+          }
         },
         'captain_models': {
           'type': %w[object null],

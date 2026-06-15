@@ -14,6 +14,13 @@ RSpec.describe Avatar::AvatarFromUrlJob do
       .to have_enqueued_job(described_class).on_queue('purgable')
   end
 
+  it 'generates the same hash for signed urls that point to the same avatar path' do
+    first_url = 'https://cdn.example.com/profile/maria.jpg?X-Amz-Date=20260615T120000Z&X-Amz-Signature=old'
+    next_url = 'https://cdn.example.com/profile/maria.jpg?X-Amz-Date=20260615T130000Z&X-Amz-Signature=new'
+
+    expect(described_class.generate_url_hash(first_url)).to eq(described_class.generate_url_hash(next_url))
+  end
+
   context 'with rate-limited avatarable (Contact)' do
     let(:avatarable) { create(:contact) }
 

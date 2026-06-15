@@ -46,7 +46,16 @@ class Avatar::AvatarFromUrlJob < ApplicationJob
   end
 
   def self.generate_url_hash(url)
-    Digest::SHA256.hexdigest(url)
+    Digest::SHA256.hexdigest(normalized_avatar_url(url))
+  end
+
+  def self.normalized_avatar_url(url)
+    uri = URI.parse(url.to_s)
+    uri.query = nil
+    uri.fragment = nil
+    uri.to_s
+  rescue URI::InvalidURIError
+    url.to_s
   end
 
   def perform(avatarable, avatar_url)

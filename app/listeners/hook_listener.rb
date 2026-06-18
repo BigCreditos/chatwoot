@@ -37,7 +37,20 @@ class HookListener < BaseListener
   private
 
   def execute_hooks(event, message)
+    custom_attrs = message.conversation.custom_attributes || {}
+    if custom_attrs['typebot_url'].present? && custom_attrs['typebot_id'].present?
+      HookJob.perform_later({
+        account_id: message.account_id,
+        app_id: 'typebot',
+        settings: {
+          'typebot_url' => custom_attrs['typebot_url'],
+          'typebot_id' => custom_attrs['typebot_id']
+        }
+      }, event.name, message: message, previous_changes: event.data[:previous_changes])
+    end
+
     message.account.hooks.find_each do |hook|
+      next if hook.app_id == 'typebot' && custom_attrs['typebot_id'].present?
       # In case of dialogflow, we would have a hook for each inbox.
       # Which means we will execute the same hook multiple times if the below filter isn't there
       next if hook.inbox.present? && hook.inbox != message.inbox
@@ -61,6 +74,7 @@ class HookListener < BaseListener
     supported_events_map = {
       'slack' => ['message.created', 'message.updated'],
       'dialogflow' => ['message.created', 'message.updated'],
+      'typebot' => ['message.created', 'message.updated'],
       'google_translate' => ['message.created'],
       'leadsquared' => ['contact.updated', 'conversation.created', 'conversation.resolved']
     }

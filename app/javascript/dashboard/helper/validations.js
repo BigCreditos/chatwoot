@@ -132,6 +132,18 @@ const validateSingleAction = action => {
     'pending_conversation',
   ];
 
+  if (action.action_name === 'trigger_typebot') {
+    if (
+      !action.action_params ||
+      action.action_params.length < 2 ||
+      !action.action_params[0] ||
+      !action.action_params[1]
+    ) {
+      return ACTION_PARAMETERS_REQUIRED;
+    }
+    return null;
+  }
+
   if (
     !noParamActions.includes(action.action_name) &&
     (!action.action_params || action.action_params.length === 0)

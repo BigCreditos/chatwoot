@@ -4,6 +4,10 @@ class HookJob < MutexApplicationJob
   queue_as :medium
 
   def perform(hook, event_name, event_data = {})
+    if hook.is_a?(Hash)
+      hook = VirtualHook.new(hook)
+    end
+
     return if hook.disabled?
 
     case hook.app_id
@@ -11,6 +15,8 @@ class HookJob < MutexApplicationJob
       process_slack_integration(hook, event_name, event_data)
     when 'dialogflow'
       process_dialogflow_integration(hook, event_name, event_data)
+    when 'typebot'
+      process_typebot_integration(hook, event_name, event_data)
     when 'google_translate'
       google_translate_integration(hook, event_name, event_data)
     when 'leadsquared'
@@ -48,6 +54,12 @@ class HookJob < MutexApplicationJob
     return unless ['message.created', 'message.updated'].include?(event_name)
 
     Integrations::Dialogflow::ProcessorService.new(event_name: event_name, hook: hook, event_data: event_data).perform
+  end
+
+  def process_typebot_integration(hook, event_name, event_data)
+    return unless ['message.created', 'message.updated'].include?(event_name)
+
+    Integrations::Typebot::ProcessorService.new(event_name: event_name, hook: hook, event_data: event_data).perform
   end
 
   def google_translate_integration(hook, event_name, event_data)
@@ -89,6 +101,25 @@ class HookJob < MutexApplicationJob
       processor.handle_conversation_created(event_data[:conversation])
     when 'conversation.resolved'
       processor.handle_conversation_resolved(event_data[:conversation])
+    end
+  end
+
+  class VirtualHook
+    attr_reader :account_id, :app_id, :settings, :account
+
+    def initialize(params)
+      @account_id = params[:account_id] || params['account_id']
+      @app_id = params[:app_id] || params['app_id']
+      @settings = params[:settings] || params['settings']
+      @account = Account.find_by(id: @account_id)
+    end
+
+    def disabled?
+      false
+    end
+
+    def id
+      nil
     end
   end
 end

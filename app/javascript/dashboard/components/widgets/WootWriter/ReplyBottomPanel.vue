@@ -256,7 +256,7 @@ export default {
     showStickerButton() {
       return (
         !this.isOnPrivateNote &&
-        (this.isAWhatsAppCloudChannel || this.isAUnoapiChannel)
+        (this.isAWhatsAppCloudChannel || this.isAUnoapiChannel || this.isABaileysChannel)
       );
     },
     showEmojiButton() {
@@ -269,7 +269,7 @@ export default {
       return (
         !this.isOnPrivateNote &&
         !this.isEditorDisabled &&
-        (this.isAWhatsAppCloudChannel || this.isAUnoapiChannel)
+        (this.isAWhatsAppCloudChannel || this.isAUnoapiChannel || this.isABaileysChannel)
       );
     },
     sendWithSignature() {

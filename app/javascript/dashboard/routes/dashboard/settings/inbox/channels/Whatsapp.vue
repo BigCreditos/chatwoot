@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n, I18nT } from 'vue-i18n';
 import Twilio from './Twilio.vue';
 import Unoapi from './Unoapi.vue';
+import Baileys from './Baileys.vue';
 import ThreeSixtyDialogWhatsapp from './360DialogWhatsapp.vue';
 import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
@@ -21,6 +22,7 @@ const PROVIDER_TYPES = {
   WHATSAPP_MANUAL: 'whatsapp_manual',
   THREE_SIXTY_DIALOG: '360dialog',
   UNOAPI: 'unoapi',
+  BAILEYS: 'baileys',
 };
 
 const hasWhatsappAppId = computed(() => {
@@ -53,6 +55,12 @@ const availableProviders = computed(() => [
     key: PROVIDER_TYPES.UNOAPI,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.UNOAPI'),
     description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.UNOAPI'),
+    icon: 'i-woot-whatsapp',
+  },
+  {
+    key: PROVIDER_TYPES.BAILEYS,
+    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
     icon: 'i-woot-whatsapp',
   },
 ]);
@@ -147,6 +155,7 @@ const handleManualLinkClick = () => {
           v-else-if="selectedProvider === PROVIDER_TYPES.THREE_SIXTY_DIALOG"
         />
         <Unoapi v-else-if="selectedProvider === PROVIDER_TYPES.UNOAPI" />
+        <Baileys v-else-if="selectedProvider === PROVIDER_TYPES.BAILEYS" />
         <CloudWhatsapp v-else />
       </div>
     </div>

@@ -180,7 +180,7 @@ export default {
     canUseGroupMentions() {
       return (
         this.currentChat?.group &&
-        this.isAUnoapiChannel &&
+        (this.isAUnoapiChannel || this.isABaileysChannel) &&
         !this.isOnPrivateNote
       );
     },
@@ -963,6 +963,7 @@ export default {
           this.isATwilioWhatsAppChannel ||
           this.isAWhatsAppCloudChannel ||
           this.isAUnoapiChannel ||
+          this.isABaileysChannel ||
           this.is360DialogWhatsAppChannel;
         // When users send messages containing both text and attachments on Instagram, Instagram treats them as separate messages.
         // Although ViperChat combines these into a single message, Instagram sends separate echo events for each component.

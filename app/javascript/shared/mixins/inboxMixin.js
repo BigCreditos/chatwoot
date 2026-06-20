@@ -96,6 +96,12 @@ export default {
         this.whatsAppAPIProvider === 'unoapi'
       );
     },
+    isABaileysChannel() {
+      return (
+        this.channelType === INBOX_TYPES.WHATSAPP &&
+        this.whatsAppAPIProvider === 'baileys'
+      );
+    },
     is360DialogWhatsAppChannel() {
       return (
         this.channelType === INBOX_TYPES.WHATSAPP &&

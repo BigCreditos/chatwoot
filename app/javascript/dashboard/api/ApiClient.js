@@ -10,7 +10,9 @@ class ApiClient {
   }
 
   get url() {
-    return `${this.baseUrl()}/${this.resource}`;
+    return this.resource !== undefined && this.resource !== null
+      ? `${this.baseUrl()}/${this.resource}`
+      : this.baseUrl();
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -52,7 +54,8 @@ class ApiClient {
   }
 
   update(id, data) {
-    return axios.patch(`${this.url}/${id}`, data);
+    const url = id ? `${this.url}/${id}` : this.url;
+    return axios.patch(url, data);
   }
 
   delete(id) {

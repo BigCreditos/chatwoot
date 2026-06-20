@@ -25,7 +25,7 @@ class Channel::Whatsapp < ApplicationRecord
   EDITABLE_ATTRS = [:phone_number, :provider, { provider_config: {} }].freeze
 
   # default at the moment is 360dialog lets change later.
-  PROVIDERS = %w[default whatsapp_cloud unoapi].freeze
+  PROVIDERS = %w[default whatsapp_cloud unoapi baileys].freeze
   before_validation :ensure_unoapi_group_conversation_schema_default
   before_validation :ensure_webhook_verify_token
 
@@ -47,6 +47,8 @@ class Channel::Whatsapp < ApplicationRecord
       Whatsapp::Providers::WhatsappCloudService.new(whatsapp_channel: self)
     elsif provider == 'unoapi'
       Whatsapp::Providers::UnoapiService.new(whatsapp_channel: self)
+    elsif provider == 'baileys'
+      Whatsapp::Providers::BaileysService.new(whatsapp_channel: self)
     else
       Whatsapp::Providers::Whatsapp360DialogService.new(whatsapp_channel: self)
     end
@@ -84,7 +86,7 @@ class Channel::Whatsapp < ApplicationRecord
   private
 
   def ensure_webhook_verify_token
-    provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if %w[whatsapp_cloud unoapi].include?(provider)
+    provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if %w[whatsapp_cloud unoapi baileys].include?(provider)
   end
 
   def ensure_unoapi_group_conversation_schema_default

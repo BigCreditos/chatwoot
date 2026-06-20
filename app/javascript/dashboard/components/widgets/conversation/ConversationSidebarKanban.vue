@@ -61,10 +61,11 @@ const currentStage = computed(() => {
 const loadPipelineConfig = async () => {
   try {
     const { config } = await KanbanConfigHelper.loadConfig(store.value);
-    fullConfig.value = config;
+    fullConfig.value = (config && typeof config === 'object') ? config : { pipelines: [] };
     detectConversationPipeline();
   } catch (err) {
     console.error('Failed to load Kanban config for sidebar:', err);
+    fullConfig.value = { pipelines: [] };
   }
 };
 
@@ -78,6 +79,8 @@ watch(
     detectConversationPipeline();
   }
 );
+
+const onClickOutside = () => { stageDropdownOpen.value = false; };
 
 const onPipelineChange = () => {
   activeStageId.value = null;
@@ -176,7 +179,7 @@ const handleStageAutomations = async stage => {
       >
         {{ t('KANBAN.SIDEBAR.STAGE') }}
       </label>
-      <div v-on-click-outside="(stageDropdownOpen = false)" class="relative">
+      <div v-on-click-outside="onClickOutside" class="relative">
         <button
           type="button"
           class="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-200 hover:border-slate-700 transition-all"

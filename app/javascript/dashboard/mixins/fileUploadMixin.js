@@ -33,7 +33,7 @@ export default {
         Number(this.globalConfig?.maxFileUploadSizeInMb) ||
         MAXIMUM_FILE_UPLOAD_SIZE;
 
-      if (this.isAUnoapiChannel) {
+      if (this.isAUnoapiChannel || this.isABaileysChannel) {
         return globalLimit;
       }
 

@@ -2,6 +2,7 @@ import { CONVERSATION_PRIORITY_ORDER } from 'shared/constants/messages';
 
 export const findPendingMessageIndex = (chat, message) => {
   const { echo_id: tempMessageId } = message;
+  if (!chat?.messages) return -1;
   return chat.messages.findIndex(
     m => m.id === message.id || m.id === tempMessageId
   );

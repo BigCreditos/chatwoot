@@ -162,6 +162,9 @@ export default {
       if (this.isAUnoapiChannel) {
         return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.UNOAPI');
       }
+      if (this.isABaileysChannel) {
+        return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS');
+      }
       return '';
     },
     tabs() {
@@ -198,12 +201,14 @@ export default {
         ];
       }
 
-      if (this.isAUnoapiChannel) {
+      if (this.isAUnoapiChannel || this.isABaileysChannel) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,
           {
             key: 'unoApiConfiguration',
-            name: this.$t('INBOX_MGMT.TABS.UNOAPI_CONFIGURATION'),
+            name: this.isAUnoapiChannel
+              ? this.$t('INBOX_MGMT.TABS.UNOAPI_CONFIGURATION')
+              : this.$t('INBOX_MGMT.TABS.BAILEYS_CONFIGURATION'),
           },
         ];
       } else if (

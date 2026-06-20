@@ -7,12 +7,15 @@ import SettingsAccordion from 'dashboard/components-next/Settings/SettingsAccord
 import ImapSettings from '../ImapSettings.vue';
 import SmtpSettings from '../SmtpSettings.vue';
 import { useVuelidate } from '@vuelidate/core';
-import { required } from '@vuelidate/validators';
+import { requiredIf } from '@vuelidate/validators';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import TextArea from 'next/textarea/TextArea.vue';
 import WhatsappReauthorize from '../channels/whatsapp/Reauthorize.vue';
-import { sanitizeAllowedDomains } from 'dashboard/helper/URLHelper';
-import Input from 'dashboard/components-next/input/Input.vue';
+import { sanitizeAllowedDomains, isValidURL } from 'dashboard/helper/URLHelper';
+import NextInput from 'dashboard/components-next/input/Input.vue';
+import WhatsappLinkDeviceModal from '../components/WhatsappLinkDeviceModal.vue';
+import InboxName from 'dashboard/components/widgets/InboxName.vue';
+import NextSwitch from 'dashboard/components-next/switch/Switch.vue';
 
 export default {
   components: {
@@ -24,7 +27,10 @@ export default {
     NextButton,
     TextArea,
     WhatsappReauthorize,
-    Input,
+    NextInput,
+    WhatsappLinkDeviceModal,
+    InboxName,
+    NextSwitch,
   },
   mixins: [inboxMixin],
   props: {
@@ -66,10 +72,30 @@ export default {
         jwtTtl: '3600',
       },
       isSettingDefaults: false,
+      baileysProviderUrl: '',
+      showLinkDeviceModal: false,
+      markAsRead: true,
+      presenceSubscribe: false,
+      zapiInstanceId: '',
+      zapiToken: '',
+      zapiClientToken: '',
+      zapiInstanceIdUpdate: '',
+      zapiTokenUpdate: '',
+      zapiClientTokenUpdate: '',
     };
   },
-  validations: {
-    whatsAppInboxAPIKey: { required },
+  validations() {
+    return {
+      whatsAppInboxAPIKey: {
+        requiredIf: requiredIf(
+          !this.isAWhatsAppBaileysChannel && !this.isAWhatsAppZapiChannel
+        ),
+      },
+      baileysProviderUrl: { isValidURL: value => !value || isValidURL(value) },
+      zapiInstanceIdUpdate: {},
+      zapiTokenUpdate: {},
+      zapiClientTokenUpdate: {},
+    };
   },
   computed: {
     isEmbeddedSignupWhatsApp() {
@@ -130,6 +156,16 @@ export default {
           jwtTtl: config.jwt_ttl ? config.jwt_ttl.toString() : '3600',
         };
       }
+      this.baileysProviderUrl = this.inbox.provider_config?.provider_url ?? '';
+      this.markAsRead = this.inbox.provider_config?.mark_as_read ?? true;
+      this.presenceSubscribe =
+        this.inbox.provider_config?.presence_subscribe ?? false;
+      this.zapiInstanceId = this.inbox.provider_config?.instance_id ?? '';
+      this.zapiToken = this.inbox.provider_config?.token ?? '';
+      this.zapiClientToken = this.inbox.provider_config?.client_token ?? '';
+      this.zapiInstanceIdUpdate = this.zapiInstanceId;
+      this.zapiTokenUpdate = this.zapiToken;
+      this.zapiClientTokenUpdate = this.zapiClientToken;
       this.$nextTick(() => {
         this.isSettingDefaults = false;
       });
@@ -306,6 +342,121 @@ export default {
         this.isSyncingTemplates = false;
       }
     },
+    async updateBaileysProviderUrl() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              provider_url: this.baileysProviderUrl,
+            },
+          },
+        };
+
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateWhatsAppMarkAsRead() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              mark_as_read: this.markAsRead,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updatePresenceSubscribe() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              presence_subscribe: this.presenceSubscribe,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    onOpenLinkDeviceModal() {
+      this.showLinkDeviceModal = true;
+    },
+    onCloseLinkDeviceModal() {
+      this.showLinkDeviceModal = false;
+    },
+    async updateZapiInstanceId() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              instance_id: this.zapiInstanceIdUpdate,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateZapiToken() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              token: this.zapiTokenUpdate,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateZapiClientToken() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              client_token: this.zapiClientTokenUpdate,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
   },
 };
 </script>
@@ -332,47 +483,47 @@ export default {
   </div>
   <div v-else-if="isAVoiceChannel" class="mx-8">
     <template v-if="inbox.provider === 'twilio'">
-      <SettingsSection
-        :title="$t('INBOX_MGMT.ADD.VOICE.CONFIGURATION.TWILIO_VOICE_URL_TITLE')"
-        :sub-title="
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.ADD.VOICE.CONFIGURATION.TWILIO_VOICE_URL_TITLE')"
+        :help-text="
           $t('INBOX_MGMT.ADD.VOICE.CONFIGURATION.TWILIO_VOICE_URL_SUBTITLE')
         "
       >
         <woot-code :script="inbox.voice_call_webhook_url" lang="html" />
-      </SettingsSection>
-      <SettingsSection
-        :title="
+      </SettingsFieldSection>
+      <SettingsFieldSection
+        :label="
           $t('INBOX_MGMT.ADD.VOICE.CONFIGURATION.TWILIO_STATUS_URL_TITLE')
         "
-        :sub-title="
+        :help-text="
           $t('INBOX_MGMT.ADD.VOICE.CONFIGURATION.TWILIO_STATUS_URL_SUBTITLE')
         "
       >
         <woot-code :script="inbox.voice_status_webhook_url" lang="html" />
-      </SettingsSection>
+      </SettingsFieldSection>
     </template>
 
     <template v-else-if="isCustomVoiceChannel">
-      <SettingsSection
-        :title="$t('INBOX_MGMT.ADD.VOICE.PROVIDERS.CUSTOM')"
-        :sub-title="$t('INBOX_MGMT.ADD.VOICE.DESC')"
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.ADD.VOICE.PROVIDERS.CUSTOM')"
+        :help-text="$t('INBOX_MGMT.ADD.VOICE.DESC')"
       >
         <div class="flex flex-col gap-4 max-w-3xl">
-          <Input
+          <NextInput
             v-model="customVoiceConfig.webrtcWsUrl"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.WEBRTC_WS_URL.LABEL')"
             :placeholder="
               $t('INBOX_MGMT.ADD.VOICE.CUSTOM.WEBRTC_WS_URL.PLACEHOLDER')
             "
           />
-          <Input
+          <NextInput
             v-model="customVoiceConfig.sipDomain"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.SIP_DOMAIN.LABEL')"
             :placeholder="
               $t('INBOX_MGMT.ADD.VOICE.CUSTOM.SIP_DOMAIN.PLACEHOLDER')
             "
           />
-          <Input
+          <NextInput
             v-model="customVoiceConfig.sipOutboundProxy"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.SIP_OUTBOUND_PROXY.LABEL')"
             :placeholder="
@@ -401,21 +552,21 @@ export default {
               $t('INBOX_MGMT.ADD.VOICE.CUSTOM.STUN_SERVERS.PLACEHOLDER')
             "
           />
-          <Input
+          <NextInput
             v-model="customVoiceConfig.turnUrl"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_URL.LABEL')"
             :placeholder="
               $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_URL.PLACEHOLDER')
             "
           />
-          <Input
+          <NextInput
             v-model="customVoiceConfig.turnUsername"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_USERNAME.LABEL')"
             :placeholder="
               $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_USERNAME.PLACEHOLDER')
             "
           />
-          <Input
+          <NextInput
             v-model="customVoiceConfig.turnPassword"
             type="password"
             :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TURN_PASSWORD.LABEL')"
@@ -452,14 +603,14 @@ export default {
             </select>
           </label>
           <template v-if="customVoiceConfig.transferMode === 'ari'">
-            <Input
+            <NextInput
               v-model="customVoiceConfig.transferApiUrl"
               :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_URL.LABEL')"
               :placeholder="
                 $t('INBOX_MGMT.ADD.VOICE.CUSTOM.TRANSFER_API_URL.PLACEHOLDER')
               "
             />
-            <Input
+            <NextInput
               v-model="customVoiceConfig.transferApiToken"
               type="password"
               :label="
@@ -476,21 +627,21 @@ export default {
               {{ $t('INBOX_MGMT.ADD.VOICE.CUSTOM.USE_AGENT_JWT') }}
             </label>
             <template v-if="!customVoiceConfig.useAgentJwt">
-              <Input
+              <NextInput
                 v-model="customVoiceConfig.jwtIssuer"
                 :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_ISSUER.LABEL')"
                 :placeholder="
                   $t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_ISSUER.PLACEHOLDER')
                 "
               />
-              <Input
+              <NextInput
                 v-model="customVoiceConfig.jwtAudience"
                 :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_AUDIENCE.LABEL')"
                 :placeholder="
                   $t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_AUDIENCE.PLACEHOLDER')
                 "
               />
-              <Input
+              <NextInput
                 v-model="customVoiceConfig.jwtSecret"
                 type="password"
                 :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_SECRET.LABEL')"
@@ -498,7 +649,7 @@ export default {
                   $t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_SECRET.PLACEHOLDER')
                 "
               />
-              <Input
+              <NextInput
                 v-model="customVoiceConfig.jwtTtl"
                 :label="$t('INBOX_MGMT.ADD.VOICE.CUSTOM.JWT_TTL.LABEL')"
                 :placeholder="
@@ -515,7 +666,7 @@ export default {
             />
           </div>
         </div>
-      </SettingsSection>
+      </SettingsFieldSection>
     </template>
   </div>
 
@@ -673,7 +824,14 @@ export default {
     <ImapSettings :inbox="inbox" />
     <SmtpSettings v-if="inbox.imap_enabled" :inbox="inbox" />
   </div>
-  <div v-else-if="isAWhatsAppChannel && !isATwilioChannel">
+  <div
+    v-else-if="
+      isAWhatsAppChannel &&
+      !isATwilioChannel &&
+      !isAWhatsAppBaileysChannel &&
+      !isAWhatsAppZapiChannel
+    "
+  >
     <div v-if="inbox.provider_config">
       <!-- Embedded Signup Section -->
       <template v-if="isEmbeddedSignupWhatsApp">
@@ -757,6 +915,306 @@ export default {
       :inbox="inbox"
       class="hidden"
     />
+  </div>
+  <div v-else-if="isAWhatsAppBaileysChannel">
+    <WhatsappLinkDeviceModal
+      v-if="showLinkDeviceModal"
+      :show="showLinkDeviceModal"
+      :on-close="onCloseLinkDeviceModal"
+      :inbox="inbox"
+    />
+    <div class="mx-8">
+      <SettingsFieldSection
+        :label="
+          $t(
+            'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE'
+          )
+        "
+        :help-text="
+          $t(
+            'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER'
+          )
+        "
+      >
+        <div class="flex flex-col gap-2">
+          <InboxName
+            :inbox="inbox"
+            class="!text-lg !m-0"
+            with-phone-number
+            with-provider-connection-status
+          />
+          <NextButton class="w-fit" @click="onOpenLinkDeviceModal">
+            {{
+              $t(
+                'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON'
+              )
+            }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_TITLE')"
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="baileysProviderUrl"
+            type="text"
+            class="flex-1 mr-2 items-center"
+            :placeholder="
+              $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_PLACEHOLDER')
+            "
+            @keydown="v$.baileysProviderUrl.$touch"
+          />
+          <NextButton
+            :disabled="
+              v$.baileysProviderUrl.$invalid ||
+              baileysProviderUrl === inbox.provider_config.provider_url
+            "
+            @click="updateBaileysProviderUrl"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+        <span v-if="v$.baileysProviderUrl.$error" class="text-red-400">
+          {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_ERROR') }}
+        </span>
+      </SettingsFieldSection>
+      <template v-if="inbox.provider_config.api_key">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_TITLE')"
+          :help-text="
+            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_SUBHEADER')
+          "
+        >
+          <woot-code :script="inbox.provider_config.api_key" />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_TITLE')"
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="whatsAppInboxAPIKey"
+            type="text"
+            class="flex-1 mr-2"
+            :placeholder="
+              $t(
+                'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_PLACEHOLDER'
+              )
+            "
+          />
+          <NextButton
+            :disabled="
+              v$.whatsAppInboxAPIKey.$invalid ||
+              (!inbox.provider_config.api_key && !whatsAppInboxAPIKey) ||
+              whatsAppInboxAPIKey === inbox.provider_config.api_key
+            "
+            @click="updateWhatsAppInboxAPIKey"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MARK_AS_READ_TITLE')"
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MARK_AS_READ_SUBHEADER')
+        "
+      >
+        <div class="flex items-center gap-2">
+          <NextSwitch
+            id="markAsRead"
+            v-model="markAsRead"
+            @change="updateWhatsAppMarkAsRead"
+          />
+          <label for="markAsRead">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MARK_AS_READ_LABEL') }}
+          </label>
+        </div>
+      </SettingsFieldSection>
+      <SettingsFieldSection
+        :label="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PRESENCE_SUBSCRIBE_TITLE')
+        "
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PRESENCE_SUBSCRIBE_SUBHEADER')
+        "
+      >
+        <div class="flex items-center gap-2">
+          <NextSwitch
+            id="presenceSubscribe"
+            v-model="presenceSubscribe"
+            @change="updatePresenceSubscribe"
+          />
+          <label for="presenceSubscribe">
+            {{
+              $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PRESENCE_SUBSCRIBE_LABEL')
+            }}
+          </label>
+        </div>
+      </SettingsFieldSection>
+    </div>
+  </div>
+  <div v-else-if="isAWhatsAppZapiChannel">
+    <WhatsappLinkDeviceModal
+      v-if="showLinkDeviceModal"
+      :show="showLinkDeviceModal"
+      :on-close="onCloseLinkDeviceModal"
+      :inbox="inbox"
+    />
+    <div class="mx-8">
+      <SettingsFieldSection
+        :label="
+          $t(
+            'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE'
+          )
+        "
+        :help-text="
+          $t(
+            'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER'
+          )
+        "
+      >
+        <div class="flex flex-col gap-2">
+          <InboxName
+            :inbox="inbox"
+            class="!text-lg !m-0"
+            with-phone-number
+            with-provider-connection-status
+          />
+          <NextButton class="w-fit" @click="onOpenLinkDeviceModal">
+            {{
+              $t(
+                'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON'
+              )
+            }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+
+      <template v-if="inbox.provider_config.instance_id">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_INSTANCE_ID_TITLE')"
+          :help-text="
+            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_INSTANCE_ID_SUBHEADER')
+          "
+        >
+          <woot-code :script="inbox.provider_config.instance_id" />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_INSTANCE_ID_UPDATE_TITLE')
+        "
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_INSTANCE_ID_UPDATE_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="zapiInstanceIdUpdate"
+            type="text"
+            class="flex-1 mr-2"
+          />
+          <NextButton
+            :disabled="
+              v$.zapiInstanceIdUpdate.$invalid ||
+              (!inbox.provider_config.instance_id && !zapiInstanceIdUpdate) ||
+              zapiInstanceIdUpdate === inbox.provider_config.instance_id
+            "
+            @click="updateZapiInstanceId"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+
+      <template v-if="inbox.provider_config.token">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_TOKEN_TITLE')"
+          :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_TOKEN_SUBHEADER')"
+        >
+          <woot-code :script="inbox.provider_config.token" secure />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_TOKEN_UPDATE_TITLE')"
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_TOKEN_UPDATE_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="zapiTokenUpdate"
+            type="password"
+            class="flex-1 mr-2"
+          />
+          <NextButton
+            :disabled="
+              v$.zapiTokenUpdate.$invalid ||
+              (!inbox.provider_config.token && !zapiTokenUpdate) ||
+              zapiTokenUpdate === inbox.provider_config.token
+            "
+            @click="updateZapiToken"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+
+      <template v-if="inbox.provider_config.client_token">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CLIENT_TOKEN_TITLE')"
+          :help-text="
+            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CLIENT_TOKEN_SUBHEADER')
+          "
+        >
+          <woot-code :script="inbox.provider_config.client_token" secure />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CLIENT_TOKEN_UPDATE_TITLE')
+        "
+        :help-text="
+          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CLIENT_TOKEN_UPDATE_SUBHEADER')
+        "
+      >
+        <div
+          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+        >
+          <woot-input
+            v-model="zapiClientTokenUpdate"
+            type="password"
+            class="flex-1 mr-2"
+          />
+          <NextButton
+            :disabled="
+              v$.zapiClientTokenUpdate.$invalid ||
+              (!inbox.provider_config.client_token && !zapiClientTokenUpdate) ||
+              zapiClientTokenUpdate === inbox.provider_config.client_token
+            "
+            @click="updateZapiClientToken"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+    </div>
   </div>
 </template>
 

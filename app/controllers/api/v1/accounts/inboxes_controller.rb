@@ -3,8 +3,7 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   before_action :fetch_inbox, except: [:index, :create]
   before_action :fetch_agent_bot, only: [:set_agent_bot]
   before_action :validate_limit, only: [:create]
-  # we are already handling the authorization in fetch inbox
-  before_action :check_authorization, except: [:show]
+  before_action :check_authorization, except: [:show, :setup_channel_provider]
 
   include Api::V1::Accounts::Concerns::WhatsappHealthManagement
 
@@ -72,6 +71,52 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
     return head :not_found unless @inbox.api?
 
     @inbox.channel.reset_secret!
+  end
+
+  def setup_channel_provider
+    channel = @inbox.channel
+
+    unless channel.respond_to?(:setup_channel_provider)
+      render json: { error: 'Channel does not support setup' }, status: :unprocessable_entity and return
+    end
+
+    channel.setup_channel_provider
+    head :ok
+  end
+
+  def disconnect_channel_provider
+    channel = @inbox.channel
+
+    unless channel.respond_to?(:disconnect_channel_provider)
+      render json: { error: 'Channel does not support disconnect' }, status: :unprocessable_entity and return
+    end
+
+    channel.disconnect_channel_provider
+    head :ok
+  ensure
+    channel.update_provider_connection!(connection: 'close') if channel.respond_to?(:update_provider_connection!)
+  end
+
+  def convert_provider
+    channel = @inbox.channel
+
+    unless channel.respond_to?(:convert_provider!)
+      render json: { error: 'Channel does not support provider conversion' }, status: :unprocessable_entity and return
+    end
+
+    new_provider = params.require(:provider)
+    new_provider_config = (params.permit(provider_config: {})[:provider_config] || {}).to_h
+
+    channel.convert_provider!(new_provider: new_provider, new_provider_config: new_provider_config)
+    render :show
+  rescue ActionController::ParameterMissing => e
+    render json: { message: e.message }, status: :bad_request
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { message: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
+  rescue StandardError => e
+    Rails.logger.error "[WHATSAPP] Provider conversion failed for inbox #{@inbox.id}: #{e.class}: #{e.message}"
+    render json: { message: 'Provider conversion failed. Please check your credentials and the previous provider session, then try again.' },
+           status: :unprocessable_entity
   end
 
   def destroy

@@ -267,6 +267,9 @@ Rails.application.routes.draw do
             post :sync_templates, on: :member
             get :health, on: :member
             post :register_webhook, on: :member
+            post :setup_channel_provider, on: :member
+            post :disconnect_channel_provider, on: :member
+            post :convert_provider, on: :member
             post :reset_secret, on: :member
             if ChatwootApp.enterprise?
               resource :conference, only: %i[create destroy], controller: 'conference' do

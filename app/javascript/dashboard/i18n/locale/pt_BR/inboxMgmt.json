@@ -249,7 +249,10 @@
           "TWILIO_DESC": "Conectar através de credenciais Twilio",
           "360_DIALOG": "360Dialog",
           "UNOAPI": "Unoapi",
-          "BAILEYS": "Baileys"
+          "BAILEYS": "Baileys",
+          "BAILEYS_DESC": "Conectar via API não oficial Baileys",
+          "ZAPI": "Z-API",
+          "ZAPI_DESC": "Conectar via API não oficial Z-API"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
@@ -323,6 +326,46 @@
         },
         "API": {
           "ERROR_MESSAGE": "Não foi possível salvar o canal do WhatsApp"
+        },
+        "PROVIDER_URL": {
+          "LABEL": "URL do Provedor",
+          "PLACEHOLDER": "Se o provedor não estiver rodando localmente, por favor forneça a URL",
+          "ERROR": "Por favor insira uma URL válida"
+        },
+        "MARK_AS_READ": {
+          "LABEL": "Enviar confirmações de leitura"
+        },
+        "PRESENCE_SUBSCRIBE": {
+          "LABEL": "Mostrar indicadores de digitação de contatos"
+        },
+        "INSTANCE_ID": {
+          "LABEL": "ID da Instância",
+          "PLACEHOLDER": "Por favor insira o ID da instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "TOKEN": {
+          "LABEL": "Token",
+          "PLACEHOLDER": "Por favor insira o Token da instância",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "CLIENT_TOKEN": {
+          "LABEL": "Token de Segurança",
+          "PLACEHOLDER": "Por favor insira o Token de Segurança (veja a aba Segurança no painel do Z-API)",
+          "ERROR": "Este campo é obrigatório"
+        },
+        "ADVANCED_OPTIONS": "Opções avançadas",
+        "EXTERNAL_PROVIDER": {
+          "SUBTITLE": "Clique abaixo para configurar o canal do WhatsApp.",
+          "LINK_BUTTON": "Vincular dispositivo",
+          "LINK_DEVICE_MODAL": {
+            "TITLE": "Vincular seu dispositivo",
+            "SUBTITLE": "Escaneie o código QR para vincular seu dispositivo. Certifique-se de que o número de telefone está correto antes de escanear.",
+            "LOADING_QRCODE": "Carregando código QR...",
+            "RECONNECTING": "Conectando...",
+            "LINK_DEVICE": "Vincular dispositivo",
+            "DISCONNECT": "Desconectar",
+            "CONNECTED": "Seu dispositivo foi conectado com sucesso. Agora você pode começar a enviar e receber mensagens."
+          }
         },
         "SEND_AGENT_NAME": {
           "LABEL": "Enviar nome do agente",
@@ -875,6 +918,29 @@
         "ERROR_MESSAGE": "Não foi possível excluir a caixa de entrada. Tente novamente mais tarde.",
         "AVATAR_SUCCESS_MESSAGE": "Perfil da caixa de entrada excluído com sucesso",
         "AVATAR_ERROR_MESSAGE": "Não foi possível excluir o perfil da caixa de entrada. Por favor, tente novamente mais tarde."
+      }
+    },
+    "CONVERT": {
+      "BUTTON": "Converter",
+      "CONFIRM": {
+        "TITLE": "Converter provedor de caixa de entrada",
+        "INTRO": "Você está prestes a alterar o provedor do WhatsApp para '{inboxName}' (atualmente {currentProvider}). Antes de continuar, revise o que vai acontecer:",
+        "EFFECT_DISCONNECT": "A sessão atual com {currentProvider} será desconectada.",
+        "EFFECT_TEMPLATES": "Modelos de mensagem serão limpos e deverão ser sincronizados novamente no novo provedor.",
+        "EFFECT_CONNECTION": "O estado da conexão do provedor será redefinido.",
+        "EFFECT_PRESERVED": "Conversas, mensagens, contatos, atribuições de agentes e histórico são preservados.",
+        "EFFECT_IDENTITY": "O nome da caixa de entrada e o número de telefone permanecem os mesmos.",
+        "CONFIRM_PROMPT": "Para confirmar, digite o nome da caixa de entrada abaixo:",
+        "PLACE_HOLDER": "Digite {inboxName} para continuar",
+        "CONTINUE": "Continuar para converter",
+        "CANCEL": "Cancelar"
+      },
+      "SELECT_PROVIDER_TITLE": "Selecione o novo provedor",
+      "SELECT_PROVIDER_DESCRIPTION": "Convertendo '{inboxName}' de {currentProvider}.",
+      "SUBMIT_BUTTON": "Converter caixa de entrada",
+      "API": {
+        "SUCCESS_MESSAGE": "Caixa de entrada convertida com sucesso",
+        "ERROR_MESSAGE": "Não foi possível converter a caixa de entrada. Por favor, verifique as credenciais e tente novamente."
       }
     },
     "TABS": {

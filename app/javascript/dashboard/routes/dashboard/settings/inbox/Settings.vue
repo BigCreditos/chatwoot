@@ -27,6 +27,7 @@ import CollaboratorsPage from './settingsPage/CollaboratorsPage.vue';
 import BotConfiguration from './components/BotConfiguration.vue';
 import UnoapiConfiguration from './settingsPage/UnoapiConfiguration.vue';
 import AccountHealth from './components/AccountHealth.vue';
+import ConvertInboxModal from 'dashboard/components/widgets/modal/ConvertInboxModal.vue';
 import { FEATURE_FLAGS } from '../../../../featureFlags';
 import SenderNameExamplePreview from './components/SenderNameExamplePreview.vue';
 import LockToSingleConversationPreview from './components/LockToSingleConversationPreview.vue';
@@ -76,6 +77,7 @@ export default {
     AccountHealth,
     Widget,
     AccessToken,
+    ConvertInboxModal,
   },
   mixins: [inboxMixin],
   setup() {
@@ -83,6 +85,7 @@ export default {
   },
   data() {
     return {
+      showConvertGate: false,
       avatarFile: null,
       avatarUrl: '',
       greetingEnabled: true,
@@ -165,7 +168,18 @@ export default {
       if (this.isABaileysChannel) {
         return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS');
       }
+      if (this.isAWhatsAppZapiChannel) {
+        return this.$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI');
+      }
       return '';
+    },
+    isConvertibleWhatsAppChannel() {
+      return (
+        this.isAWhatsAppCloudChannel ||
+        this.isAWhatsAppBaileysChannel ||
+        this.isAWhatsAppZapiChannel ||
+        this.is360DialogWhatsAppChannel
+      );
     },
     tabs() {
       let visibleToAllChannelTabs = [
@@ -201,14 +215,12 @@ export default {
         ];
       }
 
-      if (this.isAUnoapiChannel || this.isABaileysChannel) {
+      if (this.isAUnoapiChannel) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,
           {
             key: 'unoApiConfiguration',
-            name: this.isAUnoapiChannel
-              ? this.$t('INBOX_MGMT.TABS.UNOAPI_CONFIGURATION')
-              : this.$t('INBOX_MGMT.TABS.BAILEYS_CONFIGURATION'),
+            name: this.$t('INBOX_MGMT.TABS.UNOAPI_CONFIGURATION'),
           },
         ];
       } else if (
@@ -217,7 +229,9 @@ export default {
         this.isAPIInbox ||
         (this.isAnEmailChannel && !this.inbox.provider) ||
         this.shouldShowWhatsAppConfiguration ||
-        this.isAWebWidgetInbox
+        this.isAWebWidgetInbox ||
+        this.isAWhatsAppBaileysChannel ||
+        this.isAWhatsAppZapiChannel
       ) {
         visibleToAllChannelTabs = [
           ...visibleToAllChannelTabs,
@@ -649,6 +663,22 @@ export default {
     toggleLockToSingleConversation(value) {
       this.locktoSingleConversation = value;
     },
+    openConvertGate() {
+      this.showConvertGate = true;
+    },
+    closeConvertGate() {
+      this.showConvertGate = false;
+    },
+    goToConvert() {
+      this.showConvertGate = false;
+      this.$router.push({
+        name: 'settings_inbox_convert',
+        params: {
+          accountId: this.$route.params.accountId,
+          inboxId: this.inbox.id,
+        },
+      });
+    },
   },
   validations: {
     webhookUrl: {
@@ -836,12 +866,21 @@ export default {
               v-if="isAWhatsAppChannel"
               :label="$t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.LABEL')"
             >
-              <input
-                v-model="whatsAppAPIProviderName"
-                type="text"
-                disabled
-                class="!mb-0"
-              />
+              <div class="flex items-center gap-2 w-full">
+                <input
+                  v-model="whatsAppAPIProviderName"
+                  type="text"
+                  disabled
+                  class="!mb-0 flex-1"
+                />
+                <NextButton
+                  v-if="isConvertibleWhatsAppChannel"
+                  slate
+                  sm
+                  :label="$t('INBOX_MGMT.CONVERT.BUTTON')"
+                  @click="openConvertGate"
+                />
+              </div>
             </SettingsFieldSection>
 
             <SettingsFieldSection
@@ -1282,5 +1321,13 @@ export default {
         </div>
       </div>
     </section>
+    <ConvertInboxModal
+      v-if="showConvertGate"
+      v-model:show="showConvertGate"
+      :inbox-name="inbox.name"
+      :current-provider="whatsAppAPIProviderName"
+      @on-confirm="goToConvert"
+      @on-close="closeConvertGate"
+    />
   </div>
 </template>

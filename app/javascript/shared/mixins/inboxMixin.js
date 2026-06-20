@@ -102,6 +102,18 @@ export default {
         this.whatsAppAPIProvider === 'baileys'
       );
     },
+    isAWhatsAppBaileysChannel() {
+      return (
+        this.channelType === INBOX_TYPES.WHATSAPP &&
+        this.whatsAppAPIProvider === 'baileys'
+      );
+    },
+    isAWhatsAppZapiChannel() {
+      return (
+        this.channelType === INBOX_TYPES.WHATSAPP &&
+        this.whatsAppAPIProvider === 'zapi'
+      );
+    },
     is360DialogWhatsAppChannel() {
       return (
         this.channelType === INBOX_TYPES.WHATSAPP &&

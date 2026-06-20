@@ -5,12 +5,10 @@ import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
-import { required, requiredIf } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
-import { isValidURL } from '../../../../../helper/URLHelper';
 
 import NextButton from 'dashboard/components-next/button/Button.vue';
-import Switch from 'dashboard/components-next/switch/Switch.vue';
 
 const props = defineProps({
   mode: {
@@ -34,44 +32,33 @@ const inboxName = ref(isConvertMode.value ? props.inbox?.name || '' : '');
 const phoneNumber = ref(
   isConvertMode.value ? props.inbox?.phone_number || '' : ''
 );
-const apiKey = ref('');
-const providerUrl = ref('');
-const showAdvancedOptions = ref(false);
-const markAsRead = ref(true);
-const presenceSubscribe = ref(false);
+const instanceId = ref('');
+const token = ref('');
+const clientToken = ref('');
 
 const uiFlags = computed(() => store.getters['inboxes/getUIFlags']);
 
 const rules = computed(() => ({
   inboxName: { required },
   phoneNumber: { required, isPhoneE164OrEmpty },
-  providerUrl: {
-    isValidURL: value => !value || isValidURL(value),
-    requiredIf: requiredIf(apiKey),
-  },
-  apiKey: { requiredIf: requiredIf(providerUrl) },
+  instanceId: { required },
+  token: { required },
+  clientToken: { required },
 }));
 
 const v$ = useVuelidate(rules, {
   inboxName,
   phoneNumber,
-  providerUrl,
-  apiKey,
+  instanceId,
+  token,
+  clientToken,
 });
 
-const buildProviderConfig = () => {
-  const providerConfig = {
-    mark_as_read: markAsRead.value,
-    presence_subscribe: presenceSubscribe.value,
-  };
-
-  if (apiKey.value || providerUrl.value) {
-    providerConfig.api_key = apiKey.value;
-    providerConfig.provider_url = providerUrl.value;
-  }
-
-  return providerConfig;
-};
+const buildProviderConfig = () => ({
+  instance_id: instanceId.value,
+  token: token.value,
+  client_token: clientToken.value,
+});
 
 const createChannel = async () => {
   v$.value.$touch();
@@ -83,7 +70,7 @@ const createChannel = async () => {
     if (isConvertMode.value) {
       await store.dispatch('inboxes/convertProvider', {
         inboxId: props.inbox.id,
-        provider: 'baileys',
+        provider: 'zapi',
         providerConfig: buildProviderConfig(),
       });
 
@@ -103,7 +90,7 @@ const createChannel = async () => {
       channel: {
         type: 'whatsapp',
         phone_number: phoneNumber.value,
-        provider: 'baileys',
+        provider: 'zapi',
         provider_config: buildProviderConfig(),
       },
     });
@@ -125,10 +112,6 @@ const createChannel = async () => {
         )
     );
   }
-};
-
-const setShowAdvancedOptions = () => {
-  showAdvancedOptions.value = true;
 };
 </script>
 
@@ -166,70 +149,50 @@ const setShowAdvancedOptions = () => {
       </label>
     </div>
 
-    <div
-      v-if="!showAdvancedOptions"
-      class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] mb-4"
-    >
-      <NextButton icon="i-lucide-plus" sm link @click="setShowAdvancedOptions">
-        {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
-      </NextButton>
-    </div>
-    <template v-else>
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <span class="text-sm text-gray-600">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.instanceId.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.INSTANCE_ID.LABEL') }}
+        <input
+          v-model="instanceId"
+          type="password"
+          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.INSTANCE_ID.PLACEHOLDER')"
+          @blur="v$.instanceId.$touch"
+        />
+        <span v-if="v$.instanceId.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.INSTANCE_ID.ERROR') }}
         </span>
-        <label :class="{ error: v$.providerUrl.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.LABEL') }}
-          <input
-            v-model="providerUrl"
-            type="text"
-            :placeholder="
-              $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.PLACEHOLDER')
-            "
-          />
-          <span v-if="v$.providerUrl.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.ERROR') }}
-          </span>
-        </label>
-      </div>
+      </label>
+    </div>
 
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label :class="{ error: v$.apiKey.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
-          <input
-            v-model="apiKey"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
-          />
-          <span v-if="v$.apiKey.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-          </span>
-        </label>
-      </div>
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.token.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.TOKEN.LABEL') }}
+        <input
+          v-model="token"
+          type="password"
+          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.TOKEN.PLACEHOLDER')"
+          @blur="v$.token.$touch"
+        />
+        <span v-if="v$.token.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.TOKEN.ERROR') }}
+        </span>
+      </label>
+    </div>
 
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label>
-          <div class="flex mb-2 items-center">
-            <span class="mr-2 text-sm">
-              {{ $t('INBOX_MGMT.ADD.WHATSAPP.MARK_AS_READ.LABEL') }}
-            </span>
-            <Switch id="markAsRead" v-model="markAsRead" />
-          </div>
-        </label>
-      </div>
-
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label>
-          <div class="flex mb-2 items-center">
-            <span class="mr-2 text-sm">
-              {{ $t('INBOX_MGMT.ADD.WHATSAPP.PRESENCE_SUBSCRIBE.LABEL') }}
-            </span>
-            <Switch id="presenceSubscribe" v-model="presenceSubscribe" />
-          </div>
-        </label>
-      </div>
-    </template>
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.clientToken.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.CLIENT_TOKEN.LABEL') }}
+        <input
+          v-model="clientToken"
+          type="password"
+          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.CLIENT_TOKEN.PLACEHOLDER')"
+          @blur="v$.clientToken.$touch"
+        />
+        <span v-if="v$.clientToken.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.CLIENT_TOKEN.ERROR') }}
+        </span>
+      </label>
+    </div>
 
     <div class="w-full">
       <NextButton

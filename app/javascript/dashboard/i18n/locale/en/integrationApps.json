@@ -37,6 +37,9 @@
       "ACTIONS": "Actions",
       "DELETE": {
         "BUTTON_TEXT": "Delete"
+      },
+      "EDIT": {
+        "BUTTON_TEXT": "Edit"
       }
     },
     "ADD": {
@@ -50,6 +53,16 @@
       },
       "API": {
         "SUCCESS_MESSAGE": "Integration hook added successfully",
+        "ERROR_MESSAGE": "Could not connect to Woot Server, Please try again later"
+      }
+    },
+    "EDIT": {
+      "FORM": {
+        "SUBMIT": "Update",
+        "CANCEL": "Cancel"
+      },
+      "API": {
+        "SUCCESS_MESSAGE": "Integration hook updated successfully",
         "ERROR_MESSAGE": "Could not connect to Woot Server, Please try again later"
       }
     },

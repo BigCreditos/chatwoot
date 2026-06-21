@@ -47,6 +47,13 @@ export default {
           open_waiting_conversations_by_default: value,
         }),
     });
+    const activeTheme = computed({
+      get: () => uiSettings.value.active_theme || 'default',
+      set: value =>
+        updateUISettings({
+          active_theme: value,
+        }),
+    });
 
     return {
       updateUISettings,
@@ -55,6 +62,7 @@ export default {
       enabledLanguages,
       accountId,
       openWaitingConversationsByDefault,
+      activeTheme,
     };
   },
   data() {
@@ -262,6 +270,40 @@ export default {
     </div>
     <AudioTranscription v-if="showAudioTranscriptionConfig" />
     <DeletedMessageContent />
+    <SectionLayout
+      with-border
+      :title="$t('GENERAL_SETTINGS.FORM.BRAND_COLOR_SECTION.TITLE')"
+      :description="
+        $t('GENERAL_SETTINGS.FORM.BRAND_COLOR_SECTION.NOTE')
+      "
+    >
+      <div class="flex gap-4">
+        <button
+          class="flex items-center gap-2 px-4 py-3 border border-solid rounded-lg text-sm font-medium transition-all cursor-pointer"
+          :class="activeTheme === 'default' ? 'border-n-brand bg-n-brand/5 text-n-brand' : 'border-n-weak bg-n-surface-2 text-n-slate-12 hover:border-n-strong'"
+          @click="activeTheme = 'default'"
+        >
+          <span class="w-4 h-4 rounded-sm bg-[#2781f6] inline-block"></span>
+          {{ $t('GENERAL_SETTINGS.FORM.BRAND_COLOR_SECTION.THEME_ORIGINAL') }}
+        </button>
+        <button
+          class="flex items-center gap-2 px-4 py-3 border border-solid rounded-lg text-sm font-medium transition-all cursor-pointer"
+          :class="activeTheme === 'viper' ? 'border-n-brand bg-n-brand/5 text-n-brand' : 'border-n-weak bg-n-surface-2 text-n-slate-12 hover:border-n-strong'"
+          @click="activeTheme = 'viper'"
+        >
+          <span class="w-4 h-4 rounded-sm bg-[#6f3935] inline-block"></span>
+          {{ $t('GENERAL_SETTINGS.FORM.BRAND_COLOR_SECTION.THEME_VIPER') }}
+        </button>
+        <button
+          class="flex items-center gap-2 px-4 py-3 border border-solid rounded-lg text-sm font-medium transition-all cursor-pointer"
+          :class="activeTheme === 'glow' ? 'border-n-brand bg-n-brand/5 text-n-brand' : 'border-n-weak bg-n-surface-2 text-n-slate-12 hover:border-n-strong'"
+          @click="activeTheme = 'glow'"
+        >
+          <span class="w-4 h-4 rounded-sm bg-[#7c3aed] inline-block"></span>
+          {{ $t('GENERAL_SETTINGS.FORM.BRAND_COLOR_SECTION.THEME_GLOW') }}
+        </button>
+      </div>
+    </SectionLayout>
     <SectionLayout
       with-border
       :title="$t('GENERAL_SETTINGS.FORM.WAITING_CONVERSATIONS_SECTION.TITLE')"

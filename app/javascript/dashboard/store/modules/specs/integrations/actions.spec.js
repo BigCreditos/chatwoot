@@ -133,4 +133,25 @@ describe('#actions', () => {
       ]);
     });
   });
+
+  describe('#updateHook', () => {
+    it('sends correct actions if API is success', async () => {
+      let data = { id: 2, app_id: 'typebot', settings: { typebot_url: 'https://typebot.io' } };
+      axios.patch.mockResolvedValue({ data });
+      await actions.updateHook({ commit }, { hookId: 2, settings: { typebot_url: 'https://typebot.io' } });
+      expect(commit.mock.calls).toEqual([
+        [types.SET_INTEGRATIONS_UI_FLAG, { isUpdating: true }],
+        [types.UPDATE_INTEGRATION_HOOKS, data],
+        [types.SET_INTEGRATIONS_UI_FLAG, { isUpdating: false }],
+      ]);
+    });
+    it('sends correct actions if API is error', async () => {
+      axios.patch.mockRejectedValue(errorMessage);
+      await expect(actions.updateHook({ commit }, { hookId: 2 })).rejects.toThrow(Error);
+      expect(commit.mock.calls).toEqual([
+        [types.SET_INTEGRATIONS_UI_FLAG, { isUpdating: true }],
+        [types.SET_INTEGRATIONS_UI_FLAG, { isUpdating: false }],
+      ]);
+    });
+  });
 });

@@ -84,5 +84,16 @@ describe('#integrationAPI', () => {
         '/api/v1/integrations/hooks/2'
       );
     });
+
+    it('#updateHook', () => {
+      const hookData = {
+        settings: { api_key: 'UPDATED_KEY' },
+      };
+      integrationAPI.updateHook(2, hookData);
+      expect(axiosMock.patch).toHaveBeenCalledWith(
+        '/api/v1/integrations/hooks/2',
+        hookData
+      );
+    });
   });
 });

@@ -37,6 +37,9 @@
       "ACTIONS": "Ações",
       "DELETE": {
         "BUTTON_TEXT": "Excluir"
+      },
+      "EDIT": {
+        "BUTTON_TEXT": "Editar"
       }
     },
     "ADD": {
@@ -50,6 +53,16 @@
       },
       "API": {
         "SUCCESS_MESSAGE": "Integração adicionada com sucesso",
+        "ERROR_MESSAGE": "Não foi possível conectar ao servidor Woot, por favor tente novamente mais tarde"
+      }
+    },
+    "EDIT": {
+      "FORM": {
+        "SUBMIT": "Atualizar",
+        "CANCEL": "Cancelar"
+      },
+      "API": {
+        "SUCCESS_MESSAGE": "Integração atualizada com sucesso",
         "ERROR_MESSAGE": "Não foi possível conectar ao servidor Woot, por favor tente novamente mais tarde"
       }
     },

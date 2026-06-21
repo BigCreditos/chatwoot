@@ -1,6 +1,6 @@
 module Whatsapp::BaileysHandlers::Concerns::GroupContactMessageHandler # rubocop:disable Metrics/ModuleLength
   extend ActiveSupport::Concern
-  include GroupConversationHandler
+  include Whatsapp::BaileysHandlers::Concerns::GroupConversationHandler
   include Whatsapp::BaileysHandlers::Concerns::MessageCreationHandler
 
   private

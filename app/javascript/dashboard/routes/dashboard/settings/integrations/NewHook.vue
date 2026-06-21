@@ -18,6 +18,10 @@ export default {
       type: String,
       required: true,
     },
+    hook: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   emits: ['close'],
   setup(props) {
@@ -34,6 +38,14 @@ export default {
       alertMessage: '',
       values: {},
     };
+  },
+  mounted() {
+    if (this.isEditMode) {
+      this.values = {
+        ...this.hook.settings,
+        inbox: this.hook.inbox?.id || this.hook.inbox_id,
+      };
+    }
   },
   computed: {
     ...mapGetters({
@@ -55,13 +67,18 @@ export default {
       if (!this.isIntegrationDialogflow) {
         return [];
       }
-      return this.integration.hooks.map(hook => hook.inbox?.id);
+      return this.integration.hooks
+        .filter(hook => hook.id !== this.hook?.id)
+        .map(hook => hook.inbox?.id);
     },
     formItems() {
       return this.integration.settings_form_schema;
     },
     isIntegrationDialogflow() {
       return this.integration.id === 'dialogflow';
+    },
+    isEditMode() {
+      return !!this.hook && !!this.hook.id;
     },
   },
   methods: {
@@ -97,16 +114,32 @@ export default {
     },
     async submitForm() {
       try {
-        await this.$store.dispatch(
-          'integrations/createHook',
-          this.buildHookPayload()
-        );
-        this.alertMessage = this.$t('INTEGRATION_APPS.ADD.API.SUCCESS_MESSAGE');
+        if (this.isEditMode) {
+          await this.$store.dispatch('integrations/updateHook', {
+            hookId: this.hook.id,
+            app_id: this.integration.id,
+            ...this.buildHookPayload(),
+          });
+          this.alertMessage = this.$t(
+            'INTEGRATION_APPS.EDIT.API.SUCCESS_MESSAGE'
+          );
+        } else {
+          await this.$store.dispatch(
+            'integrations/createHook',
+            this.buildHookPayload()
+          );
+          this.alertMessage = this.$t(
+            'INTEGRATION_APPS.ADD.API.SUCCESS_MESSAGE'
+          );
+        }
         this.onClose();
       } catch (error) {
         const errorMessage = error?.response?.data?.message;
         this.alertMessage =
-          errorMessage || this.$t('INTEGRATION_APPS.ADD.API.ERROR_MESSAGE');
+          errorMessage ||
+          (this.isEditMode
+            ? this.$t('INTEGRATION_APPS.EDIT.API.ERROR_MESSAGE')
+            : this.$t('INTEGRATION_APPS.ADD.API.ERROR_MESSAGE'));
       } finally {
         useAlert(this.alertMessage);
       }
@@ -143,19 +176,20 @@ export default {
         :label="$t('INTEGRATION_APPS.ADD.FORM.INBOX.PLACEHOLDER')"
         validation="required"
         validation-name="Inbox"
+        :disabled="isEditMode"
       />
       <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
         <NextButton
           faded
           slate
           type="reset"
-          :label="$t('INTEGRATION_APPS.ADD.FORM.CANCEL')"
+          :label="isEditMode ? $t('INTEGRATION_APPS.EDIT.FORM.CANCEL') : $t('INTEGRATION_APPS.ADD.FORM.CANCEL')"
           @click.prevent="onClose"
         />
         <NextButton
           type="submit"
-          :label="$t('INTEGRATION_APPS.ADD.FORM.SUBMIT')"
-          :is-loading="uiFlags.isCreatingHook"
+          :label="isEditMode ? $t('INTEGRATION_APPS.EDIT.FORM.SUBMIT') : $t('INTEGRATION_APPS.ADD.FORM.SUBMIT')"
+          :is-loading="isEditMode ? uiFlags.isUpdating : uiFlags.isCreatingHook"
         />
       </div>
     </FormKit>

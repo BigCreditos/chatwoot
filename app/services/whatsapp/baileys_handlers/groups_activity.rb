@@ -1,6 +1,6 @@
 module Whatsapp::BaileysHandlers::GroupsActivity
   include Whatsapp::BaileysHandlers::Concerns::GroupEventHelper
-  include GroupConversationHandler
+  include Whatsapp::BaileysHandlers::Concerns::GroupConversationHandler
 
   private
 

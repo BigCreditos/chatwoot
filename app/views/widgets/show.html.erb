@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<% brand_palette_class = ENV['BRAND_PALETTE'] == 'default' ? nil : 'brand-viper' %>
+<% brand_palette_class = ENV['BRAND_PALETTE'] == 'viper' ? 'brand-viper' : (ENV['BRAND_PALETTE'] == 'glow' ? 'brand-glow' : nil) %>
 <html class="<%= brand_palette_class %>">
   <head>
     <title><%= @global_config['INSTALLATION_NAME'] %></title>

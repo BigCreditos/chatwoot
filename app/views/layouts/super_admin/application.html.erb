@@ -13,7 +13,7 @@ By default, it renders:
 %>
 
 <!DOCTYPE html>
-<% brand_palette_class = ENV['BRAND_PALETTE'] == 'default' ? nil : 'brand-viper' %>
+<% brand_palette_class = ENV['BRAND_PALETTE'] == 'viper' ? 'brand-viper' : (ENV['BRAND_PALETTE'] == 'glow' ? 'brand-glow' : nil) %>
 <html lang="<%= I18n.locale %>" class="w-full h-full <%= brand_palette_class %>">
 <head>
   <meta charset="utf-8">

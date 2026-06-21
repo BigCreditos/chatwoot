@@ -127,6 +127,37 @@ export default {
     this.setDefaults();
   },
   methods: {
+  },
+  computed: {
+    isEmbeddedSignupWhatsApp() {
+      return this.inbox.provider_config?.source === 'embedded_signup';
+    },
+    whatsappAppId() {
+      return window.chatwootConfig?.whatsappAppId;
+    },
+    isForwardingEnabled() {
+      return !!this.inbox.forwarding_enabled;
+    },
+    isCustomVoiceChannel() {
+      return this.isAVoiceChannel && this.inbox.provider === 'custom';
+    },
+  },
+  watch: {
+    inbox() {
+      this.setDefaults();
+    },
+    allowMobileWebview() {
+      if (!this.isSettingDefaults) this.handleMobileWebviewFlag();
+    },
+    hmacMandatory() {
+      if (!this.isSettingDefaults && this.isAWebWidgetInbox)
+        this.handleHmacFlag();
+    },
+  },
+  mounted() {
+    this.setDefaults();
+  },
+  methods: {
     setDefaults() {
       this.isSettingDefaults = true;
       this.hmacMandatory = this.inbox.hmac_mandatory || false;
@@ -373,6 +404,25 @@ export default {
             },
           },
         };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateBaileysProviderUrl() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              provider_url: this.baileysProviderUrl,
+            },
+          },
+        };
+
         await this.$store.dispatch('inboxes/updateInbox', payload);
         useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
@@ -916,7 +966,7 @@ export default {
       class="hidden"
     />
   </div>
-  <div v-else-if="isAWhatsAppBaileysChannel">
+      <div v-else-if="isAWhatsAppBaileysChannel">
     <WhatsappLinkDeviceModal
       v-if="showLinkDeviceModal"
       :show="showLinkDeviceModal"
@@ -950,6 +1000,22 @@ export default {
               )
             }}
           </NextButton>
+        </div>
+        <!-- Baileys QR Code Display -->
+        <div v-if="isAWhatsAppBaileysChannel && inbox.provider_config?.qr_data_url" class="flex flex-col gap-3 items-center mt-8">
+          <p class="mt-2 text-sm text-n-slate-9">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_BAILEYS_QR_CODE_TITLE') }}
+          </p>
+          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+            <img
+              :src="inbox.provider_config.qr_data_url"
+              alt="WhatsApp Baileys QR Code"
+              class="rounded-lg size-48 dark:invert"
+            />
+          </div>
+          <p class="text-sm text-n-slate-11">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_BAILEYS_QR_CODE_INSTRUCTION') }}
+          </p>
         </div>
       </SettingsFieldSection>
       <SettingsFieldSection

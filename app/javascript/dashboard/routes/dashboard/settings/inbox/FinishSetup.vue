@@ -245,6 +245,21 @@ onMounted(() => {
           </div>
         </div>
         <div
+          v-if="isAWhatsAppBaileysChannel && qrCodes.whatsapp"
+          class="flex flex-col gap-3 items-center mt-8"
+        >
+          <p class="mt-2 text-sm text-n-slate-9">
+            {{ $t('INBOX_MGMT.FINISH.WHATSAPP_BAILEYS_QR_INSTRUCTION') }}
+          </p>
+          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+            <img
+              :src="qrCodes.whatsapp"
+              alt="WhatsApp Baileys QR Code"
+              class="rounded-lg size-48 dark:invert"
+            />
+          </div>
+        </div>
+        <div
           v-if="isAFacebookInbox && qrCodes.messenger"
           class="flex flex-col gap-3 items-center mt-8"
         >

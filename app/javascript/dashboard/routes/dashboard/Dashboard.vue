@@ -85,8 +85,22 @@ export default {
       } = this.uiSettings;
       return conversationDisplayType;
     },
+    activeTheme() {
+      return this.uiSettings.active_theme || 'default';
+    },
   },
   watch: {
+    activeTheme: {
+      handler(theme) {
+        document.documentElement.classList.remove('brand-viper', 'brand-glow');
+        if (theme === 'viper') {
+          document.documentElement.classList.add('brand-viper');
+        } else if (theme === 'glow') {
+          document.documentElement.classList.add('brand-glow');
+        }
+      },
+      immediate: true,
+    },
     isSmallScreen: {
       handler() {
         const { LAYOUT_TYPES } = wootConstants;

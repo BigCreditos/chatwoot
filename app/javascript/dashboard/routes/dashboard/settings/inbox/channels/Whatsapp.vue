@@ -90,13 +90,13 @@ const PROVIDER_CATALOG = computed(() => [
   {
     key: PROVIDER_TYPES.BAILEYS,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
-    icon: 'i-woot-whatsapp',
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS_DESC'),
+    icon: 'i-woot-baileys',
   },
   {
     key: PROVIDER_TYPES.ZAPI,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI_DESC'),
     icon: 'i-woot-whatsapp',
   },
   {

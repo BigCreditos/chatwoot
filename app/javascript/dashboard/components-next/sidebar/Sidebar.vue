@@ -200,8 +200,8 @@ useEventListener(document, 'mouseup', onResizeEnd);
 useEventListener(document, 'touchmove', onResizeMove, { passive: true });
 useEventListener(document, 'touchend', onResizeEnd);
 
-useEventListener('keydown', e => {
-  if (e.key === '[' || e.key.toLowerCase() === 'm') {
+useEventListener(document, 'keydown', e => {
+  if (e.key === '[' || e.key?.toLowerCase() === 'm') {
     if (!e.ctrlKey && !e.metaKey) toggleCollapse();
   }
 });

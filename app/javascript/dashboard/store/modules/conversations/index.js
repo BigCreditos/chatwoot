@@ -86,7 +86,12 @@ export const mutations = {
   [types.SET_PREVIOUS_CONVERSATIONS](_state, { id, data }) {
     if (data.length) {
       const [chat] = _state.allConversations.filter(c => c.id === id);
-      chat.messages.unshift(...data);
+      if (chat) {
+        if (!chat.messages) {
+          chat.messages = [];
+        }
+        chat.messages.unshift(...data);
+      }
     }
   },
   [types.SET_ALL_ATTACHMENTS](_state, { id, data }) {
@@ -291,6 +296,10 @@ export const mutations = {
       selectedChatId: conversationId,
     });
     if (!chat) return;
+
+    if (!chat.messages) {
+      chat.messages = [];
+    }
 
     const pendingMessageIndex = findPendingMessageIndex(chat, message);
     if (pendingMessageIndex !== -1) {

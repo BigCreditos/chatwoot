@@ -110,36 +110,8 @@ export default {
     isCustomVoiceChannel() {
       return this.isAVoiceChannel && this.inbox.provider === 'custom';
     },
-  },
-  watch: {
-    inbox() {
-      this.setDefaults();
-    },
-    allowMobileWebview() {
-      if (!this.isSettingDefaults) this.handleMobileWebviewFlag();
-    },
-    hmacMandatory() {
-      if (!this.isSettingDefaults && this.isAWebWidgetInbox)
-        this.handleHmacFlag();
-    },
-  },
-  mounted() {
-    this.setDefaults();
-  },
-  methods: {
-  },
-  computed: {
-    isEmbeddedSignupWhatsApp() {
-      return this.inbox.provider_config?.source === 'embedded_signup';
-    },
-    whatsappAppId() {
-      return window.chatwootConfig?.whatsappAppId;
-    },
-    isForwardingEnabled() {
-      return !!this.inbox.forwarding_enabled;
-    },
-    isCustomVoiceChannel() {
-      return this.isAVoiceChannel && this.inbox.provider === 'custom';
+    hasDefaultBaileysConfig() {
+      return !!(window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL && window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY);
     },
   },
   watch: {
@@ -1019,79 +991,81 @@ export default {
           </p>
         </div>
       </SettingsFieldSection>
-      <SettingsFieldSection
-        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_TITLE')"
-        :help-text="
-          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_SUBHEADER')
-        "
-      >
-        <div
-          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
-        >
-          <woot-input
-            v-model="baileysProviderUrl"
-            type="text"
-            class="flex-1 mr-2 items-center"
-            :placeholder="
-              $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_PLACEHOLDER')
-            "
-            @keydown="v$.baileysProviderUrl.$touch"
-          />
-          <NextButton
-            :disabled="
-              v$.baileysProviderUrl.$invalid ||
-              baileysProviderUrl === inbox.provider_config.provider_url
-            "
-            @click="updateBaileysProviderUrl"
-          >
-            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
-          </NextButton>
-        </div>
-        <span v-if="v$.baileysProviderUrl.$error" class="text-red-400">
-          {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_ERROR') }}
-        </span>
-      </SettingsFieldSection>
-      <template v-if="inbox.provider_config.api_key">
+      <template v-if="!hasDefaultBaileysConfig">
         <SettingsFieldSection
-          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_TITLE')"
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_TITLE')"
           :help-text="
-            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_SUBHEADER')
+            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_SUBHEADER')
           "
         >
-          <woot-code :script="inbox.provider_config.api_key" />
+          <div
+            class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+          >
+            <woot-input
+              v-model="baileysProviderUrl"
+              type="text"
+              class="flex-1 mr-2 items-center"
+              :placeholder="
+                $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_PLACEHOLDER')
+              "
+              @keydown="v$.baileysProviderUrl.$touch"
+            />
+            <NextButton
+              :disabled="
+                v$.baileysProviderUrl.$invalid ||
+                baileysProviderUrl === inbox.provider_config.provider_url
+              "
+              @click="updateBaileysProviderUrl"
+            >
+              {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+            </NextButton>
+          </div>
+          <span v-if="v$.baileysProviderUrl.$error" class="text-red-400">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_ERROR') }}
+          </span>
+        </SettingsFieldSection>
+        <template v-if="inbox.provider_config.api_key">
+          <SettingsFieldSection
+            :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_TITLE')"
+            :help-text="
+              $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_SUBHEADER')
+            "
+          >
+            <woot-code :script="inbox.provider_config.api_key" />
+          </SettingsFieldSection>
+        </template>
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_TITLE')"
+          :help-text="
+            $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_SUBHEADER')
+          "
+        >
+          <div
+            class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
+          >
+            <woot-input
+              v-model="whatsAppInboxAPIKey"
+              type="text"
+              class="flex-1 mr-2"
+              :placeholder="
+                $t(
+                  'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_PLACEHOLDER'
+                )
+              "
+            />
+            <NextButton
+              :disabled="
+                v$.whatsAppInboxAPIKey.$invalid ||
+                (!inbox.provider_config.api_key && !whatsAppInboxAPIKey) ||
+                whatsAppInboxAPIKey === inbox.provider_config.api_key
+              "
+              @click="updateWhatsAppInboxAPIKey"
+            >
+              {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+            </NextButton>
+          </div>
         </SettingsFieldSection>
       </template>
-      <SettingsFieldSection
-        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_TITLE')"
-        :help-text="
-          $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_SUBHEADER')
-        "
-      >
-        <div
-          class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content"
-        >
-          <woot-input
-            v-model="whatsAppInboxAPIKey"
-            type="text"
-            class="flex-1 mr-2"
-            :placeholder="
-              $t(
-                'INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_PLACEHOLDER'
-              )
-            "
-          />
-          <NextButton
-            :disabled="
-              v$.whatsAppInboxAPIKey.$invalid ||
-              (!inbox.provider_config.api_key && !whatsAppInboxAPIKey) ||
-              whatsAppInboxAPIKey === inbox.provider_config.api_key
-            "
-            @click="updateWhatsAppInboxAPIKey"
-          >
-            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
-          </NextButton>
-        </div>
-      </SettingsFieldSection>
       <SettingsFieldSection
         :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MARK_AS_READ_TITLE')"
         :help-text="

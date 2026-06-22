@@ -305,6 +305,9 @@ export const mutations = {
     if (pendingMessageIndex !== -1) {
       chat.messages[pendingMessageIndex] = message;
     } else {
+      if (!chat.messages) {
+        chat.messages = [];
+      }
       chat.messages.push(message);
       chat.timestamp = message.created_at;
       const { conversation: { unread_count: unreadCount = 0 } = {} } = message;

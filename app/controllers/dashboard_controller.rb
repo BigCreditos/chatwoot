@@ -108,7 +108,9 @@ class DashboardController < ActionController::Base
       # UNOAPI_AUTH_TOKEN: GlobalConfigService.load('UNOAPI_AUTH_TOKEN', ''),
       GIT_SHA: GIT_HASH,
       ALLOWED_LOGIN_METHODS: allowed_login_methods,
-      ACTIVE_PLATFORM_BANNERS: active_platform_banners
+      ACTIVE_PLATFORM_BANNERS: active_platform_banners,
+      BAILEYS_PROVIDER_DEFAULT_URL: ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil),
+      BAILEYS_PROVIDER_DEFAULT_API_KEY: ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
     }
   end
 

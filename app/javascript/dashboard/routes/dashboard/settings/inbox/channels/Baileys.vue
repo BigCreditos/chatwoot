@@ -34,8 +34,19 @@ const inboxName = ref(isConvertMode.value ? props.inbox?.name || '' : '');
 const phoneNumber = ref(
   isConvertMode.value ? props.inbox?.phone_number || '' : ''
 );
-const apiKey = ref('');
-const providerUrl = ref('');
+const defaultProviderUrl = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL || '';
+const defaultApiKey = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY || '';
+
+const apiKey = ref(
+  isConvertMode.value
+    ? props.inbox?.provider_config?.api_key || defaultApiKey
+    : defaultApiKey
+);
+const providerUrl = ref(
+  isConvertMode.value
+    ? props.inbox?.provider_config?.provider_url || defaultProviderUrl
+    : defaultProviderUrl
+);
 const showAdvancedOptions = ref(false);
 const markAsRead = ref(true);
 const presenceSubscribe = ref(false);

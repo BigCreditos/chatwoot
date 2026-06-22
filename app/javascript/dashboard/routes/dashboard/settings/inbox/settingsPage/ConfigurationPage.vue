@@ -187,7 +187,8 @@ export default {
           jwtTtl: config.jwt_ttl ? config.jwt_ttl.toString() : '3600',
         };
       }
-      this.baileysProviderUrl = this.inbox.provider_config?.provider_url ?? '';
+      const defaultProviderUrl = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL || '';
+      this.baileysProviderUrl = this.inbox.provider_config?.provider_url || defaultProviderUrl;
       this.markAsRead = this.inbox.provider_config?.mark_as_read ?? true;
       this.presenceSubscribe =
         this.inbox.provider_config?.presence_subscribe ?? false;

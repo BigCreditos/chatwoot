@@ -2,8 +2,9 @@ class Channels::Whatsapp::ZapiQrCodeJob < ApplicationJob
   queue_as :default
 
   def perform(whatsapp_channel, attempt = 1)
-    return if attempt == 1 && whatsapp_channel.provider_connection.present? && whatsapp_channel.provider_connection['connection'] != 'close'
-    return if attempt > 1 && whatsapp_channel.provider_connection['connection'] != 'connecting'
+    current_conn = whatsapp_channel.provider_connection || {}
+    return if attempt == 1 && whatsapp_channel.provider_connection.present? && current_conn['connection'] != 'close'
+    return if attempt > 1 && current_conn['connection'] != 'connecting'
 
     if attempt > 3
       whatsapp_channel.update_provider_connection!(connection: 'close')
@@ -22,7 +23,8 @@ class Channels::Whatsapp::ZapiQrCodeJob < ApplicationJob
 
     return if qr_code.blank?
     # NOTE: Avoid race condition.
-    return if whatsapp_channel.reload.provider_connection['connection'] == 'open'
+    current_conn = whatsapp_channel.reload.provider_connection || {}
+    return if current_conn['connection'] == 'open'
 
     whatsapp_channel.update_provider_connection!(
       connection: 'connecting',

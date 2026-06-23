@@ -96,7 +96,8 @@ class Channel::Whatsapp < ApplicationRecord
     return if reachout_time_lock.nil?
 
     with_lock do
-      update_provider_connection!(provider_connection.merge('reachout_time_lock' => reachout_time_lock.deep_stringify_keys))
+      current_conn = provider_connection || {}
+      update_provider_connection!(current_conn.merge('reachout_time_lock' => reachout_time_lock.deep_stringify_keys))
     end
   end
 
@@ -105,17 +106,19 @@ class Channel::Whatsapp < ApplicationRecord
 
     normalized = new_chat_cap.to_h.deep_stringify_keys.slice(*NEW_CHAT_CAP_KEYS)
     with_lock do
-      update_provider_connection!(provider_connection.merge('new_chat_cap' => normalized))
+      current_conn = provider_connection || {}
+      update_provider_connection!(current_conn.merge('new_chat_cap' => normalized))
     end
   end
 
   def provider_connection_data
-    data = { connection: provider_connection['connection'] }
-    data[:reachout_time_lock] = provider_connection['reachout_time_lock'] if provider_connection['reachout_time_lock'].present?
-    data[:new_chat_cap] = provider_connection['new_chat_cap'] if provider_connection['new_chat_cap'].present?
+    current_conn = provider_connection || {}
+    data = { connection: current_conn['connection'] }
+    data[:reachout_time_lock] = current_conn['reachout_time_lock'] if current_conn['reachout_time_lock'].present?
+    data[:new_chat_cap] = current_conn['new_chat_cap'] if current_conn['new_chat_cap'].present?
     if Current.account_user&.administrator?
-      data[:qr_data_url] = provider_connection['qr_data_url']
-      data[:error] = provider_connection['error']
+      data[:qr_data_url] = current_conn['qr_data_url']
+      data[:error] = current_conn['error']
     end
     data
   end

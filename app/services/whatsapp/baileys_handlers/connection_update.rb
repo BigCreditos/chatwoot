@@ -8,8 +8,9 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
 
     inbox.channel.with_lock do
       if stale_connection_event?(data)
+        current_conn = inbox.channel.provider_connection || {}
         Rails.logger.warn(
-          "Baileys stale connection.update discarded: epoch #{data[:epoch]} < #{inbox.channel.provider_connection['epoch']}"
+          "Baileys stale connection.update discarded: epoch #{data[:epoch]} < #{current_conn['epoch']}"
         )
         next
       end
@@ -25,8 +26,9 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
   #   - `reconnecting`: Connection has been established, but not open (i.e. device is being linked for the first time, or Baileys server restart)
   #   - `open`: Open and ready to send/receive messages
   def provider_connection_payload(data)
+    current_conn = inbox.channel.provider_connection || {}
     {
-      connection: data[:connection] || inbox.channel.provider_connection['connection'],
+      connection: data[:connection] || current_conn['connection'],
       qr_data_url: data[:qrDataUrl] || data[:qrCode] || data[:qr] || nil,
       error: data[:error] ? I18n.t("errors.inboxes.channel.provider_connection.#{data[:error]}", default: data[:error].to_s.humanize) : nil,
       reachout_time_lock: reachout_time_lock_payload(data),
@@ -34,7 +36,7 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
       # poll). update_provider_connection! replaces provider_connection wholesale, so without
       # carrying it forward here every connection.update would wipe the cap and flicker the banner
       # off until the next cap push/poll. Preserve the existing value; .compact omits it when unset.
-      new_chat_cap: inbox.channel.provider_connection['new_chat_cap'],
+      new_chat_cap: current_conn['new_chat_cap'],
       epoch: data[:epoch]
     }.compact
   end
@@ -47,7 +49,8 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
   # banner. Returns nil only when nothing was ever set, so the outer .compact omits the key.
   def reachout_time_lock_payload(data)
     raw = data[:reachoutTimeLock]
-    return inbox.channel.provider_connection['reachout_time_lock'] if raw.blank?
+    current_conn = inbox.channel.provider_connection || {}
+    return current_conn['reachout_time_lock'] if raw.blank?
 
     {
       is_active: raw[:isActive] || false,
@@ -66,7 +69,8 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
   def stale_connection_event?(data)
     return false if data[:epoch].blank?
 
-    last_epoch = inbox.channel.provider_connection['epoch']
+    current_conn = inbox.channel.provider_connection || {}
+    last_epoch = current_conn['epoch']
     return false if last_epoch.blank?
 
     data[:epoch].to_i < last_epoch.to_i

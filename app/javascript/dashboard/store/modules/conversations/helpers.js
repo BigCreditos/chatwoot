@@ -103,10 +103,10 @@ export const applyPageFilters = (conversation, filters) => {
     status: chatStatus,
     inbox_id: chatInboxId,
     labels: chatLabels = [],
-    meta = {},
     first_reply_created_at: firstReplyOn,
     waiting_since: waitingSince,
   } = conversation;
+  const meta = conversation.meta || {};
   const team = meta.team || {};
   const { id: chatTeamId } = team;
   let shouldFilter = filterByStatus(chatStatus, status);
@@ -153,7 +153,7 @@ export const applyRoleFilter = (
     return true;
   }
 
-  const conversationAssignee = conversation.meta.assignee;
+  const conversationAssignee = conversation.meta?.assignee;
   const isUnassigned = !conversationAssignee;
   const isAssignedToUser = conversationAssignee?.id === currentUserId;
 

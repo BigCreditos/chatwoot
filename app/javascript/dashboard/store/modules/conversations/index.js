@@ -39,13 +39,21 @@ export const mutations = {
         c => c.id === conversation.id
       );
       if (indexInCurrentList < 0) {
-        newAllConversations.push(conversation);
+        newAllConversations.push({
+          ...conversation,
+          messages: conversation.messages || [],
+          meta: conversation.meta || {},
+        });
       } else if (conversation.id !== _state.selectedChatId) {
         // If the conversation is already in the list, replace it
         // Added this to fix the issue of the conversation not being updated
         // When reconnecting to the websocket. If the selectedChatId is not the same as
         // the conversation.id in the store, replace the existing conversation with the new one
-        newAllConversations[indexInCurrentList] = conversation;
+        newAllConversations[indexInCurrentList] = {
+          ...conversation,
+          messages: conversation.messages || newAllConversations[indexInCurrentList].messages || [],
+          meta: conversation.meta || {},
+        };
       } else {
         // If the conversation is already in the list and selectedChatId is the same,
         // replace all data except the messages array, attachments, dataFetched, allMessagesLoaded
@@ -53,7 +61,8 @@ export const mutations = {
         newAllConversations[indexInCurrentList] = {
           ...conversation,
           allMessagesLoaded: existingConversation.allMessagesLoaded,
-          messages: existingConversation.messages,
+          messages: existingConversation.messages || [],
+          meta: conversation.meta || {},
           dataFetched: existingConversation.dataFetched,
         };
       }
@@ -329,7 +338,11 @@ export const mutations = {
     }
     const exists = _state.allConversations.some(c => c.id === conversation.id);
     if (!exists) {
-      _state.allConversations.push(conversation);
+      _state.allConversations.push({
+        ...conversation,
+        messages: conversation.messages || [],
+        meta: conversation.meta || {},
+      });
     }
   },
 
@@ -360,7 +373,12 @@ export const mutations = {
       }
 
       const { messages, ...updates } = conversation;
-      allConversations[index] = { ...selectedConversation, ...updates };
+      allConversations[index] = {
+        ...selectedConversation,
+        ...updates,
+        messages: selectedConversation.messages || [],
+        meta: updates.meta || selectedConversation.meta || {},
+      };
       if (_state.selectedChatId === conversation.id) {
         emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE);
       }
@@ -368,7 +386,11 @@ export const mutations = {
       const { conversationType } = _state.conversationFilters || {};
       const { MENTION, PARTICIPATING } = wootConstants.CONVERSATION_TYPE;
       if (![MENTION, PARTICIPATING].includes(conversationType)) {
-        _state.allConversations.push(conversation);
+        _state.allConversations.push({
+          ...conversation,
+          messages: conversation.messages || [],
+          meta: conversation.meta || {},
+        });
       }
     }
   },

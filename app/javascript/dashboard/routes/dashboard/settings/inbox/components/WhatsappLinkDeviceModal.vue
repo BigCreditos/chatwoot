@@ -29,17 +29,21 @@ const handleError = e => {
   useAlert(e.message);
   loading.value = false;
 };
-const setup = () => {
+const setup = async () => {
   loading.value = true;
-  store
-    .dispatch('inboxes/setupChannelProvider', props.inbox.id)
-    .catch(handleError);
+  try {
+    await store.dispatch('inboxes/setupChannelProvider', props.inbox.id);
+  } catch (e) {
+    handleError(e);
+  }
 };
-const disconnect = () => {
+const disconnect = async () => {
   loading.value = true;
-  store
-    .dispatch('inboxes/disconnectChannelProvider', props.inbox.id)
-    .catch(handleError);
+  try {
+    await store.dispatch('inboxes/disconnectChannelProvider', props.inbox.id);
+  } catch (e) {
+    handleError(e);
+  }
 };
 
 onMounted(() => {

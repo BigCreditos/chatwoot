@@ -27,7 +27,7 @@ module Whatsapp::BaileysHandlers::ConnectionUpdate
   def provider_connection_payload(data)
     {
       connection: data[:connection] || inbox.channel.provider_connection['connection'],
-      qr_data_url: data[:qrDataUrl] || nil,
+      qr_data_url: data[:qrDataUrl] || data[:qrCode] || data[:qr] || nil,
       error: data[:error] ? I18n.t("errors.inboxes.channel.provider_connection.#{data[:error]}", default: data[:error].to_s.humanize) : nil,
       reachout_time_lock: reachout_time_lock_payload(data),
       # new_chat_cap never rides a connection.update (it arrives via message-capping.update / the

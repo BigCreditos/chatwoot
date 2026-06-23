@@ -53,6 +53,17 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
     raise ProviderUnavailableError unless process_response(response)
 
+    parsed = response.parsed_response || {}
+    qr_code = parsed['qr'] || parsed['qrCode'] || parsed.dig('data', 'qr') || parsed.dig('data', 'qrCode')
+    if qr_code.present?
+      whatsapp_channel.update_provider_connection!(
+        connection: 'connecting',
+        qr_data_url: qr_code
+      )
+    else
+      whatsapp_channel.update_provider_connection!(connection: 'connecting')
+    end
+
     true
   end
 

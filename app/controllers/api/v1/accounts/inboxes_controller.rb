@@ -81,7 +81,7 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
     end
 
     channel.setup_channel_provider
-    head :ok
+    render :show
   end
 
   def disconnect_channel_provider

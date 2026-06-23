@@ -390,9 +390,10 @@ export const actions = {
       return null;
     }
   },
-  setupChannelProvider: async (_, inboxId) => {
+  setupChannelProvider: async ({ commit }, inboxId) => {
     try {
-      await InboxesAPI.setupChannelProvider(inboxId);
+      const response = await InboxesAPI.setupChannelProvider(inboxId);
+      commit(types.default.EDIT_INBOXES, response.data);
     } catch (error) {
       throwErrorMessage(error);
     }

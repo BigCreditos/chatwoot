@@ -5,6 +5,7 @@ import { useAlert } from 'dashboard/composables';
 import InboxName from 'dashboard/components/widgets/InboxName.vue';
 import Spinner from 'shared/components/Spinner.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import QRCode from 'qrcode';
 
 const props = defineProps({
   show: { type: Boolean, required: true },
@@ -20,8 +21,27 @@ const store = useStore();
 
 const providerConnection = computed(() => props.inbox.provider_connection);
 const connection = computed(() => providerConnection.value?.connection);
-const qrDataUrl = computed(() => providerConnection.value?.qr_data_url);
+const qrCodeImageUrl = ref('');
 const error = computed(() => providerConnection.value?.error);
+
+watchEffect(async () => {
+  const rawQr = providerConnection.value?.qr_data_url;
+  if (!rawQr) {
+    qrCodeImageUrl.value = '';
+    return;
+  }
+  if (rawQr.startsWith('data:image/')) {
+    qrCodeImageUrl.value = rawQr;
+  } else {
+    try {
+      qrCodeImageUrl.value = await QRCode.toDataURL(rawQr);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      qrCodeImageUrl.value = '';
+    }
+  }
+});
 
 const loading = ref(false);
 
@@ -105,7 +125,10 @@ watchEffect(() => {
           </template>
 
           <template v-else-if="connection === 'connecting'">
-            <div v-if="!qrDataUrl" class="flex flex-col gap-4 items-center">
+            <div
+              v-if="!qrCodeImageUrl"
+              class="flex flex-col gap-4 items-center"
+            >
               <p>
                 {{
                   $t(
@@ -117,7 +140,7 @@ watchEffect(() => {
             </div>
             <img
               v-else
-              :src="qrDataUrl"
+              :src="qrCodeImageUrl"
               alt="QR Code"
               class="w-[276px] h-[276px]"
             />

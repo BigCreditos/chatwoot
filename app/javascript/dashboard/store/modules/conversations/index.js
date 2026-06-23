@@ -298,29 +298,29 @@ export const mutations = {
     }
   },
 
-  [types.ADD_MESSAGE]({ allConversations, selectedChatId }, message) {
+  [types.ADD_MESSAGE](_state, message) {
     const { conversation_id: conversationId } = message;
-    const [chat] = getSelectedChatConversation({
-      allConversations,
-      selectedChatId: conversationId,
-    });
-    if (!chat) return;
+    const { allConversations, selectedChatId } = _state;
+    const index = allConversations.findIndex(c => c.id === conversationId);
+    if (index === -1) return;
 
+    const chat = allConversations[index];
     if (!chat.messages) {
-      chat.messages = [];
+      allConversations[index] = {
+        ...chat,
+        messages: [],
+      };
     }
 
-    const pendingMessageIndex = findPendingMessageIndex(chat, message);
+    const updatedChat = allConversations[index];
+    const pendingMessageIndex = findPendingMessageIndex(updatedChat, message);
     if (pendingMessageIndex !== -1) {
-      chat.messages[pendingMessageIndex] = message;
+      updatedChat.messages[pendingMessageIndex] = message;
     } else {
-      if (!chat.messages) {
-        chat.messages = [];
-      }
-      chat.messages.push(message);
-      chat.timestamp = message.created_at;
+      updatedChat.messages.push(message);
+      updatedChat.timestamp = message.created_at;
       const { conversation: { unread_count: unreadCount = 0 } = {} } = message;
-      chat.unread_count = unreadCount;
+      updatedChat.unread_count = unreadCount;
       if (selectedChatId === conversationId) {
         emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE);
       }

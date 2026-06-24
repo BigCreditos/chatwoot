@@ -82,6 +82,9 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
 
     channel.setup_channel_provider
     render :show
+  rescue StandardError => e
+    Rails.logger.error "[WHATSAPP] Setup channel provider failed for inbox #{@inbox.id}: #{e.class}: #{e.message}"
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def disconnect_channel_provider

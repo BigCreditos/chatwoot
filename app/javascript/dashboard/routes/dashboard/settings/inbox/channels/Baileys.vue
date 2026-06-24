@@ -58,9 +58,9 @@ const rules = computed(() => ({
   phoneNumber: { required, isPhoneE164OrEmpty },
   providerUrl: {
     isValidURL: value => !value || isValidURL(value),
-    requiredIf: requiredIf(apiKey),
+    requiredIf: requiredIf(() => !!apiKey.value),
   },
-  apiKey: { requiredIf: requiredIf(providerUrl) },
+  apiKey: { requiredIf: requiredIf(() => !!providerUrl.value) },
 }));
 
 const v$ = useVuelidate(rules, {
@@ -87,6 +87,9 @@ const buildProviderConfig = () => {
 const createChannel = async () => {
   v$.value.$touch();
   if (v$.value.$invalid) {
+    if (v$.value.providerUrl.$invalid || v$.value.apiKey.$invalid) {
+      showAdvancedOptions.value = true;
+    }
     return;
   }
 

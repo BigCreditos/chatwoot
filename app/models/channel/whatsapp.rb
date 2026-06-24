@@ -277,12 +277,16 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   def ensure_webhook_verify_token
-    provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if %w[whatsapp_cloud unoapi baileys zapi].include?(provider)
+    return unless %w[whatsapp_cloud unoapi baileys zapi].include?(provider)
+
+    self.provider_config ||= {}
+    provider_config['webhook_verify_token'] ||= SecureRandom.hex(16)
   end
 
   def ensure_provider_config_defaults
     return unless %w[baileys zapi].include?(provider)
 
+    self.provider_config ||= {}
     provider_config['provider_url'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
     provider_config['api_key'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
   end

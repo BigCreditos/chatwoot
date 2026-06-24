@@ -36,8 +36,13 @@ const {
   isAFacebookInbox,
   isATelegramChannel,
   isATwilioWhatsAppChannel,
-  isAWhatsAppBaileysChannel,
 } = useInbox(route.params.inbox_id);
+
+const isAWhatsAppBaileysChannel = computed(
+  () =>
+    currentInbox.value?.channel_type === 'Channel::Whatsapp' &&
+    currentInbox.value?.provider === 'baileys'
+);
 
 const hasDuplicateInstagramInbox = computed(() => {
   const instagramId = currentInbox.value.instagram_id;

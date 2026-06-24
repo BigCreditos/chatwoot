@@ -32,6 +32,7 @@ class Channel::Whatsapp < ApplicationRecord
 
   before_validation :ensure_unoapi_group_conversation_schema_default
   before_validation :ensure_webhook_verify_token
+  before_validation :ensure_provider_config_defaults
 
   validates :provider, inclusion: { in: PROVIDERS }
   validates :phone_number, presence: true, uniqueness: true
@@ -277,6 +278,13 @@ class Channel::Whatsapp < ApplicationRecord
 
   def ensure_webhook_verify_token
     provider_config['webhook_verify_token'] ||= SecureRandom.hex(16) if %w[whatsapp_cloud unoapi baileys zapi].include?(provider)
+  end
+
+  def ensure_provider_config_defaults
+    return unless %w[baileys zapi].include?(provider)
+
+    provider_config['provider_url'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
+    provider_config['api_key'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
   end
 
   def ensure_unoapi_group_conversation_schema_default

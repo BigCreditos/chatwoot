@@ -37,7 +37,16 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     raise ProviderUnavailableError, 'Baileys API is unavailable'
   end
 
+  class ProviderConfigError < StandardError; end
+
   def setup_channel_provider
+    if provider_url.blank?
+      raise ProviderConfigError, 'Baileys provider URL is not configured. Set BAILEYS_PROVIDER_DEFAULT_URL or configure provider_url in the channel settings.'
+    end
+    if api_key.blank?
+      raise ProviderConfigError, 'Baileys API key is not configured. Set BAILEYS_PROVIDER_DEFAULT_API_KEY or configure api_key in the channel settings.'
+    end
+
     response = HTTParty.post(
       "#{provider_url}/connections/#{whatsapp_channel.phone_number}",
       headers: api_headers,
@@ -907,6 +916,8 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       define_method(method_name) do |*args, **kwargs, &block|
         original_method.bind_call(self, *args, **kwargs, &block)
       rescue MessageAlreadyProcessingError
+        raise
+      rescue ProviderConfigError
         raise
       rescue StandardError => e
         handle_channel_error

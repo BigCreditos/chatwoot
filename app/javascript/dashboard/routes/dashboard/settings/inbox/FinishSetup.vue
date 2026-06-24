@@ -36,6 +36,7 @@ const {
   isAFacebookInbox,
   isATelegramChannel,
   isATwilioWhatsAppChannel,
+  isAWhatsAppBaileysChannel,
 } = useInbox(route.params.inbox_id);
 
 const hasDuplicateInstagramInbox = computed(() => {
@@ -245,19 +246,36 @@ onMounted(() => {
           </div>
         </div>
         <div
-          v-if="isAWhatsAppBaileysChannel && qrCodes.whatsapp"
+          v-if="isAWhatsAppBaileysChannel"
           class="flex flex-col gap-3 items-center mt-8"
         >
-          <p class="mt-2 text-sm text-n-slate-9">
-            {{ $t('INBOX_MGMT.FINISH.WHATSAPP_BAILEYS_QR_INSTRUCTION') }}
-          </p>
-          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
-            <img
-              :src="qrCodes.whatsapp"
-              alt="WhatsApp Baileys QR Code"
-              class="rounded-lg size-48 dark:invert"
-            />
-          </div>
+          <template v-if="currentInbox.provider_connection?.qr_data_url">
+            <p class="mt-2 text-sm text-n-slate-9">
+              {{ $t('INBOX_MGMT.FINISH.WHATSAPP_BAILEYS_QR_INSTRUCTION') }}
+            </p>
+            <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+              <img
+                :src="currentInbox.provider_connection.qr_data_url"
+                alt="WhatsApp Baileys QR Code"
+                class="rounded-lg size-48 dark:invert"
+              />
+            </div>
+          </template>
+          <template v-else>
+            <p class="mt-2 text-sm text-n-slate-11">
+              {{ $t('INBOX_MGMT.FINISH.WHATSAPP_BAILEYS_CONFIGURE_MESSAGE') }}
+            </p>
+            <router-link
+              :to="{
+                name: 'settings_inbox_show',
+                params: { inboxId: $route.params.inbox_id },
+              }"
+            >
+              <NextButton outline slate>
+                {{ $t('INBOX_MGMT.FINISH.MORE_SETTINGS') }}
+              </NextButton>
+            </router-link>
+          </template>
         </div>
         <div
           v-if="isAFacebookInbox && qrCodes.messenger"

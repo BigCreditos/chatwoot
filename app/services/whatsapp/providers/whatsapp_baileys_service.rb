@@ -57,7 +57,8 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
         # TODO: Remove on Baileys v2, default will be false
         includeMedia: false,
         groupsEnabled: self.class.groups_enabled?
-      }.compact.to_json
+      }.compact.to_json,
+      timeout: 10
     )
 
     raise ProviderUnavailableError unless process_response(response)

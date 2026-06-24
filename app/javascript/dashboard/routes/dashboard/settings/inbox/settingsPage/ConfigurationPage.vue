@@ -383,25 +383,6 @@ export default {
         useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
       }
     },
-    async updateBaileysProviderUrl() {
-      try {
-        const payload = {
-          id: this.inbox.id,
-          formData: false,
-          channel: {
-            provider_config: {
-              ...this.inbox.provider_config,
-              provider_url: this.baileysProviderUrl,
-            },
-          },
-        };
-
-        await this.$store.dispatch('inboxes/updateInbox', payload);
-        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
-      } catch (error) {
-        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
-      }
-    },
     async updatePresenceSubscribe() {
       try {
         const payload = {
@@ -975,13 +956,13 @@ export default {
           </NextButton>
         </div>
         <!-- Baileys QR Code Display -->
-        <div v-if="isAWhatsAppBaileysChannel && inbox.provider_config?.qr_data_url" class="flex flex-col gap-3 items-center mt-8">
+        <div v-if="isAWhatsAppBaileysChannel && inbox.provider_connection?.qr_data_url" class="flex flex-col gap-3 items-center mt-8">
           <p class="mt-2 text-sm text-n-slate-9">
             {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_BAILEYS_QR_CODE_TITLE') }}
           </p>
           <div class="rounded-lg shadow outline-1 outline-n-strong outline">
             <img
-              :src="inbox.provider_config.qr_data_url"
+              :src="inbox.provider_connection.qr_data_url"
               alt="WhatsApp Baileys QR Code"
               class="rounded-lg size-48 dark:invert"
             />

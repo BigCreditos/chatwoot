@@ -47,6 +47,7 @@ module Events::Types
   # contact events
   INBOX_CREATED = 'inbox.created'
   INBOX_UPDATED = 'inbox.updated'
+  INBOX_PROVIDER_CONNECTION_UPDATED = 'inbox.provider_connection_updated'
 
   # notification events
   NOTIFICATION_CREATED = 'notification.created'

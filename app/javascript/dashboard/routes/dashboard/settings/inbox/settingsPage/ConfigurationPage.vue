@@ -972,7 +972,7 @@ export default {
           </p>
         </div>
       </SettingsFieldSection>
-      <template v-if="!hasDefaultBaileysConfig">
+      <template v-if="!hasDefaultBaileysConfig && !inbox.provider_config?.provider_url">
         <SettingsFieldSection
           :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_TITLE')"
           :help-text="

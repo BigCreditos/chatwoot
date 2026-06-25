@@ -252,7 +252,9 @@
           "BAILEYS": "Baileys",
           "BAILEYS_DESC": "Conectar via API não oficial Baileys",
           "ZAPI": "Z-API",
-          "ZAPI_DESC": "Conectar via API não oficial Z-API"
+          "ZAPI_DESC": "Conectar via API não oficial Z-API",
+          "WUZAPI": "Wuzapi",
+          "WUZAPI_DESC": "Conectar via API não oficial Wuzapi (Whatsmeow)"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
@@ -352,6 +354,10 @@
           "LABEL": "Token de Segurança",
           "PLACEHOLDER": "Por favor insira o Token de Segurança (veja a aba Segurança no painel do Z-API)",
           "ERROR": "Este campo é obrigatório"
+        },
+        "ADMIN_TOKEN": {
+          "LABEL": "Token de Admin",
+          "PLACEHOLDER": "Insira o token de admin para gerenciamento de usuários"
         },
         "ADVANCED_OPTIONS": "Opções avançadas",
         "EXTERNAL_PROVIDER": {
@@ -1080,6 +1086,8 @@
       "WHATSAPP_SECTION_UPDATE_BUTTON": "Atualizar",
       "WHATSAPP_BAILEYS_QR_CODE_TITLE": "Código QR do WhatsApp Baileys",
       "WHATSAPP_BAILEYS_QR_CODE_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
+      "WHATSAPP_WUZAPI_QR_CODE_TITLE": "Código QR do WhatsApp Wuzapi",
+      "WHATSAPP_WUZAPI_QR_CODE_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE": "Gerenciar Conexão",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER": "Monitore ou altere o estado da conexão do seu dispositivo WhatsApp.",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON": "Gerenciar conexão",
@@ -1153,7 +1161,13 @@
       "VOICE_AGENT_CREDENTIALS_SUCCESS": "Agent credentials updated",
       "VOICE_AGENT_CREDENTIALS_ERROR": "Could not update agent credentials",
       "WHATSAPP_CONNECT": "Conectar",
-      "WHATSAPP_DISCONNECT": "Desconectar"
+      "WHATSAPP_DISCONNECT": "Desconectar",
+      "WHATSAPP_CONNECTION_SETUP_SUCCESS": "Configuração de conexão iniciada com sucesso!",
+      "WHATSAPP_CONNECTION_SETUP_ERROR": "Falha ao iniciar a configuração de conexão.",
+      "WHATSAPP_ADMIN_TOKEN_TITLE": "Token de Admin",
+      "WHATSAPP_ADMIN_TOKEN_SUBHEADER": "O token de admin usado para gerenciamento de usuários Wuzapi.",
+      "WHATSAPP_ADMIN_TOKEN_UPDATE_TITLE": "Atualizar Token de Admin",
+      "WHATSAPP_ADMIN_TOKEN_UPDATE_SUBHEADER": "Altere o token de admin usado para gerenciamento de usuários Wuzapi."
     },
     "HELP_CENTER": {
       "LABEL": "Centro de Ajuda",

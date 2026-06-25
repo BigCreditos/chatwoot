@@ -26,8 +26,8 @@ class Channel::Whatsapp < ApplicationRecord
   EDITABLE_ATTRS = [:phone_number, :provider, { provider_config: {} }].freeze
 
   # default at the moment is 360dialog lets change later.
-  PROVIDERS = %w[default whatsapp_cloud unoapi baileys zapi].freeze
-  REACTION_SUPPORTED_PROVIDERS = %w[whatsapp_cloud baileys zapi].freeze
+  PROVIDERS = %w[default whatsapp_cloud unoapi baileys wuzapi zapi].freeze
+  REACTION_SUPPORTED_PROVIDERS = %w[whatsapp_cloud baileys wuzapi zapi].freeze
   NEW_CHAT_CAP_KEYS = %w[capping_status ote_status mv_status total_quota used_quota cycle_start_timestamp cycle_end_timestamp].freeze
 
   before_validation :ensure_unoapi_group_conversation_schema_default
@@ -62,6 +62,8 @@ class Channel::Whatsapp < ApplicationRecord
       Whatsapp::Providers::UnoapiService.new(whatsapp_channel: self)
     when 'baileys'
       Whatsapp::Providers::WhatsappBaileysService.new(whatsapp_channel: self)
+    when 'wuzapi'
+      Whatsapp::Providers::WhatsappWuzapiService.new(whatsapp_channel: self)
     when 'zapi'
       Whatsapp::Providers::WhatsappZapiService.new(whatsapp_channel: self)
     else
@@ -277,18 +279,19 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   def ensure_webhook_verify_token
-    return unless %w[whatsapp_cloud unoapi baileys zapi].include?(provider)
+    return unless %w[whatsapp_cloud unoapi baileys wuzapi zapi].include?(provider)
 
     self.provider_config ||= {}
     provider_config['webhook_verify_token'] ||= SecureRandom.hex(16)
   end
 
   def ensure_provider_config_defaults
-    return unless %w[baileys zapi].include?(provider)
+    return unless %w[baileys wuzapi zapi].include?(provider)
 
     self.provider_config ||= {}
     provider_config['provider_url'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
     provider_config['api_key'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
+    provider_config['admin_token'] ||= ENV.fetch('WUZAPI_ADMIN_TOKEN', nil) if provider == 'wuzapi'
   end
 
   def ensure_unoapi_group_conversation_schema_default

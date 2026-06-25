@@ -82,19 +82,27 @@ export default {
       zapiInstanceIdUpdate: '',
       zapiTokenUpdate: '',
       zapiClientTokenUpdate: '',
+      wuzapiProviderUrl: '',
+      wuzapiApiKey: '',
+      wuzapiAdminToken: '',
+      wuzapiApiKeyUpdate: '',
+      wuzapiAdminTokenUpdate: '',
     };
   },
   validations() {
     return {
       whatsAppInboxAPIKey: {
         requiredIf: requiredIf(
-          !this.isAWhatsAppBaileysChannel && !this.isAWhatsAppZapiChannel
+          !this.isAWhatsAppBaileysChannel && !this.isAWhatsAppWuzapiChannel && !this.isAWhatsAppZapiChannel
         ),
       },
       baileysProviderUrl: { isValidURL: value => !value || isValidURL(value) },
       zapiInstanceIdUpdate: {},
       zapiTokenUpdate: {},
       zapiClientTokenUpdate: {},
+      wuzapiProviderUrl: { isValidURL: value => !value || isValidURL(value) },
+      wuzapiApiKeyUpdate: {},
+      wuzapiAdminTokenUpdate: {},
     };
   },
   computed: {
@@ -111,6 +119,9 @@ export default {
       return this.isAVoiceChannel && this.inbox.provider === 'custom';
     },
     hasDefaultBaileysConfig() {
+      return !!(window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL && window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY);
+    },
+    hasDefaultWuzapiConfig() {
       return !!(window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL && window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY);
     },
   },
@@ -170,6 +181,12 @@ export default {
       this.zapiInstanceIdUpdate = this.zapiInstanceId;
       this.zapiTokenUpdate = this.zapiToken;
       this.zapiClientTokenUpdate = this.zapiClientToken;
+      const defaultWuzapiUrl = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL || '';
+      this.wuzapiProviderUrl = this.inbox.provider_config?.provider_url || defaultWuzapiUrl;
+      this.wuzapiApiKey = this.inbox.provider_config?.api_key || '';
+      this.wuzapiAdminToken = this.inbox.provider_config?.admin_token || '';
+      this.wuzapiApiKeyUpdate = this.wuzapiApiKey;
+      this.wuzapiAdminTokenUpdate = this.wuzapiAdminToken;
       this.$nextTick(() => {
         this.isSettingDefaults = false;
       });
@@ -452,6 +469,68 @@ export default {
             provider_config: {
               ...this.inbox.provider_config,
               client_token: this.zapiClientTokenUpdate,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async setupWuzapiConnection() {
+      try {
+        await this.$store.dispatch('inboxes/setupChannelProvider', this.inbox.id);
+        useAlert(this.$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CONNECTION_SETUP_SUCCESS'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_CONNECTION_SETUP_ERROR'));
+      }
+    },
+    async updateWuzapiProviderUrl() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              provider_url: this.wuzapiProviderUrl,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateWuzapiApiKey() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              api_key: this.wuzapiApiKeyUpdate,
+            },
+          },
+        };
+        await this.$store.dispatch('inboxes/updateInbox', payload);
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+      } catch (error) {
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.ERROR_MESSAGE'));
+      }
+    },
+    async updateWuzapiAdminToken() {
+      try {
+        const payload = {
+          id: this.inbox.id,
+          formData: false,
+          channel: {
+            provider_config: {
+              ...this.inbox.provider_config,
+              admin_token: this.wuzapiAdminTokenUpdate,
             },
           },
         };
@@ -833,6 +912,7 @@ export default {
       isAWhatsAppChannel &&
       !isATwilioChannel &&
       !isAWhatsAppBaileysChannel &&
+      !isAWhatsAppWuzapiChannel &&
       !isAWhatsAppZapiChannel
     "
   >
@@ -1231,6 +1311,122 @@ export default {
               zapiClientTokenUpdate === inbox.provider_config.client_token
             "
             @click="updateZapiClientToken"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+    </div>
+  </div>
+  <div v-else-if="isAWhatsAppWuzapiChannel">
+    <div class="mx-8">
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE')"
+        :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER')"
+      >
+        <div class="flex flex-col gap-2">
+          <InboxName
+            :inbox="inbox"
+            class="!text-lg !m-0"
+            with-phone-number
+            with-provider-connection-status
+          />
+          <NextButton class="w-fit" @click="setupWuzapiConnection">
+            {{
+              $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON')
+            }}
+          </NextButton>
+        </div>
+        <!-- Wuzapi QR Code Display -->
+        <div v-if="inbox.provider_connection?.qr_data_url" class="flex flex-col gap-3 items-center mt-8">
+          <p class="mt-2 text-sm text-n-slate-9">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_WUZAPI_QR_CODE_TITLE') }}
+          </p>
+          <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+            <img
+              :src="inbox.provider_connection.qr_data_url"
+              alt="WhatsApp Wuzapi QR Code"
+              class="rounded-lg size-48 dark:invert"
+            />
+          </div>
+          <p class="text-sm text-n-slate-11">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_WUZAPI_QR_CODE_INSTRUCTION') }}
+          </p>
+        </div>
+      </SettingsFieldSection>
+      <template v-if="!hasDefaultWuzapiConfig && !inbox.provider_config?.provider_url">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_TITLE')"
+          :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_SUBHEADER')"
+        >
+          <div class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content">
+            <woot-input
+              v-model="wuzapiProviderUrl"
+              type="text"
+              class="flex-1 mr-2 items-center"
+              :placeholder="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_PLACEHOLDER')"
+              @keydown="v$.wuzapiProviderUrl.$touch"
+            />
+            <NextButton
+              :disabled="v$.wuzapiProviderUrl.$invalid || wuzapiProviderUrl === inbox.provider_config.provider_url"
+              @click="updateWuzapiProviderUrl"
+            >
+              {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+            </NextButton>
+          </div>
+          <span v-if="v$.wuzapiProviderUrl.$error" class="text-red-400">
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_PROVIDER_URL_ERROR') }}
+          </span>
+        </SettingsFieldSection>
+      </template>
+      <template v-if="inbox.provider_config.api_key">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_TITLE')"
+          :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_SUBHEADER')"
+        >
+          <woot-code :script="inbox.provider_config.api_key" />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_TITLE')"
+        :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_SUBHEADER')"
+      >
+        <div class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content">
+          <woot-input
+            v-model="wuzapiApiKeyUpdate"
+            type="text"
+            class="flex-1 mr-2"
+            :placeholder="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_PLACEHOLDER')"
+          />
+          <NextButton
+            :disabled="v$.wuzapiApiKeyUpdate.$invalid || (!inbox.provider_config.api_key && !wuzapiApiKeyUpdate) || wuzapiApiKeyUpdate === inbox.provider_config.api_key"
+            @click="updateWuzapiApiKey"
+          >
+            {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
+          </NextButton>
+        </div>
+      </SettingsFieldSection>
+      <template v-if="inbox.provider_config.admin_token">
+        <SettingsFieldSection
+          :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_ADMIN_TOKEN_TITLE')"
+          :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_ADMIN_TOKEN_SUBHEADER')"
+        >
+          <woot-code :script="inbox.provider_config.admin_token" secure />
+        </SettingsFieldSection>
+      </template>
+      <SettingsFieldSection
+        :label="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_ADMIN_TOKEN_UPDATE_TITLE')"
+        :help-text="$t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_ADMIN_TOKEN_UPDATE_SUBHEADER')"
+      >
+        <div class="flex items-center justify-between flex-1 mt-2 whatsapp-settings--content">
+          <woot-input
+            v-model="wuzapiAdminTokenUpdate"
+            type="password"
+            class="flex-1 mr-2"
+          />
+          <NextButton
+            :disabled="v$.wuzapiAdminTokenUpdate.$invalid || (!inbox.provider_config.admin_token && !wuzapiAdminTokenUpdate) || wuzapiAdminTokenUpdate === inbox.provider_config.admin_token"
+            @click="updateWuzapiAdminToken"
           >
             {{ $t('INBOX_MGMT.SETTINGS_POPUP.WHATSAPP_SECTION_UPDATE_BUTTON') }}
           </NextButton>

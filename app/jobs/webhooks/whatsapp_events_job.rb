@@ -85,6 +85,8 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
       Whatsapp::IncomingMessageUnoapiService.new(inbox: channel.inbox, params: params).perform
     when 'baileys'
       Whatsapp::IncomingMessageBaileysService.new(inbox: channel.inbox, params: params).perform
+    when 'wuzapi'
+      Whatsapp::IncomingMessageWuzapiService.new(inbox: channel.inbox, params: params).perform
     else
       Whatsapp::IncomingMessageService.new(inbox: channel.inbox, params: params).perform
     end

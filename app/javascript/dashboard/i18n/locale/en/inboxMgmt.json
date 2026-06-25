@@ -252,7 +252,9 @@
           "BAILEYS": "Baileys",
           "BAILEYS_DESC": "Connect via non-official API Baileys",
           "ZAPI": "Z-API",
-          "ZAPI_DESC": "Connect via non-official API Z-API"
+          "ZAPI_DESC": "Connect via non-official API Z-API",
+          "WUZAPI": "Wuzapi",
+          "WUZAPI_DESC": "Connect via unofficial API Wuzapi (Whatsmeow)"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Select your API provider",
@@ -482,6 +484,10 @@
           "LABEL": "Security Token",
           "PLACEHOLDER": "Please enter your Security Token (see Security tab on Z-API dashboard)",
           "ERROR": "This field is required"
+        },
+        "ADMIN_TOKEN": {
+          "LABEL": "Admin Token",
+          "PLACEHOLDER": "Enter the admin token for user management"
         },
         "ADVANCED_OPTIONS": "Advanced options",
         "EXTERNAL_PROVIDER": {
@@ -1114,6 +1120,8 @@
       "WHATSAPP_SECTION_UPDATE_BUTTON": "Update",
       "WHATSAPP_BAILEYS_QR_CODE_TITLE": "WhatsApp Baileys QR Code",
       "WHATSAPP_BAILEYS_QR_CODE_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
+      "WHATSAPP_WUZAPI_QR_CODE_TITLE": "WhatsApp Wuzapi QR Code",
+      "WHATSAPP_WUZAPI_QR_CODE_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_TITLE": "Manage Connection",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_SUBHEADER": "Monitor or change the connection status of your WhatsApp device.",
       "WHATSAPP_MANAGE_PROVIDER_CONNECTION_BUTTON": "Manage connection",
@@ -1157,6 +1165,12 @@
       "WHATSAPP_WEBHOOK_TITLE": "Webhook Verification Token",
       "WHATSAPP_CONNECT": "Connect",
       "WHATSAPP_DISCONNECT": "Disconnect",
+      "WHATSAPP_CONNECTION_SETUP_SUCCESS": "Connection setup started successfully!",
+      "WHATSAPP_CONNECTION_SETUP_ERROR": "Failed to start connection setup.",
+      "WHATSAPP_ADMIN_TOKEN_TITLE": "Admin Token",
+      "WHATSAPP_ADMIN_TOKEN_SUBHEADER": "The admin token used for Wuzapi user management.",
+      "WHATSAPP_ADMIN_TOKEN_UPDATE_TITLE": "Update Admin Token",
+      "WHATSAPP_ADMIN_TOKEN_UPDATE_SUBHEADER": "Change the admin token used for Wuzapi user management.",
       "WHATSAPP_WEBHOOK_SUBHEADER": "This token is used to verify the authenticity of the webhook endpoint.",
       "WHATSAPP_TEMPLATES_SYNC_TITLE": "Sync Templates",
       "WHATSAPP_TEMPLATES_SYNC_SUBHEADER": "Manually sync message templates from WhatsApp to update your available templates.",

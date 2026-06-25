@@ -10,6 +10,7 @@ import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
 import ZapiWhatsapp from './ZapiWhatsapp.vue';
+import WuzapiWhatsapp from './WuzapiWhatsapp.vue';
 
 const props = defineProps({
   mode: {
@@ -45,6 +46,7 @@ const PROVIDER_TYPES = {
   UNOAPI: 'unoapi',
   BAILEYS: 'baileys',
   ZAPI: 'zapi',
+  WUZAPI: 'wuzapi',
 };
 
 const hasWhatsappAppId = computed(() => {
@@ -61,6 +63,7 @@ const INBOX_PROVIDER_TO_KEY = {
   default: PROVIDER_TYPES.THREE_SIXTY_DIALOG,
   baileys: PROVIDER_TYPES.BAILEYS,
   zapi: PROVIDER_TYPES.ZAPI,
+  wuzapi: PROVIDER_TYPES.WUZAPI,
 };
 
 const currentProviderKey = computed(() => {
@@ -100,6 +103,12 @@ const PROVIDER_CATALOG = computed(() => [
     icon: 'i-woot-whatsapp',
   },
   {
+    key: PROVIDER_TYPES.WUZAPI,
+    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI'),
+    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI_DESC'),
+    icon: 'i-woot-whatsapp',
+  },
+  {
     key: PROVIDER_TYPES.THREE_SIXTY_DIALOG,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.360_DIALOG'),
     description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.360_DIALOG_DESC'),
@@ -112,12 +121,14 @@ const CREATE_PICKER_KEYS = [
   PROVIDER_TYPES.TWILIO,
   PROVIDER_TYPES.UNOAPI,
   PROVIDER_TYPES.BAILEYS,
+  PROVIDER_TYPES.WUZAPI,
   PROVIDER_TYPES.ZAPI,
 ];
 
 const CONVERT_PICKER_KEYS = [
   PROVIDER_TYPES.WHATSAPP,
   PROVIDER_TYPES.BAILEYS,
+  PROVIDER_TYPES.WUZAPI,
   PROVIDER_TYPES.ZAPI,
   PROVIDER_TYPES.THREE_SIXTY_DIALOG,
 ];
@@ -271,6 +282,11 @@ const handleManualLinkClick = () => {
         <Unoapi v-else-if="selectedProvider === PROVIDER_TYPES.UNOAPI" />
         <Baileys
           v-else-if="selectedProvider === PROVIDER_TYPES.BAILEYS"
+          :mode="mode"
+          :inbox="inbox"
+        />
+        <WuzapiWhatsapp
+          v-else-if="selectedProvider === PROVIDER_TYPES.WUZAPI"
           :mode="mode"
           :inbox="inbox"
         />

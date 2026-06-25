@@ -114,6 +114,12 @@ export default {
         this.whatsAppAPIProvider === 'zapi'
       );
     },
+    isAWhatsAppWuzapiChannel() {
+      return (
+        this.channelType === INBOX_TYPES.WHATSAPP &&
+        this.whatsAppAPIProvider === 'wuzapi'
+      );
+    },
     is360DialogWhatsAppChannel() {
       return (
         this.channelType === INBOX_TYPES.WHATSAPP &&

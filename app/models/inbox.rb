@@ -192,6 +192,10 @@ class Inbox < ApplicationRecord
     channel.name
   end
 
+  def push_event_data
+    Inbox::EventDataPresenter.new(self).push_data
+  end
+
   def webhook_data
     {
       id: id,

@@ -78,6 +78,18 @@ class InboxPolicy < ApplicationPolicy
     @account_user.administrator?
   end
 
+  def setup_channel_provider?
+    @account_user.administrator? || @account_user.agent?
+  end
+
+  def disconnect_channel_provider?
+    @account_user.administrator? || @account_user.agent?
+  end
+
+  def convert_provider?
+    @account_user.administrator? || @account_user.agent?
+  end
+
   def health?
     @account_user.administrator?
   end

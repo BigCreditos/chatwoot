@@ -48,7 +48,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     end
 
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}",
+      "#{provider_url}/connections/#{phone_number_for_api}",
       headers: api_headers,
       body: {
         clientName: DEFAULT_CLIENT_NAME,
@@ -85,7 +85,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   # caller's flow on that cleanup succeeding.
   def disconnect_channel_provider
     response = HTTParty.delete(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}",
+      "#{provider_url}/connections/#{phone_number_for_api}",
       headers: api_headers,
       timeout: 10
     )
@@ -125,7 +125,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def create_group(subject, participants)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-create",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-create",
       headers: api_headers,
       body: { subject: subject, participants: participants }.to_json
     )
@@ -137,7 +137,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def update_group_subject(group_jid, subject)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-subject",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-subject",
       headers: api_headers,
       body: { jid: group_jid, subject: subject }.to_json
     )
@@ -147,7 +147,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def update_group_description(group_jid, description)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-description",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-description",
       headers: api_headers,
       body: { jid: group_jid, description: description }.to_json
     )
@@ -157,7 +157,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def update_group_picture(group_jid, image_base64)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/update-profile-picture",
+      "#{provider_url}/connections/#{phone_number_for_api}/update-profile-picture",
       headers: api_headers,
       body: { jid: group_jid, image: image_base64 }.to_json
     )
@@ -168,7 +168,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   def update_group_participants(group_jid, participants, action)
     Array(participants).each do |participant|
       response = HTTParty.post(
-        "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-participants",
+        "#{provider_url}/connections/#{phone_number_for_api}/group-participants",
         headers: api_headers,
         body: { jid: group_jid, participant: participant, action: action }.to_json
       )
@@ -181,7 +181,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_invite_code(group_jid)
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-invite-code",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-invite-code",
       headers: api_headers,
       query: { jid: group_jid },
       format: :json
@@ -194,7 +194,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def revoke_group_invite(group_jid)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-revoke-invite",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-revoke-invite",
       headers: api_headers,
       body: { jid: group_jid }.to_json
     )
@@ -206,7 +206,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_join_requests(group_jid)
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-request-participants-list",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-request-participants-list",
       headers: api_headers,
       query: { jid: group_jid },
       format: :json
@@ -222,7 +222,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def handle_group_join_requests(group_jid, participants, action)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-request-participants-update",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-request-participants-update",
       headers: api_headers,
       body: { jid: group_jid, participants: participants, action: action }.to_json
     )
@@ -232,7 +232,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_leave(group_jid)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-leave",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-leave",
       headers: api_headers,
       body: { jid: group_jid }.to_json
     )
@@ -250,7 +250,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   def group_setting_update(group_jid, property, enabled)
     setting = PROPERTY_TO_SETTING[[property, enabled]]
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-setting-update",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-setting-update",
       headers: api_headers,
       body: { jid: group_jid, setting: setting }.to_json
     )
@@ -260,7 +260,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_join_approval_mode(group_jid, mode)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-join-approval-mode",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-join-approval-mode",
       headers: api_headers,
       body: { jid: group_jid, mode: mode }.to_json
     )
@@ -270,7 +270,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_member_add_mode(group_jid, mode)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-member-add-mode",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-member-add-mode",
       headers: api_headers,
       body: { jid: group_jid, mode: mode }.to_json
     )
@@ -327,7 +327,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     }
 
     response = HTTParty.patch(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/presence",
+      "#{provider_url}/connections/#{phone_number_for_api}/presence",
       headers: api_headers,
       body: {
         toJid: remote_jid,
@@ -342,7 +342,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def presence_subscribe(jids)
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/presence-subscribe",
+      "#{provider_url}/connections/#{phone_number_for_api}/presence-subscribe",
       headers: api_headers,
       body: { jids: Array(jids) }.to_json,
       timeout: 10
@@ -361,7 +361,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     }
 
     response = HTTParty.patch(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/presence",
+      "#{provider_url}/connections/#{phone_number_for_api}/presence",
       headers: api_headers,
       body: {
         type: status_map[status]
@@ -377,7 +377,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/read-messages",
+      "#{provider_url}/connections/#{phone_number_for_api}/read-messages",
       headers: api_headers,
       body: {
         keys: messages.map { |message| message_key_for(message) }
@@ -393,7 +393,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/chat-modify",
+      "#{provider_url}/connections/#{phone_number_for_api}/chat-modify",
       headers: api_headers,
       body: {
         jid: remote_jid,
@@ -416,7 +416,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/send-receipts",
+      "#{provider_url}/connections/#{phone_number_for_api}/send-receipts",
       headers: api_headers,
       body: {
         keys: messages.map { |message| message_key_for(message) }
@@ -430,7 +430,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def get_profile_pic(jid)
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/profile-picture-url",
+      "#{provider_url}/connections/#{phone_number_for_api}/profile-picture-url",
       headers: api_headers,
       query: { jid: jid },
       format: :json,
@@ -444,7 +444,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def group_metadata(group_jid)
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/group-metadata",
+      "#{provider_url}/connections/#{phone_number_for_api}/group-metadata",
       headers: api_headers,
       query: { jid: group_jid },
       format: :json
@@ -459,7 +459,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/on-whatsapp",
+      "#{provider_url}/connections/#{phone_number_for_api}/on-whatsapp",
       headers: api_headers,
       body: {
         jids: [remote_jid]
@@ -477,7 +477,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.delete(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/messages",
+      "#{provider_url}/connections/#{phone_number_for_api}/messages",
       headers: api_headers,
       body: {
         jid: remote_jid,
@@ -494,7 +494,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     @recipient_id = recipient_id
 
     response = HTTParty.patch(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/messages",
+      "#{provider_url}/connections/#{phone_number_for_api}/messages",
       headers: api_headers,
       body: {
         jid: remote_jid,
@@ -515,7 +515,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   # connection `close` on any error, which would be catastrophic for a diagnostic GET.
   def fetch_reachout_timelock
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/reachout-timelock",
+      "#{provider_url}/connections/#{phone_number_for_api}/reachout-timelock",
       headers: api_headers,
       format: :json,
       timeout: 10
@@ -538,7 +538,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   # model slices it to the UI-relevant keys when persisting.
   def fetch_new_chat_cap
     response = HTTParty.get(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/new-chat-cap",
+      "#{provider_url}/connections/#{phone_number_for_api}/new-chat-cap",
       headers: api_headers,
       format: :json,
       timeout: 10
@@ -558,6 +558,10 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def api_key
     whatsapp_channel.provider_config['api_key'].presence || DEFAULT_API_KEY
+  end
+
+  def phone_number_for_api
+    whatsapp_channel.phone_number.delete('+')
   end
 
   def reaction_message_content
@@ -655,7 +659,7 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def send_message_request
     response = HTTParty.post(
-      "#{provider_url}/connections/#{whatsapp_channel.phone_number}/send-message",
+      "#{provider_url}/connections/#{phone_number_for_api}/send-message",
       headers: api_headers,
       body: {
         jid: remote_jid,

@@ -123,6 +123,111 @@ services:
       - 1025:1025
       - 8025:8025
 
+  redis_baileys:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_baileys_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  baileys-api:
+    image: ghcr.io/fazer-ai/baileys-api:latest
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        until curl -s http://rails:3000/; do echo 'Aguardando Chatwoot...'; sleep 5; done &&
+        bun scripts/manage-api-keys.ts create user meuapikeybaileys || true &&
+        bun src/index.ts
+      "
+    ports:
+      - "3025:3025"
+    environment:
+      - NODE_ENV=development
+      - PORT=3025
+      - REDIS_URL=redis://default:@redis_baileys:6379
+      - CHATWOOT_URL=http://rails:3000
+      - WEBHOOK_URL=http://rails:3000/baileys/webhook
+      - CORS_ORIGIN=*
+    depends_on:
+      redis_baileys:
+        condition: service_started
+      rails:
+        condition: service_started
+
+  unoapi-redis:
+    image: valkey/valkey:9-alpine3.23
+    command: >
+      valkey-server --appendonly yes --requirepass "redisunoapi" --protected-mode no
+    volumes:
+      - unoapi_redis_data:/data
+
+  unoapi-rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "senha"
+    volumes:
+      - unoapi_rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+
+  unoapi-minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - unoapi_minio_data:/data
+
+  unoapi:
+    image: ghcr.io/viperteccorporation/viperconnect:3.0.67
+    entrypoint: ["yarn", "cloud"]
+    ports:
+      - "9876:9876"
+    depends_on:
+      - unoapi-redis
+      - unoapi-rabbitmq
+      - unoapi-minio
+    environment:
+      HTTP_PROTOCOL: "http"
+      BASE_URL: "http://localhost:9876"
+      UNOAPI_AUTH_TOKEN: "meutokenunoapi"
+      AMQP_URL: "amqp://user:senha@unoapi-rabbitmq:5672"
+      REDIS_URL: "redis://:redisunoapi@unoapi-redis:6379"
+      WEBHOOK_URL: "http://rails:3000/webhooks/whatsapp"
+      WEBHOOK_TOKEN: "meuwebhooktoken"
+      WEBHOOK_HEADER: "api_access_token"
+      STORAGE_BUCKET_NAME: "unoapi"
+      STORAGE_ACCESS_KEY_ID: "minioadmin"
+      STORAGE_SECRET_ACCESS_KEY: "minioadmin"
+      STORAGE_REGION: "us-east-1"
+      STORAGE_ENDPOINT: "http://unoapi-minio:9000"
+      STORAGE_FORCE_PATH_STYLE: "true"
+      IGNORE_GROUP_MESSAGES: "true"
+      IGNORE_BROADCAST_STATUSES: "true"
+      IGNORE_OWN_MESSAGES: "false"
+      IGNORE_STATUS_MESSAGE: "true"
+      IGNORE_YOURSELF_MESSAGES: "false"
+      IGNORE_HISTORY_MESSAGES: "true"
+      IGNORE_BROADCAST_MESSAGES: "true"
+      COMPOSING_MESSAGE: "true"
+      REJECT_CALLS: "Nao consigo atender ligacoes"
+      SEND_CONNECTION_STATUS: "true"
+      AUTO_CONNECT: "true"
+      CONFIG_SESSION_PHONE_CLIENT: "Unoapi"
+      CONFIG_SESSION_PHONE_NAME: "Chrome"
+      LID_RESOLVER_ENABLED: "true"
+      HISTORY_MAX_AGE_DAYS: "7"
+      LOG_LEVEL: "info"
+
 volumes:
   postgres:
   redis:
@@ -131,3 +236,7 @@ volumes:
   cache:
   gems:
   bundle:
+  redis_baileys_data:
+  unoapi_redis_data:
+  unoapi_rabbitmq_data:
+  unoapi_minio_data:

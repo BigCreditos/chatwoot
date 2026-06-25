@@ -166,6 +166,14 @@ class ActionCableListener < BaseListener
     broadcast(account, [account_token(account)], CONTACT_DELETED, contact_data)
   end
 
+  def inbox_provider_connection_updated(event)
+    inbox = event.data[:inbox]
+    account = inbox.account
+    tokens = user_tokens(account, inbox.members)
+    broadcast(account, tokens, INBOX_PROVIDER_CONNECTION_UPDATED,
+              inbox: inbox.push_event_data, provider_connection: inbox.channel.provider_connection_data)
+  end
+
   def conversation_mentioned(event)
     conversation, account = extract_conversation_and_account(event)
     user = event.data[:user]

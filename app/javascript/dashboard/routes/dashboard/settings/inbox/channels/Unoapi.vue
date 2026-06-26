@@ -2,10 +2,9 @@
 import { mapGetters } from 'vuex';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
-import { required, requiredIf } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import router from '../../../../index';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
-import { isValidURL } from '../../../../../helper/URLHelper';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Switch from 'dashboard/components-next/switch/Switch.vue';
 
@@ -35,41 +34,8 @@ export default {
   validations: {
     inboxName: { required },
     phoneNumber: { required, isPhoneE164OrEmpty },
-    apiKey: {
-      requiredIf: requiredIf(function () {
-        return !!this.url && !window.globalConfig?.UNOAPI_AUTH_TOKEN;
-      }),
-    },
-    ignoreGroupMessages: { required },
-    ignoreHistoryMessages: { required },
-    sendAgentName: { required },
-    webhookSendNewMessages: { required },
-    url: {
-      isValidURL: value => !value || isValidURL(value),
-      requiredIf: requiredIf(function () {
-        return !!this.apiKey && !window.globalConfig?.UNOAPI_PROVIDER_DEFAULT_URL;
-      }),
-    },
   },
   methods: {
-    generateToken() {
-      const characters =
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      let token = '';
-      for (let i = 0; i < 64; i++) {
-        token += characters.charAt(
-          Math.floor(Math.random() * characters.length)
-        );
-      }
-
-      if (this.apiKey) {
-        if (confirm('A token already exists. Do you want to replace it?')) {
-          this.apiKey = token;
-        }
-      } else {
-        this.apiKey = token;
-      }
-    },
     async createChannel() {
       this.v$.$touch();
       if (this.v$.$invalid) {
@@ -152,37 +118,6 @@ export default {
       </label>
     </div>
 
-    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-      <label :class="{ error: v$.apiKey.$error }">
-        <span>
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
-        </span>
-        <input
-          v-model.trim="apiKey"
-          type="text"
-          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
-          @blur="v$.apiKey.$touch"
-        />
-        <span v-if="v$.apiKey.$error" class="message">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-        </span>
-      </label>
-    </div>
-
-    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-      <label :class="{ error: v$.url.$error }">
-        {{ $t('INBOX_MGMT.ADD.WHATSAPP.URL.LABEL') }}
-        <input
-          v-model.trim="url"
-          type="text"
-          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.URL.PLACEHOLDER')"
-        />
-        <span v-if="v$.url.$error" class="message">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.URL.ERROR') }}
-        </span>
-      </label>
-    </div>
-
     <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] config-helptext">
       <label
         :class="{ error: v$.sendAgentName.$error }"
@@ -255,24 +190,6 @@ export default {
         blue
         :label="$t('INBOX_MGMT.ADD.WHATSAPP.SUBMIT_BUTTON')"
       />
-      <NextButton
-        :is-loading="uiFlags.isCreating"
-        solid
-        blue
-        :label="$t('INBOX_MGMT.ADD.WHATSAPP.GENERATE_API_KEY.LABEL')"
-        @click="generateToken"
-      />
     </div>
   </form>
 </template>
-
-<style lang="scss" scoped>
-.switch {
-  flex: 0 0 auto;
-  margin-right: 10px;
-}
-.switch-label {
-  display: flex;
-  align-items: center;
-}
-</style>

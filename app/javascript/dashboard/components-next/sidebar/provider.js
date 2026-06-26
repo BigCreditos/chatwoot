@@ -40,11 +40,10 @@ export function useSidebarResize() {
   };
 
   const toggleCollapse = () => {
-    if (isCollapsed.value) {
-      sidebarWidth.value = DEFAULT_WIDTH;
-    } else {
-      sidebarWidth.value = ICON_WIDTH;
-    }
+    const nextWidth = isCollapsed.value ? DEFAULT_WIDTH : ICON_WIDTH;
+
+    sidebarWidth.value = nextWidth;
+    updateUISettings({ sidebar_width: nextWidth });
   };
 
   return {

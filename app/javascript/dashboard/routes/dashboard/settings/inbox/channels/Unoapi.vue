@@ -34,6 +34,10 @@ export default {
   validations: {
     inboxName: { required },
     phoneNumber: { required, isPhoneE164OrEmpty },
+    sendAgentName: { required },
+    ignoreGroupMessages: { required },
+    ignoreHistoryMessages: { required },
+    webhookSendNewMessages: { required },
   },
   methods: {
     async createChannel() {
@@ -193,3 +197,14 @@ export default {
     </div>
   </form>
 </template>
+
+<style lang="scss" scoped>
+.switch {
+  flex: 0 0 auto;
+  margin-right: 10px;
+}
+.switch-label {
+  display: flex;
+  align-items: center;
+}
+</style>

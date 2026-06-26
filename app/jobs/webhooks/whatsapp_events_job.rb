@@ -1,4 +1,5 @@
 class Webhooks::WhatsappEventsJob < MutexApplicationJob
+  include BaileysHelper
   queue_as :low
   retry_on ActiveRecord::RecordNotFound, wait: 30.seconds, attempts: 5
   # Retry budget (19 × 2s = 38s) must exceed the 30s lock TTL set in `perform`, otherwise
@@ -82,17 +83,27 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     when 'whatsapp_cloud'
       Whatsapp::IncomingMessageWhatsappCloudService.new(inbox: channel.inbox, params: params).perform
     when 'unoapi'
-      Whatsapp::IncomingMessageUnoapiService.new(inbox: channel.inbox, params: params).perform
+      with_outgoing_channel_lock(channel) do
+        Whatsapp::IncomingMessageUnoapiService.new(inbox: channel.inbox, params: params).perform
+      end
     when 'baileys'
       Whatsapp::IncomingMessageBaileysService.new(inbox: channel.inbox, params: params).perform
     when 'wuzapi'
-      Whatsapp::IncomingMessageWuzapiService.new(inbox: channel.inbox, params: params).perform
+      with_outgoing_channel_lock(channel) do
+        Whatsapp::IncomingMessageWuzapiService.new(inbox: channel.inbox, params: params).perform
+      end
     else
       Whatsapp::IncomingMessageService.new(inbox: channel.inbox, params: params).perform
     end
   end
 
   private
+
+  def with_outgoing_channel_lock(channel, &block)
+    return yield unless %w[unoapi wuzapi].include?(channel.provider)
+
+    with_baileys_channel_lock_on_outgoing_message(channel.id, &block)
+  end
 
   # Echo payloads reverse the fields — `from` is the business number and `to` is the contact.
   # Returns nil for status-only webhooks so they bypass the lock.

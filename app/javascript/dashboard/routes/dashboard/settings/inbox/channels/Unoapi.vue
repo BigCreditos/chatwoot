@@ -2,9 +2,10 @@
 import { mapGetters } from 'vuex';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
-import { required } from '@vuelidate/validators';
+import { required, requiredIf } from '@vuelidate/validators';
 import router from '../../../../index';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
+import { isValidURL } from '../../../../../helper/URLHelper';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Switch from 'dashboard/components-next/switch/Switch.vue';
 
@@ -20,8 +21,8 @@ export default {
     return {
       inboxName: '',
       phoneNumber: '',
-      apiKey: '',
-      url: 'https://unoapi.cloud',
+      apiKey: window.globalConfig?.UNOAPI_AUTH_TOKEN || '',
+      url: window.globalConfig?.UNOAPI_PROVIDER_DEFAULT_URL || 'https://unoapi.cloud',
       ignoreGroupMessages: true,
       ignoreHistoryMessages: true,
       sendAgentName: true,
@@ -34,12 +35,21 @@ export default {
   validations: {
     inboxName: { required },
     phoneNumber: { required, isPhoneE164OrEmpty },
-    apiKey: { required },
+    apiKey: {
+      requiredIf: requiredIf(function () {
+        return !!this.url && !window.globalConfig?.UNOAPI_AUTH_TOKEN;
+      }),
+    },
     ignoreGroupMessages: { required },
     ignoreHistoryMessages: { required },
     sendAgentName: { required },
     webhookSendNewMessages: { required },
-    url: { required },
+    url: {
+      isValidURL: value => !value || isValidURL(value),
+      requiredIf: requiredIf(function () {
+        return !!this.apiKey && !window.globalConfig?.UNOAPI_PROVIDER_DEFAULT_URL;
+      }),
+    },
   },
   methods: {
     generateToken() {

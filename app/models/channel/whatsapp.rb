@@ -286,12 +286,17 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   def ensure_provider_config_defaults
-    return unless %w[baileys wuzapi zapi].include?(provider)
+    return unless %w[baileys wuzapi zapi unoapi].include?(provider)
 
     self.provider_config ||= {}
     provider_config['provider_url'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
     provider_config['api_key'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
     provider_config['admin_token'] ||= ENV.fetch('WUZAPI_ADMIN_TOKEN', nil) if provider == 'wuzapi'
+
+    return unless provider == 'unoapi'
+
+    provider_config['url'] ||= ENV.fetch('UNOAPI_PROVIDER_DEFAULT_URL', 'https://unoapi.cloud')
+    provider_config['api_key'] ||= ENV.fetch('UNOAPI_AUTH_TOKEN', nil)
   end
 
   def ensure_unoapi_group_conversation_schema_default

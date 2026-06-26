@@ -160,6 +160,10 @@ export const AUTOMATIONS = {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
       },
+      {
+        key: 'trigger_typebot',
+        name: 'TRIGGER_TYPEBOT',
+      },
     ],
   },
   conversation_created: {
@@ -301,6 +305,10 @@ export const AUTOMATIONS = {
       {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
+      },
+      {
+        key: 'trigger_typebot',
+        name: 'TRIGGER_TYPEBOT',
       },
     ],
   },
@@ -456,6 +464,10 @@ export const AUTOMATIONS = {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
       },
+      {
+        key: 'trigger_typebot',
+        name: 'TRIGGER_TYPEBOT',
+      },
     ],
   },
   conversation_opened: {
@@ -600,6 +612,10 @@ export const AUTOMATIONS = {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
       },
+      {
+        key: 'trigger_typebot',
+        name: 'TRIGGER_TYPEBOT',
+      },
     ],
   },
   conversation_resolved: {
@@ -717,6 +733,10 @@ export const AUTOMATIONS = {
       {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
+      },
+      {
+        key: 'trigger_typebot',
+        name: 'TRIGGER_TYPEBOT',
       },
     ],
   },
@@ -850,5 +870,10 @@ export const AUTOMATION_ACTION_TYPES = [
     key: 'add_sla',
     label: 'ADD_SLA',
     inputType: 'search_select',
+  },
+  {
+    key: 'trigger_typebot',
+    label: 'TRIGGER_TYPEBOT',
+    inputType: 'typebot',
   },
 ];

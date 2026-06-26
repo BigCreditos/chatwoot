@@ -212,9 +212,22 @@ class Inbox < ApplicationRecord
     when 'Channel::Line'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/line/#{channel.line_channel_id}"
     when 'Channel::Whatsapp'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
+      provider_specific_webhook_url(channel)
     when 'Channel::NotificaMe'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/notifica_me/#{channel.notifica_me_id}"
+    end
+  end
+
+  def provider_specific_webhook_url(channel)
+    case channel.provider
+    when 'baileys'
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/baileys/#{channel.phone_number}"
+    when 'wuzapi'
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/wuzapi/#{channel.phone_number}"
+    when 'zapi'
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/zapi/#{channel.phone_number}"
+    else
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
     end
   end
 

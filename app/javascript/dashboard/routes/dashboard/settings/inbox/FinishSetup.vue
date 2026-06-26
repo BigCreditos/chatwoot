@@ -9,6 +9,7 @@ import NextButton from 'dashboard/components-next/button/Button.vue';
 import DuplicateInboxBanner from './channels/instagram/DuplicateInboxBanner.vue';
 import EmailInboxFinish from './channels/emailChannels/EmailInboxFinish.vue';
 import { useInbox } from 'dashboard/composables/useInbox';
+import { useAlert } from 'dashboard/composables';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
 
 const { t } = useI18n();
@@ -42,6 +43,12 @@ const isAWhatsAppBaileysChannel = computed(
   () =>
     currentInbox.value?.channel_type === 'Channel::Whatsapp' &&
     currentInbox.value?.provider === 'baileys'
+);
+
+const isAWhatsAppWuzapiChannel = computed(
+  () =>
+    currentInbox.value?.channel_type === 'Channel::Whatsapp' &&
+    currentInbox.value?.provider === 'wuzapi'
 );
 
 const hasDuplicateInstagramInbox = computed(() => {
@@ -166,8 +173,24 @@ watch(
   { immediate: true }
 );
 
-onMounted(() => {
+const setupExternalProvider = async () => {
+  if (
+    !currentInbox.value?.provider_connection?.connection ||
+    currentInbox.value.provider_connection.connection === 'close'
+  ) {
+    try {
+      await store.dispatch('inboxes/setupChannelProvider', route.params.inbox_id);
+    } catch (error) {
+      useAlert(error.message);
+    }
+  }
+};
+
+onMounted(async () => {
   generateQRCodes();
+  if (isAWhatsAppBaileysChannel.value || isAWhatsAppWuzapiChannel.value) {
+    await setupExternalProvider();
+  }
 });
 </script>
 
@@ -269,6 +292,38 @@ onMounted(() => {
           <template v-else>
             <p class="mt-2 text-sm text-n-slate-11">
               {{ $t('INBOX_MGMT.FINISH.WHATSAPP_BAILEYS_CONFIGURE_MESSAGE') }}
+            </p>
+            <router-link
+              :to="{
+                name: 'settings_inbox_show',
+                params: { inboxId: $route.params.inbox_id },
+              }"
+            >
+              <NextButton outline slate>
+                {{ $t('INBOX_MGMT.FINISH.MORE_SETTINGS') }}
+              </NextButton>
+            </router-link>
+          </template>
+        </div>
+        <div
+          v-if="isAWhatsAppWuzapiChannel"
+          class="flex flex-col gap-3 items-center mt-8"
+        >
+          <template v-if="currentInbox.provider_connection?.qr_data_url">
+            <p class="mt-2 text-sm text-n-slate-9">
+              {{ $t('INBOX_MGMT.FINISH.WHATSAPP_WUZAPI_QR_INSTRUCTION') }}
+            </p>
+            <div class="rounded-lg shadow outline-1 outline-n-strong outline">
+              <img
+                :src="currentInbox.provider_connection.qr_data_url"
+                alt="WhatsApp Wuzapi QR Code"
+                class="rounded-lg size-48 dark:invert"
+              />
+            </div>
+          </template>
+          <template v-else>
+            <p class="mt-2 text-sm text-n-slate-11">
+              {{ $t('INBOX_MGMT.FINISH.WHATSAPP_WUZAPI_CONFIGURE_MESSAGE') }}
             </p>
             <router-link
               :to="{

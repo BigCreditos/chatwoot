@@ -561,7 +561,8 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   end
 
   def phone_number_for_api
-    whatsapp_channel.phone_number.delete('+')
+    phone = whatsapp_channel.phone_number
+    phone.start_with?('+') ? phone : "+#{phone}"
   end
 
   def reaction_message_content

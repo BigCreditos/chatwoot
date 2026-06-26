@@ -855,7 +855,10 @@
       "WHATSAPP_QR_INSTRUCTION": "Scan the QR code above to quickly test your WhatsApp inbox",
       "MESSENGER_QR_INSTRUCTION": "Scan the QR code above to quickly test your Facebook Messenger inbox",
       "TELEGRAM_QR_INSTRUCTION": "Scan the QR code above to quickly test your Telegram inbox",
-      "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option."
+      "WHATSAPP_BAILEYS_QR_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
+      "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option.",
+      "WHATSAPP_WUZAPI_QR_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
+      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option."
     },
     "REAUTH": "Reauthorize",
     "VIEW": "View",

@@ -10,8 +10,8 @@ class Whatsapp::Providers::WhatsappWuzapiService < Whatsapp::Providers::BaseServ
     if provider_url.blank?
       raise ProviderConfigError, 'Wuzapi provider URL is not configured. Set BAILEYS_PROVIDER_DEFAULT_URL or configure provider_url in the channel settings.'
     end
-    if api_key.blank?
-      raise ProviderConfigError, 'Wuzapi API key is not configured. Set BAILEYS_PROVIDER_DEFAULT_API_KEY or configure api_key in the channel settings.'
+    if admin_token.blank?
+      raise ProviderConfigError, 'Wuzapi admin token is not configured. Set WUZAPI_ADMIN_TOKEN or configure admin_token in the channel settings.'
     end
 
     create_wuzapi_user

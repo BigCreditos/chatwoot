@@ -5,7 +5,7 @@ import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
-import { required, requiredIf } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
 import { isValidURL } from '../../../../../helper/URLHelper';
 
@@ -34,20 +34,13 @@ const phoneNumber = ref(
   isConvertMode.value ? props.inbox?.phone_number || '' : ''
 );
 const defaultProviderUrl = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL || '';
-const defaultApiKey = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY || '';
 
-const apiKey = ref(
-  isConvertMode.value
-    ? props.inbox?.provider_config?.api_key || defaultApiKey
-    : defaultApiKey
-);
 const providerUrl = ref(
   isConvertMode.value
     ? props.inbox?.provider_config?.provider_url || defaultProviderUrl
     : defaultProviderUrl
 );
 const adminToken = ref('');
-const showAdvancedOptions = ref(false);
 
 const uiFlags = computed(() => store.getters['inboxes/getUIFlags']);
 
@@ -56,25 +49,22 @@ const rules = computed(() => ({
   phoneNumber: { required, isPhoneE164OrEmpty },
   providerUrl: {
     isValidURL: value => !value || isValidURL(value),
-    requiredIf: requiredIf(() => !!apiKey.value),
+    required,
   },
-  apiKey: { requiredIf: requiredIf(() => !!providerUrl.value) },
-  adminToken: {},
+  adminToken: { required },
 }));
 
 const v$ = useVuelidate(rules, {
   inboxName,
   phoneNumber,
   providerUrl,
-  apiKey,
   adminToken,
 });
 
 const buildProviderConfig = () => {
   const providerConfig = {};
 
-  if (apiKey.value || providerUrl.value) {
-    providerConfig.api_key = apiKey.value;
+  if (providerUrl.value) {
     providerConfig.provider_url = providerUrl.value;
   }
 
@@ -88,9 +78,6 @@ const buildProviderConfig = () => {
 const createChannel = async () => {
   v$.value.$touch();
   if (v$.value.$invalid) {
-    if (v$.value.providerUrl.$invalid || v$.value.apiKey.$invalid) {
-      showAdvancedOptions.value = true;
-    }
     return;
   }
 
@@ -142,9 +129,7 @@ const createChannel = async () => {
   }
 };
 
-const setShowAdvancedOptions = () => {
-  showAdvancedOptions.value = true;
-};
+
 </script>
 
 <template>
@@ -181,61 +166,37 @@ const setShowAdvancedOptions = () => {
       </label>
     </div>
 
-    <div
-      v-if="!showAdvancedOptions"
-      class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] mb-4"
-    >
-      <NextButton icon="i-lucide-plus" sm link @click="setShowAdvancedOptions">
-        {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
-      </NextButton>
-    </div>
-    <template v-else>
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <span class="text-sm text-gray-600">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.providerUrl.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.LABEL') }}
+        <input
+          v-model="providerUrl"
+          type="text"
+          :placeholder="
+            $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.PLACEHOLDER')
+          "
+        />
+        <span v-if="v$.providerUrl.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.ERROR') }}
         </span>
-        <label :class="{ error: v$.providerUrl.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.LABEL') }}
-          <input
-            v-model="providerUrl"
-            type="text"
-            :placeholder="
-              $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.PLACEHOLDER')
-            "
-          />
-          <span v-if="v$.providerUrl.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.ERROR') }}
-          </span>
-        </label>
-      </div>
+      </label>
+    </div>
 
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label :class="{ error: v$.apiKey.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
-          <input
-            v-model="apiKey"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
-          />
-          <span v-if="v$.apiKey.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-          </span>
-        </label>
-      </div>
-
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label>
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADMIN_TOKEN.LABEL') }}
-          <input
-            v-model="adminToken"
-            type="password"
-            :placeholder="
-              $t('INBOX_MGMT.ADD.WHATSAPP.ADMIN_TOKEN.PLACEHOLDER')
-            "
-          />
-        </label>
-      </div>
-    </template>
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.adminToken.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADMIN_TOKEN.LABEL') }}
+        <input
+          v-model="adminToken"
+          type="password"
+          :placeholder="
+            $t('INBOX_MGMT.ADD.WHATSAPP.ADMIN_TOKEN.PLACEHOLDER')
+          "
+        />
+        <span v-if="v$.adminToken.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADMIN_TOKEN.ERROR') }}
+        </span>
+      </label>
+    </div>
 
     <div class="w-full">
       <NextButton

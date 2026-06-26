@@ -855,7 +855,10 @@
       "WHATSAPP_QR_INSTRUCTION": "Escaneie o código QR acima para testar rapidamente sua caixa de entrada do WhatsApp",
       "MESSENGER_QR_INSTRUCTION": "Escaneie o código QR acima para testar rapidamente sua caixa de entrada do Facebook Messenger",
       "TELEGRAM_QR_INSTRUCTION": "Escaneie o código QR acima para testar rapidamente sua caixa de entrada do Telegram",
-      "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\"."
+      "WHATSAPP_BAILEYS_QR_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
+      "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\".",
+      "WHATSAPP_WUZAPI_QR_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
+      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\"."
     },
     "REAUTH": "Reautorizar",
     "VIEW": "Visualizar",

@@ -200,12 +200,6 @@ useEventListener(document, 'mouseup', onResizeEnd);
 useEventListener(document, 'touchmove', onResizeMove, { passive: true });
 useEventListener(document, 'touchend', onResizeEnd);
 
-useEventListener(document, 'keydown', e => {
-  if (e.key === '[' || e.key?.toLowerCase() === 'm') {
-    if (!e.ctrlKey && !e.metaKey) toggleCollapse();
-  }
-});
-
 const labels = useMapGetter('labels/getLabelsOnSidebar');
 
 const safeUnreadCountGetter = key => {

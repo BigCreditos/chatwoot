@@ -1,4 +1,6 @@
 class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
+  include BaileysHelper
+
   private
 
   def channel_class
@@ -44,8 +46,16 @@ class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
   end
 
   def send_session_message
-    message_id = channel.send_message(whatsapp_recipient, message)
-    message.update!(source_id: message_id) if message_id.present?
+    with_outgoing_baileys_lock do
+      message_id = channel.send_message(whatsapp_recipient, message)
+      message.update!(source_id: message_id) if message_id.present?
+    end
+  end
+
+  def with_outgoing_baileys_lock(&block)
+    return yield unless %w[baileys unoapi wuzapi].include?(channel.provider)
+
+    with_baileys_channel_lock_on_outgoing_message(channel.id, &block)
   end
 
   def template_params

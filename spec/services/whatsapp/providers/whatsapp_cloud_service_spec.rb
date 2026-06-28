@@ -65,6 +65,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
 
       it 'calls message endpoints with group recipient type for group conversations' do
         conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
+        whatsapp_channel.update!(provider_config: whatsapp_channel.provider_config.merge('send_agent_name' => true))
         expected_body = "*#{message.sender_name}*: test"
 
         stub_request(:post, 'https://graph.facebook.com/v13.0/123456789/messages')
@@ -86,6 +87,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
       it 'sends group contact mentions to UnoAPI with clean identifier in body and bsuid in mentions metadata' do
         whatsapp_channel.update!(provider: 'unoapi')
         whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.provider_config['send_agent_name'] = true
         whatsapp_channel.save!
         conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
         message.update!(
@@ -118,6 +120,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
       it 'replaces bare group contact mention urls before sending to UnoAPI' do
         whatsapp_channel.update!(provider: 'unoapi')
         whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.provider_config['send_agent_name'] = true
         whatsapp_channel.save!
         conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
         message.update!(
@@ -150,6 +153,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
       it 'resolves bare group contact mention urls from the conversation member when metadata is missing' do
         whatsapp_channel.update!(provider: 'unoapi')
         whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.provider_config['send_agent_name'] = true
         whatsapp_channel.save!
         conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
         contact = create(:contact, account: conversation.account, name: 'Equipe Tecnica', bsuid: '11343495192601@lid')
@@ -180,6 +184,7 @@ describe Whatsapp::Providers::WhatsappCloudService do
       it 'uses phone number as group mention fallback when bsuid is unavailable' do
         whatsapp_channel.update!(provider: 'unoapi')
         whatsapp_channel.provider_config['url'] = 'https://graph.facebook.com'
+        whatsapp_channel.provider_config['send_agent_name'] = true
         whatsapp_channel.save!
         conversation.update!(group: true, group_source_id: '120363040468224422@g.us', group_title: 'Equipe Comercial')
         message.update!(

@@ -178,7 +178,7 @@ describe Whatsapp::SendOnWhatsappService do
         expect(message.reload.source_id).to eq('123456789')
       end
 
-      it 'prefixes the agent name for whatsapp group messages even when the agent name setting is disabled' do
+      it 'does not prefix the agent name for group messages when the inbox setting is disabled' do
         whatsapp_cloud_channel = create(
           :channel_whatsapp,
           provider: 'whatsapp_cloud',
@@ -189,7 +189,7 @@ describe Whatsapp::SendOnWhatsappService do
         allow(whatsapp_cloud_channel.inbox.account).to receive(:feature_enabled?).and_call_original
         allow(whatsapp_cloud_channel.inbox.account).to receive(:feature_enabled?)
           .with('send_agent_name_in_whatsapp_message')
-          .and_return(false)
+          .and_return(true)
 
         group_contact = create(:contact, account: whatsapp_cloud_channel.account, email: '120363040468224422@g.us')
         group_contact_inbox = create(
@@ -233,7 +233,7 @@ describe Whatsapp::SendOnWhatsappService do
           body = JSON.parse(request.body)
           body['recipient_type'] == 'group' &&
             body['to'] == '120363040468224422@g.us' &&
-            body.dig('text', 'body') == '*Agent Smith*: test'
+            body.dig('text', 'body') == 'test'
         }
         expect(message.reload.source_id).to eq('123456789')
       end

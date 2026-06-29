@@ -101,6 +101,7 @@
       "RESOLVE_CONVERSATION": "Resolver Conversa",
       "SEND_ATTACHMENT": "Enviar Anexo",
       "SEND_MESSAGE": "Enviar uma Mensagem",
+      "APPLY_DELAY": "Aplicar Delay (tempo de espera)",
       "CHANGE_PRIORITY": "Alterar Prioridade",
       "ADD_PRIVATE_NOTE": "Adicionar uma Nota Privada",
       "SEND_WEBHOOK_EVENT": "Enviar evento de Webhook",

@@ -137,6 +137,26 @@ RSpec.describe Macros::ExecutionService, type: :service do
         end.not_to change(Message, :count)
       end
     end
+
+    context 'when inbox_id is specified in action parameters' do
+      let(:another_inbox) { create(:inbox, account: account) }
+
+      it 'creates a message in the target conversation if conversation is in a different inbox' do
+        expect do
+          service.send(:send_message, ['Test message', another_inbox.id])
+        end.to change(Message, :count).by(1)
+        
+        expect(Message.last.conversation.inbox_id).to eq(another_inbox.id)
+      end
+
+      it 'creates a message in the same conversation if conversation belongs to the specified inbox' do
+        expect do
+          service.send(:send_message, ['Test message', conversation.inbox_id])
+        end.to change(Message, :count).by(1)
+
+        expect(Message.last.conversation_id).to eq(conversation.id)
+      end
+    end
   end
 
   describe '#send_attachment' do

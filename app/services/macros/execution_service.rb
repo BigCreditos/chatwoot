@@ -45,12 +45,49 @@ class Macros::ExecutionService < ActionService
   def send_message(message)
     return if conversation_a_tweet?
 
-    params = { content: message[0], private: false }
+    message_content = message[0]
+    target_inbox_id = message[1]
 
-    # Added reload here to ensure conversation us persistent with the latest updates
-    mb = Messages::MessageBuilder.new(@user, @conversation.reload, params)
-    mb.perform
+    if target_inbox_id.present? && target_inbox_id.to_i != @conversation.inbox_id
+      target_inbox_id = target_inbox_id.to_i
+
+      target_conversation = @account.conversations.where(
+        contact_id: @conversation.contact_id,
+        inbox_id: target_inbox_id
+      ).order(created_at: :desc).first
+
+      if target_conversation.present?
+        target_conversation.open! if target_conversation.resolved?
+      else
+        contact_inbox = @conversation.contact.contact_inboxes.find_by(inbox_id: target_inbox_id)
+        if contact_inbox.nil?
+          source_id = @conversation.contact.phone_number || SecureRandom.uuid
+          contact_inbox = @conversation.contact.contact_inboxes.create!(inbox_id: target_inbox_id, source_id: source_id)
+        end
+
+        target_conversation = Conversation.create!(
+          account_id: @account.id,
+          inbox_id: target_inbox_id,
+          contact_id: @conversation.contact_id,
+          contact_inbox_id: contact_inbox.id,
+          status: :open,
+          assignee_id: @conversation.assignee_id
+        )
+      end
+
+      mb = Messages::MessageBuilder.new(@user, target_conversation, { content: message_content, private: false })
+      mb.perform
+    else
+      mb = Messages::MessageBuilder.new(@user, @conversation.reload, { content: message_content, private: false })
+      mb.perform
+    end
   end
+
+  def apply_delay(delay_seconds)
+    seconds = delay_seconds[0].to_i
+    Kernel.sleep(seconds) if seconds > 0
+  end
+
 
   def send_attachment(blob_ids)
     return if conversation_a_tweet?

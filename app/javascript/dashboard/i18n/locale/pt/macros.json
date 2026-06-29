@@ -62,6 +62,7 @@
       "LOADING": "A obter macro",
       "ADD_BTN_TOOLTIP": "Adicionar nova ação",
       "DELETE_BTN_TOOLTIP": "Excluir ação",
+      "SELECT_INBOX": "Selecionar caixa de entrada",
       "VISIBILITY": {
         "LABEL": "Visibilidade da macro",
         "GLOBAL": {

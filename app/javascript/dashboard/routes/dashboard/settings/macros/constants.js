@@ -65,6 +65,11 @@ export const MACRO_ACTION_TYPES = [
     inputType: 'textarea',
   },
   {
+    key: 'apply_delay',
+    label: 'APPLY_DELAY',
+    inputType: 'number',
+  },
+  {
     key: 'add_private_note',
     label: 'ADD_PRIVATE_NOTE',
     inputType: 'textarea',

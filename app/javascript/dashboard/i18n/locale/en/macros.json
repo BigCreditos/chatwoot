@@ -106,6 +106,7 @@
       "RESOLVE_CONVERSATION": "Resolve Conversation",
       "SEND_ATTACHMENT": "Send Attachment",
       "SEND_MESSAGE": "Send a Message",
+      "APPLY_DELAY": "Apply Delay",
       "CHANGE_PRIORITY": "Change Priority",
       "ADD_PRIVATE_NOTE": "Add a Private Note",
       "SEND_WEBHOOK_EVENT": "Send Webhook Event",

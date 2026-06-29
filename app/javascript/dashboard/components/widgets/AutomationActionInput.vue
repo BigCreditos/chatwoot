@@ -103,7 +103,34 @@ export default {
         return this.action_params;
       },
       set(value) {
-        this.action_params = value;
+        if (Array.isArray(this.action_params)) {
+          const inboxId = this.action_params[1] || null;
+          this.action_params = [value, inboxId];
+        } else {
+          this.action_params = value;
+        }
+      },
+    },
+    inboxes() {
+      return this.$store.getters['inboxes/getInboxes'] || [];
+    },
+    inboxOptions() {
+      return [
+        { id: null, name: 'Caixa de Entrada da Conversa (Padrão)' },
+        ...this.inboxes.map(inbox => ({ id: inbox.id, name: inbox.name }))
+      ];
+    },
+    selectedInbox: {
+      get() {
+        if (Array.isArray(this.action_params) && this.action_params.length > 1) {
+          const inboxId = this.action_params[1];
+          return this.inboxOptions.find(opt => opt.id === inboxId) || this.inboxOptions[0];
+        }
+        return this.inboxOptions[0];
+      },
+      set(value) {
+        const msg = Array.isArray(this.action_params) ? this.action_params[0] : this.action_params;
+        this.action_params = [msg || '', value?.id || null];
       },
     },
     typebotUrl: {
@@ -196,6 +223,14 @@ export default {
               placeholder="Bot Slug"
             />
           </div>
+          <NextInput
+            v-else-if="inputType === 'number'"
+            v-model.number="action_params"
+            type="number"
+            min="1"
+            size="sm"
+            placeholder="Tempo em segundos (ex: 3)"
+          />
           <AutomationActionFileInput
             v-else-if="inputType === 'attachment'"
             v-model="action_params"
@@ -226,6 +261,15 @@ export default {
         :placeholder="$t('AUTOMATION.ACTION.TEAM_MESSAGE_INPUT_PLACEHOLDER')"
         class="[&_.ProseMirror-menubar]:hidden px-3 py-1 bg-n-alpha-1 rounded-lg outline outline-1 outline-n-weak dark:outline-n-strong"
       />
+      <div v-if="action_name === 'send_message' && isMacro" class="flex flex-col gap-1 mt-2">
+        <label class="text-xs font-semibold text-n-strong">Disparar por qual Caixa de Entrada? (Opcional)</label>
+        <SingleSelect
+          v-model="selectedInbox"
+          :options="inboxOptions"
+          :dropdown-max-height="dropdownMaxHeight"
+          disable-deselect
+        />
+      </div>
     </div>
     <span v-if="errorMessage" class="text-sm text-n-ruby-11">
       {{ errorMessage }}

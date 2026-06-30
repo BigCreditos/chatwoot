@@ -8,11 +8,15 @@ class Macros::ExecutionService < ActionService
   end
 
   def perform
+    Rails.logger.warn "[MACRO_DEBUG] Starting macro execution. Actions: #{@macro.actions.to_json}"
     @macro.actions.each do |action|
       action = action.with_indifferent_access
       begin
+        Rails.logger.warn "[MACRO_DEBUG] Running action: #{action[:action_name]} with params: #{action[:action_params].to_json}"
         send(action[:action_name], action[:action_params])
       rescue StandardError => e
+        Rails.logger.error "[MACRO_DEBUG] Action #{action[:action_name]} failed with exception: #{e.class}: #{e.message}"
+        Rails.logger.error e.backtrace.join("\n")
         ChatwootExceptionTracker.new(e, account: @account).capture_exception
       end
     end
@@ -43,27 +47,34 @@ class Macros::ExecutionService < ActionService
   end
 
   def send_message(message)
+    Rails.logger.warn "[MACRO_DEBUG] send_message called with: #{message.to_json}"
     return if conversation_a_tweet?
 
     message_content = message[0]
     target_inbox_id = message[1]
+    Rails.logger.warn "[MACRO_DEBUG] message_content: #{message_content.inspect}, target_inbox_id: #{target_inbox_id.inspect}"
 
     if target_inbox_id.present? && target_inbox_id.to_i != @conversation.inbox_id
       target_inbox_id = target_inbox_id.to_i
+      Rails.logger.warn "[MACRO_DEBUG] Sending message to target inbox: #{target_inbox_id}"
 
       target_conversation = @account.conversations.where(
         contact_id: @conversation.contact_id,
         inbox_id: target_inbox_id
       ).order(created_at: :desc).first
+      Rails.logger.warn "[MACRO_DEBUG] target_conversation found: #{target_conversation&.id.inspect}"
 
       if target_conversation.present?
         target_conversation.open! if target_conversation.resolved?
       else
         target_inbox = @account.inboxes.find(target_inbox_id)
+        Rails.logger.warn "[MACRO_DEBUG] target_inbox found: #{target_inbox&.name}"
+
         contact_inbox = ContactInboxBuilder.new(
           contact: @conversation.contact,
           inbox: target_inbox
         ).perform
+        Rails.logger.warn "[MACRO_DEBUG] contact_inbox resolved: #{contact_inbox&.id.inspect}, source_id: #{contact_inbox&.source_id.inspect}"
 
         target_conversation = Conversation.create!(
           account_id: @account.id,
@@ -73,13 +84,17 @@ class Macros::ExecutionService < ActionService
           status: :open,
           assignee_id: @conversation.assignee_id
         )
+        Rails.logger.warn "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
       end
 
       mb = Messages::MessageBuilder.new(@user, target_conversation, { content: message_content, private: false })
       mb.perform
+      Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on target conversation."
     else
+      Rails.logger.warn "[MACRO_DEBUG] Sending message to current conversation."
       mb = Messages::MessageBuilder.new(@user, @conversation.reload, { content: message_content, private: false })
       mb.perform
+      Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on current conversation."
     end
   end
 

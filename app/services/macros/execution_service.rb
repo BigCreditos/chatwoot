@@ -39,7 +39,7 @@ class Macros::ExecutionService < ActionService
   def add_private_note(message)
     return if conversation_a_tweet?
 
-    params = { content: message[0], private: true }
+    params = ActionController::Parameters.new({ content: message[0], private: true })
 
     # Added reload here to ensure conversation us persistent with the latest updates
     mb = Messages::MessageBuilder.new(@user, @conversation.reload, params)
@@ -87,12 +87,14 @@ class Macros::ExecutionService < ActionService
         Rails.logger.warn "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
       end
 
-      mb = Messages::MessageBuilder.new(@user, target_conversation, { content: message_content, private: false })
+      params = ActionController::Parameters.new({ content: message_content, private: false })
+      mb = Messages::MessageBuilder.new(@user, target_conversation, params)
       mb.perform
       Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on target conversation."
     else
       Rails.logger.warn "[MACRO_DEBUG] Sending message to current conversation."
-      mb = Messages::MessageBuilder.new(@user, @conversation.reload, { content: message_content, private: false })
+      params = ActionController::Parameters.new({ content: message_content, private: false })
+      mb = Messages::MessageBuilder.new(@user, @conversation.reload, params)
       mb.perform
       Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on current conversation."
     end

@@ -383,53 +383,28 @@ const onSubmit = async () => {
       // ignore search failures and attempt create
     }
 
-    // Create if not found
-    if (!contact) {
-      try {
-        contact = await store.dispatch('contacts/create', {
-          name: state.contactName.trim() || cleanPhone,
-          phone_number: cleanPhone.startsWith('+')
-            ? cleanPhone
-            : `+${normalizePhone(cleanPhone)}`,
-        });
-      } catch (error) {
-        if (
-          error instanceof DuplicateContactException ||
-          error.name === 'DuplicateContactException'
-        ) {
-          contact = error.data?.contact;
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    if (!contact || !contact.id) {
-      throw new Error('Failed to obtain contact ID');
-    }
-
-    const contactId = contact.id;
-
-    // Apply Contact Labels if selected
-    if (state.selectedLabels.length > 0) {
-      await store.dispatch('contactLabels/update', {
-        contactId,
-        labels: state.selectedLabels,
-      });
-    }
-
     // Find target inbox details
     const targetInbox = inboxesList.value.find(
       i => i.id === state.targetInboxId
     );
 
-    // Create conversation & message payload
+    // Create conversation - if contact exists, use contactId; if not, send contactAttributes
     const conversationPayload = {
       inboxId: state.targetInboxId,
       sourceId: targetInbox?.source_id || targetInbox?.sourceId || '',
-      contactId: Number(contactId),
       message: { content: state.message },
     };
+
+    if (contact && contact.id) {
+      conversationPayload.contactId = Number(contact.id);
+    } else {
+      conversationPayload.contactAttributes = {
+        phoneNumber: cleanPhone.startsWith('+')
+          ? cleanPhone
+          : `+${normalizePhone(cleanPhone)}`,
+        name: state.contactName.trim() || cleanPhone,
+      };
+    }
 
     const conversationData = await store.dispatch(
       'contactConversations/create',
@@ -444,6 +419,20 @@ const onSubmit = async () => {
     }
 
     const conversationId = conversationData.id;
+
+    // Extract contact from response for label assignment (when contact was created by backend)
+    const responseContactId =
+      conversationData.meta?.contact?.id ||
+      conversationData.contact_id ||
+      contact?.id;
+
+    // Apply Contact Labels if selected
+    if (state.selectedLabels.length > 0 && responseContactId) {
+      await store.dispatch('contactLabels/update', {
+        contactId: responseContactId,
+        labels: state.selectedLabels,
+      });
+    }
 
     // Assign Agent
     if (state.selectedAgentId) {

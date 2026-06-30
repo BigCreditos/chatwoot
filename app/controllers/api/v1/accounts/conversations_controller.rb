@@ -200,9 +200,9 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 
   def contact
-    return if params[:contact_id].blank?
+    return if params[:contact_id].blank? && params[:contact_attributes].blank?
 
-    @contact = Current.account.contacts.find(params[:contact_id])
+    @contact = Current.account.contacts.find(params[:contact_id]) if params[:contact_id].present?
   end
 
   def contact_inbox
@@ -218,13 +218,25 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 
   def build_contact_inbox
-    return if @inbox.blank? || @contact.blank?
+    return if @inbox.blank?
 
-    ContactInboxBuilder.new(
-      contact: @contact,
+    if @contact.present?
+      return ContactInboxBuilder.new(
+        contact: @contact,
+        inbox: @inbox,
+        source_id: params[:source_id],
+        hmac_verified: hmac_verified?
+      ).perform
+    end
+
+    return unless params[:contact_attributes].present?
+
+    contact_attributes = params[:contact_attributes].permit(:name, :phone_number, :email)
+    phone_number = contact_attributes[:phone_number]&.delete('+').to_s
+    ContactInboxWithContactBuilder.new(
+      source_id: phone_number,
       inbox: @inbox,
-      source_id: params[:source_id],
-      hmac_verified: hmac_verified?
+      contact_attributes: contact_attributes
     ).perform
   end
 

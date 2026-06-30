@@ -8,11 +8,11 @@ class Macros::ExecutionService < ActionService
   end
 
   def perform
-    puts "[MACRO_DEBUG] Starting macro execution. Actions: #{@macro.actions.to_json}"
+    Rails.logger.info "[MACRO_DEBUG] Starting macro execution. Actions: #{@macro.actions.to_json}"
     @macro.actions.each do |action|
       action = action.with_indifferent_access
       begin
-        puts "[MACRO_DEBUG] Running action: #{action[:action_name]} with params: #{action[:action_params].to_json}"
+        Rails.logger.info "[MACRO_DEBUG] Running action: #{action[:action_name]} with params: #{action[:action_params].to_json}"
         send(action[:action_name], action[:action_params])
       rescue StandardError => e
         Rails.logger.error "[MACRO_DEBUG] Action #{action[:action_name]} failed with exception: #{e.class}: #{e.message}"
@@ -47,21 +47,21 @@ class Macros::ExecutionService < ActionService
   end
 
   def send_message(message)
-    puts "[MACRO_DEBUG] send_message called with: #{message.to_json}"
+    Rails.logger.info "[MACRO_DEBUG] send_message called with: #{message.to_json}"
     return if conversation_a_tweet?
 
     message_content = message[0]
     target_inbox_id = message[1]
-    puts "[MACRO_DEBUG] message_content: #{message_content.inspect}, target_inbox_id: #{target_inbox_id.inspect}"
+    Rails.logger.info "[MACRO_DEBUG] message_content: #{message_content.inspect}, target_inbox_id: #{target_inbox_id.inspect}"
 
     if target_inbox_id.present? && target_inbox_id.to_i != @conversation.inbox_id
       send_message_to_inbox(message_content, target_inbox_id.to_i)
     else
-      puts "[MACRO_DEBUG] Sending message to current conversation."
+      Rails.logger.info "[MACRO_DEBUG] Sending message to current conversation."
       params = ActionController::Parameters.new({ content: message_content, private: false })
       mb = Messages::MessageBuilder.new(@user, @conversation.reload, params)
       mb.perform
-      puts "[MACRO_DEBUG] MessageBuilder performed on current conversation."
+      Rails.logger.info "[MACRO_DEBUG] MessageBuilder performed on current conversation."
     end
   end
 
@@ -79,7 +79,7 @@ class Macros::ExecutionService < ActionService
       sender: @user
     )
     message.save!
-    puts "[MACRO_DEBUG] Message created on target conversation: #{target_conversation.id}"
+    Rails.logger.info "[MACRO_DEBUG] Message created on target conversation: #{target_conversation.id}"
   end
 
   def find_or_create_conversation_for_inbox(target_inbox_id)
@@ -87,7 +87,7 @@ class Macros::ExecutionService < ActionService
       contact_id: @conversation.contact_id,
       inbox_id: target_inbox_id
     ).order(created_at: :desc).first
-    puts "[MACRO_DEBUG] target_conversation found: #{target_conversation&.id.inspect}"
+    Rails.logger.info "[MACRO_DEBUG] target_conversation found: #{target_conversation&.id.inspect}"
 
     if target_conversation.present?
       target_conversation.open! if target_conversation.resolved?
@@ -95,7 +95,7 @@ class Macros::ExecutionService < ActionService
     end
 
     target_inbox = @account.inboxes.find(target_inbox_id)
-    puts "[MACRO_DEBUG] target_inbox found: #{target_inbox&.name}"
+    Rails.logger.info "[MACRO_DEBUG] target_inbox found: #{target_inbox&.name}"
 
     contact = @conversation.contact
     phone_number = contact.phone_number&.delete('+').to_s
@@ -105,14 +105,14 @@ class Macros::ExecutionService < ActionService
       inbox: target_inbox,
       contact_attributes: { name: contact.name, phone_number: contact.phone_number }
     ).perform
-    puts "[MACRO_DEBUG] contact_inbox resolved: #{contact_inbox&.id.inspect}"
+    Rails.logger.info "[MACRO_DEBUG] contact_inbox resolved: #{contact_inbox&.id.inspect}"
     return unless contact_inbox
 
     target_conversation = ConversationBuilder.new(
       params: { status: :open },
       contact_inbox: contact_inbox
     ).perform
-    puts "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
+    Rails.logger.info "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
     target_conversation
   end
 

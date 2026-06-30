@@ -55,42 +55,7 @@ class Macros::ExecutionService < ActionService
     Rails.logger.warn "[MACRO_DEBUG] message_content: #{message_content.inspect}, target_inbox_id: #{target_inbox_id.inspect}"
 
     if target_inbox_id.present? && target_inbox_id.to_i != @conversation.inbox_id
-      target_inbox_id = target_inbox_id.to_i
-      Rails.logger.warn "[MACRO_DEBUG] Sending message to target inbox: #{target_inbox_id}"
-
-      target_conversation = @account.conversations.where(
-        contact_id: @conversation.contact_id,
-        inbox_id: target_inbox_id
-      ).order(created_at: :desc).first
-      Rails.logger.warn "[MACRO_DEBUG] target_conversation found: #{target_conversation&.id.inspect}"
-
-      if target_conversation.present?
-        target_conversation.open! if target_conversation.resolved?
-      else
-        target_inbox = @account.inboxes.find(target_inbox_id)
-        Rails.logger.warn "[MACRO_DEBUG] target_inbox found: #{target_inbox&.name}"
-
-        contact_inbox = ContactInboxBuilder.new(
-          contact: @conversation.contact,
-          inbox: target_inbox
-        ).perform
-        Rails.logger.warn "[MACRO_DEBUG] contact_inbox resolved: #{contact_inbox&.id.inspect}, source_id: #{contact_inbox&.source_id.inspect}"
-
-        target_conversation = Conversation.create!(
-          account_id: @account.id,
-          inbox_id: target_inbox_id,
-          contact_id: @conversation.contact_id,
-          contact_inbox_id: contact_inbox.id,
-          status: :open,
-          assignee_id: @conversation.assignee_id
-        )
-        Rails.logger.warn "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
-      end
-
-      params = ActionController::Parameters.new({ content: message_content, private: false })
-      mb = Messages::MessageBuilder.new(@user, target_conversation, params)
-      mb.perform
-      Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on target conversation."
+      send_message_to_inbox(message_content, target_inbox_id.to_i)
     else
       Rails.logger.warn "[MACRO_DEBUG] Sending message to current conversation."
       params = ActionController::Parameters.new({ content: message_content, private: false })
@@ -98,6 +63,57 @@ class Macros::ExecutionService < ActionService
       mb.perform
       Rails.logger.warn "[MACRO_DEBUG] MessageBuilder performed on current conversation."
     end
+  end
+
+  def send_message_to_inbox(message_content, target_inbox_id)
+    target_conversation = find_or_create_conversation_for_inbox(target_inbox_id)
+    return unless target_conversation
+
+    message = target_conversation.messages.new(
+      content: message_content,
+      account_id: @account.id,
+      content_type: :text,
+      inbox_id: target_inbox_id,
+      message_type: :outgoing,
+      status: :progress,
+      sender: @user
+    )
+    message.save!
+    Rails.logger.warn "[MACRO_DEBUG] Message created on target conversation: #{target_conversation.id}"
+  end
+
+  def find_or_create_conversation_for_inbox(target_inbox_id)
+    target_conversation = @account.conversations.where(
+      contact_id: @conversation.contact_id,
+      inbox_id: target_inbox_id
+    ).order(created_at: :desc).first
+    Rails.logger.warn "[MACRO_DEBUG] target_conversation found: #{target_conversation&.id.inspect}"
+
+    if target_conversation.present?
+      target_conversation.open! if target_conversation.resolved?
+      return target_conversation
+    end
+
+    target_inbox = @account.inboxes.find(target_inbox_id)
+    Rails.logger.warn "[MACRO_DEBUG] target_inbox found: #{target_inbox&.name}"
+
+    contact = @conversation.contact
+    phone_number = contact.phone_number&.delete('+').to_s
+
+    contact_inbox = ContactInboxWithContactBuilder.new(
+      source_id: phone_number,
+      inbox: target_inbox,
+      contact_attributes: { name: contact.name, phone_number: contact.phone_number }
+    ).perform
+    Rails.logger.warn "[MACRO_DEBUG] contact_inbox resolved: #{contact_inbox&.id.inspect}"
+    return unless contact_inbox
+
+    target_conversation = ConversationBuilder.new(
+      params: { status: :resolved },
+      contact_inbox: contact_inbox
+    ).perform
+    Rails.logger.warn "[MACRO_DEBUG] target_conversation created: #{target_conversation&.id.inspect}"
+    target_conversation
   end
 
   def apply_delay(delay_seconds)
@@ -115,7 +131,7 @@ class Macros::ExecutionService < ActionService
 
     return if blobs.blank?
 
-    params = { content: nil, private: false, attachments: blobs }
+    params = ActionController::Parameters.new({ content: nil, private: false, attachments: blobs })
 
     # Added reload here to ensure conversation us persistent with the latest updates
     mb = Messages::MessageBuilder.new(@user, @conversation.reload, params)

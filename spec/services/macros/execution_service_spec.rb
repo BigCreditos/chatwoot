@@ -156,6 +156,20 @@ RSpec.describe Macros::ExecutionService, type: :service do
 
         expect(Message.last.conversation_id).to eq(conversation.id)
       end
+
+      it 'creates a message in a whatsapp target inbox formatting the phone number correctly' do
+        whatsapp_channel = create(:channel_whatsapp, account: account)
+        whatsapp_inbox = create(:inbox, channel: whatsapp_channel, account: account)
+        
+        conversation.contact.update!(phone_number: '+5511999999999')
+
+        expect do
+          service.send(:send_message, ['Test whatsapp', whatsapp_inbox.id])
+        end.to change(Message, :count).by(1)
+
+        expect(Message.last.conversation.inbox_id).to eq(whatsapp_inbox.id)
+        expect(Message.last.conversation.contact_inbox.source_id).to eq('5511999999999')
+      end
     end
   end
 

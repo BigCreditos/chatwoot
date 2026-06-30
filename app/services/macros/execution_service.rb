@@ -59,9 +59,10 @@ class Macros::ExecutionService < ActionService
       if target_conversation.present?
         target_conversation.open! if target_conversation.resolved?
       else
+        target_inbox = @account.inboxes.find(target_inbox_id)
         contact_inbox = @conversation.contact.contact_inboxes.find_by(inbox_id: target_inbox_id)
         if contact_inbox.nil?
-          source_id = @conversation.contact.phone_number || SecureRandom.uuid
+          source_id = determine_source_id(@conversation.contact, target_inbox)
           contact_inbox = @conversation.contact.contact_inboxes.create!(inbox_id: target_inbox_id, source_id: source_id)
         end
 
@@ -80,6 +81,17 @@ class Macros::ExecutionService < ActionService
     else
       mb = Messages::MessageBuilder.new(@user, @conversation.reload, { content: message_content, private: false })
       mb.perform
+    end
+  end
+
+  def determine_source_id(contact, target_inbox)
+    case target_inbox.channel_type
+    when 'Channel::Whatsapp'
+      contact.phone_number.present? ? contact.phone_number.gsub(/[^\d]/, '') : SecureRandom.random_number(10**15).to_s
+    when 'Channel::TwilioSms'
+      contact.phone_number.present? ? contact.phone_number : "+#{SecureRandom.random_number(10**14)}"
+    else
+      SecureRandom.uuid
     end
   end
 

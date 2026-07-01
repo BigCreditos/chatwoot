@@ -53,7 +53,7 @@ class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
   end
 
   def with_outgoing_baileys_lock(&block)
-    return yield unless %w[baileys unoapi wuzapi].include?(channel.provider)
+    return yield unless channel.provider == 'baileys'
 
     with_baileys_channel_lock_on_outgoing_message(channel.id, &block)
   end
@@ -75,4 +75,5 @@ class Whatsapp::SendOnWhatsappService < Base::SendOnChannelService
   def uuid_source_id?(source_id)
     source_id.to_s.match?(/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/)
   end
+
 end

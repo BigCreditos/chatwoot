@@ -1,5 +1,4 @@
 class Webhooks::WhatsappEventsJob < MutexApplicationJob
-  include BaileysHelper
   queue_as :low
   retry_on ActiveRecord::RecordNotFound, wait: 30.seconds, attempts: 5
   # Retry budget (19 × 2s = 38s) must exceed the 30s lock TTL set in `perform`, otherwise
@@ -83,27 +82,17 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     when 'whatsapp_cloud'
       Whatsapp::IncomingMessageWhatsappCloudService.new(inbox: channel.inbox, params: params).perform
     when 'unoapi'
-      with_outgoing_channel_lock(channel) do
-        Whatsapp::IncomingMessageUnoapiService.new(inbox: channel.inbox, params: params).perform
-      end
+      Whatsapp::IncomingMessageUnoapiService.new(inbox: channel.inbox, params: params).perform
     when 'baileys'
       Whatsapp::IncomingMessageBaileysService.new(inbox: channel.inbox, params: params).perform
     when 'wuzapi'
-      with_outgoing_channel_lock(channel) do
-        Whatsapp::IncomingMessageWuzapiService.new(inbox: channel.inbox, params: params).perform
-      end
+      Whatsapp::IncomingMessageWuzapiService.new(inbox: channel.inbox, params: params).perform
     else
       Whatsapp::IncomingMessageService.new(inbox: channel.inbox, params: params).perform
     end
   end
 
   private
-
-  def with_outgoing_channel_lock(channel, &block)
-    return yield unless %w[unoapi wuzapi].include?(channel.provider)
-
-    with_baileys_channel_lock_on_outgoing_message(channel.id, &block)
-  end
 
   # Echo payloads reverse the fields — `from` is the business number and `to` is the contact.
   # Returns nil for status-only webhooks so they bypass the lock.
@@ -132,9 +121,7 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     # for the case where facebook cloud api support multiple numbers for a single app
     # https://github.com/chatwoot/chatwoot/issues/4712#issuecomment-1173838350
     # we will give priority to the phone_number in the payload
-    if params[:object] == 'whatsapp_business_account'
-      return get_channel_from_wb_payload(params) || fallback_channel_from_url_param(params)
-    end
+    return get_channel_from_wb_payload(params) if params[:object] == 'whatsapp_business_account'
 
     find_channel_by_url_param(params)
   end
@@ -145,18 +132,6 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     channel = Channel::Whatsapp.find_by(phone_number: phone_number)
     # validate to ensure the phone number id matches the whatsapp channel
     return channel if channel && channel.provider_config['phone_number_id'] == phone_number_id
-  end
-
-  def fallback_channel_from_url_param(wb_params)
-    # Some official Meta payloads can send a display_phone_number that is not identical to
-    # the configured webhook URL number. If the payload number does not identify any local
-    # channel, fall back to the verified URL param. If it identifies a channel but the
-    # phone_number_id mismatches, do not fall back because that would route to the wrong inbox.
-    payload_number = payload_phone_number(wb_params)
-    return find_channel_by_url_param(wb_params) if payload_number.blank?
-    return if Channel::Whatsapp.exists?(phone_number: payload_number)
-
-    find_channel_by_url_param(wb_params)
   end
 
   def payload_phone_number(wb_params)

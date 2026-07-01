@@ -7,18 +7,18 @@ class Webhooks::BaileysController < ActionController::API
       head(:unauthorized) && return
     end
 
-    Webhooks::WhatsappEventsJob.perform_later(params.to_unsafe_hash)
+    Whatsapp::IncomingMessageBaileysService.new(inbox: @channel.inbox, params: params.to_unsafe_hash).perform
     head :ok
   end
 
   private
 
   def set_channel
-    @channel = Channel::Whatsapp.find_by(phone_number: params[:phone_number], provider: 'baileys')
+    @channel = Channel::Baileys.find_by(phone_number: params[:phone_number])
     head(:not_found) unless @channel
   end
 
   def valid_webhook_token?
-    params[:webhookVerifyToken] == @channel.provider_config['webhook_verify_token']
+    params[:webhookVerifyToken] == @channel.webhook_secret
   end
 end

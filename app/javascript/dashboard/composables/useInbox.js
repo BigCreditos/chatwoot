@@ -23,6 +23,9 @@ export const INBOX_FEATURE_MAP = {
     INBOX_TYPES.TELEGRAM,
     INBOX_TYPES.TIKTOK,
     INBOX_TYPES.API,
+    INBOX_TYPES.BAILEYS,
+    INBOX_TYPES.WUZAPI,
+    INBOX_TYPES.EVOLUTION_GO,
   ],
   [INBOX_FEATURES.REPLY_TO_OUTGOING]: [
     INBOX_TYPES.WEB,
@@ -31,6 +34,9 @@ export const INBOX_FEATURE_MAP = {
     INBOX_TYPES.TELEGRAM,
     INBOX_TYPES.TIKTOK,
     INBOX_TYPES.API,
+    INBOX_TYPES.BAILEYS,
+    INBOX_TYPES.WUZAPI,
+    INBOX_TYPES.EVOLUTION_GO,
   ],
 };
 
@@ -124,10 +130,7 @@ export const useInbox = (inboxId = null) => {
   });
 
   const isAWhatsAppBaileysChannel = computed(() => {
-    return (
-      channelType.value === INBOX_TYPES.WHATSAPP &&
-      whatsAppAPIProvider.value === 'baileys'
-    );
+    return channelType.value === INBOX_TYPES.BAILEYS;
   });
 
   const isAWhatsAppZapiChannel = computed(() => {
@@ -138,10 +141,11 @@ export const useInbox = (inboxId = null) => {
   });
 
   const isAWhatsAppWuzapiChannel = computed(() => {
-    return (
-      channelType.value === INBOX_TYPES.WHATSAPP &&
-      whatsAppAPIProvider.value === 'wuzapi'
-    );
+    return channelType.value === INBOX_TYPES.WUZAPI;
+  });
+
+  const isAnEvolutionGoChannel = computed(() => {
+    return channelType.value === INBOX_TYPES.EVOLUTION_GO;
   });
 
   const isAWhatsAppChannel = computed(() => {
@@ -185,6 +189,7 @@ export const useInbox = (inboxId = null) => {
     isAWhatsAppBaileysChannel,
     isAWhatsAppZapiChannel,
     isAWhatsAppWuzapiChannel,
+    isAnEvolutionGoChannel,
     isAnEmailChannel,
     isAnInstagramChannel,
     isAnInternalChannel,

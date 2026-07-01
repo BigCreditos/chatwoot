@@ -103,9 +103,8 @@ const createChannel = async () => {
     const whatsappChannel = await store.dispatch('inboxes/createChannel', {
       name: inboxName.value,
       channel: {
-        type: 'whatsapp',
+        type: 'wuzapi',
         phone_number: phoneNumber.value,
-        provider: 'wuzapi',
         provider_config: buildProviderConfig(),
       },
     });

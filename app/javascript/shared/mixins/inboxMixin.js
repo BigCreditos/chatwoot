@@ -17,6 +17,9 @@ export const INBOX_FEATURE_MAP = {
     INBOX_TYPES.TIKTOK,
     INBOX_TYPES.API,
     INBOX_TYPES.NOTIFICA_ME,
+    INBOX_TYPES.BAILEYS,
+    INBOX_TYPES.WUZAPI,
+    INBOX_TYPES.EVOLUTION_GO,
   ],
   [INBOX_FEATURES.REPLY_TO_OUTGOING]: [
     INBOX_TYPES.WEB,
@@ -26,6 +29,9 @@ export const INBOX_FEATURE_MAP = {
     INBOX_TYPES.TIKTOK,
     INBOX_TYPES.API,
     INBOX_TYPES.NOTIFICA_ME,
+    INBOX_TYPES.BAILEYS,
+    INBOX_TYPES.WUZAPI,
+    INBOX_TYPES.EVOLUTION_GO,
   ],
 };
 
@@ -97,16 +103,10 @@ export default {
       );
     },
     isABaileysChannel() {
-      return (
-        this.channelType === INBOX_TYPES.WHATSAPP &&
-        this.whatsAppAPIProvider === 'baileys'
-      );
+      return this.channelType === INBOX_TYPES.BAILEYS;
     },
     isAWhatsAppBaileysChannel() {
-      return (
-        this.channelType === INBOX_TYPES.WHATSAPP &&
-        this.whatsAppAPIProvider === 'baileys'
-      );
+      return this.channelType === INBOX_TYPES.BAILEYS;
     },
     isAWhatsAppZapiChannel() {
       return (
@@ -115,10 +115,10 @@ export default {
       );
     },
     isAWhatsAppWuzapiChannel() {
-      return (
-        this.channelType === INBOX_TYPES.WHATSAPP &&
-        this.whatsAppAPIProvider === 'wuzapi'
-      );
+      return this.channelType === INBOX_TYPES.WUZAPI;
+    },
+    isAnEvolutionGoChannel() {
+      return this.channelType === INBOX_TYPES.EVOLUTION_GO;
     },
     is360DialogWhatsAppChannel() {
       return (

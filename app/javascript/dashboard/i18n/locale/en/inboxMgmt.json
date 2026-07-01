@@ -796,6 +796,18 @@
           "VOICE": {
             "TITLE": "Voice",
             "DESCRIPTION": "Integrate with Voice (Twilio or WebRTC)"
+          },
+          "BAILEYS": {
+            "TITLE": "Baileys QR",
+            "DESCRIPTION": "Connect via Baileys WhatsApp API"
+          },
+          "WUZAPI": {
+            "TITLE": "Wuzapi QR",
+            "DESCRIPTION": "Connect via Wuzapi WhatsApp API"
+          },
+          "EVOLUTION_GO": {
+            "TITLE": "Evolution Go QR",
+            "DESCRIPTION": "Connect via Evolution Go WhatsApp API"
           }
         }
       },
@@ -858,7 +870,9 @@
       "WHATSAPP_BAILEYS_QR_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
       "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option.",
       "WHATSAPP_WUZAPI_QR_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
-      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option."
+      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option.",
+      "EVOLUTION_GO_QR_INSTRUCTION": "Scan the QR code above in your WhatsApp mobile app (Linked devices) to link the account.",
+      "EVOLUTION_GO_CONFIGURE_MESSAGE": "To connect your WhatsApp device, go to the inbox settings and use the \"Manage connection\" option."
     },
     "REAUTH": "Reauthorize",
     "VIEW": "View",

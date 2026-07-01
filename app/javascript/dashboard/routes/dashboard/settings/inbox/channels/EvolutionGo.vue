@@ -5,12 +5,11 @@ import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useVuelidate } from '@vuelidate/core';
 import { useAlert } from 'dashboard/composables';
-import { required, requiredIf } from '@vuelidate/validators';
+import { required } from '@vuelidate/validators';
 import { isPhoneE164OrEmpty } from 'shared/helpers/Validators';
 import { isValidURL } from '../../../../../helper/URLHelper';
 
 import NextButton from 'dashboard/components-next/button/Button.vue';
-import Switch from 'dashboard/components-next/switch/Switch.vue';
 
 const props = defineProps({
   mode: {
@@ -34,22 +33,19 @@ const inboxName = ref(isConvertMode.value ? props.inbox?.name || '' : '');
 const phoneNumber = ref(
   isConvertMode.value ? props.inbox?.phone_number || '' : ''
 );
-const defaultProviderUrl = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_URL || '';
-const defaultApiKey = window.globalConfig?.BAILEYS_PROVIDER_DEFAULT_API_KEY || '';
+const defaultProviderUrl = window.globalConfig?.EVOLUTION_GO_PROVIDER_DEFAULT_URL || '';
+const defaultApiKey = window.globalConfig?.EVOLUTION_GO_PROVIDER_DEFAULT_API_KEY || '';
 
-const apiKey = ref(
-  isConvertMode.value
-    ? props.inbox?.provider_config?.api_key || defaultApiKey
-    : defaultApiKey
-);
 const providerUrl = ref(
   isConvertMode.value
     ? props.inbox?.provider_config?.provider_url || defaultProviderUrl
     : defaultProviderUrl
 );
-const showAdvancedOptions = ref(false);
-const markAsRead = ref(true);
-const presenceSubscribe = ref(false);
+const apiKey = ref(
+  isConvertMode.value
+    ? props.inbox?.provider_config?.api_key || defaultApiKey
+    : defaultApiKey
+);
 
 const uiFlags = computed(() => store.getters['inboxes/getUIFlags']);
 
@@ -58,9 +54,9 @@ const rules = computed(() => ({
   phoneNumber: { required, isPhoneE164OrEmpty },
   providerUrl: {
     isValidURL: value => !value || isValidURL(value),
-    requiredIf: requiredIf(() => !!apiKey.value),
+    required,
   },
-  apiKey: { requiredIf: requiredIf(() => !!providerUrl.value) },
+  apiKey: { required },
 }));
 
 const v$ = useVuelidate(rules, {
@@ -71,14 +67,14 @@ const v$ = useVuelidate(rules, {
 });
 
 const buildProviderConfig = () => {
-  const providerConfig = {
-    mark_as_read: markAsRead.value,
-    presence_subscribe: presenceSubscribe.value,
-  };
+  const providerConfig = {};
 
-  if (apiKey.value || providerUrl.value) {
-    providerConfig.api_key = apiKey.value;
+  if (providerUrl.value) {
     providerConfig.provider_url = providerUrl.value;
+  }
+
+  if (apiKey.value) {
+    providerConfig.api_key = apiKey.value;
   }
 
   return providerConfig;
@@ -87,9 +83,6 @@ const buildProviderConfig = () => {
 const createChannel = async () => {
   v$.value.$touch();
   if (v$.value.$invalid) {
-    if (v$.value.providerUrl.$invalid || v$.value.apiKey.$invalid) {
-      showAdvancedOptions.value = true;
-    }
     return;
   }
 
@@ -97,7 +90,7 @@ const createChannel = async () => {
     if (isConvertMode.value) {
       await store.dispatch('inboxes/convertProvider', {
         inboxId: props.inbox.id,
-        provider: 'baileys',
+        provider: 'evolution_go',
         providerConfig: buildProviderConfig(),
       });
 
@@ -112,10 +105,10 @@ const createChannel = async () => {
       return;
     }
 
-    const whatsappChannel = await store.dispatch('inboxes/createChannel', {
+    const channel = await store.dispatch('inboxes/createChannel', {
       name: inboxName.value,
       channel: {
-        type: 'baileys',
+        type: 'evolution_go',
         phone_number: phoneNumber.value,
         provider_config: buildProviderConfig(),
       },
@@ -125,7 +118,7 @@ const createChannel = async () => {
       name: 'settings_inboxes_add_agents',
       params: {
         page: 'new',
-        inbox_id: whatsappChannel.id,
+        inbox_id: channel.id,
       },
     });
   } catch (error) {
@@ -138,10 +131,6 @@ const createChannel = async () => {
         )
     );
   }
-};
-
-const setShowAdvancedOptions = () => {
-  showAdvancedOptions.value = true;
 };
 </script>
 
@@ -179,70 +168,35 @@ const setShowAdvancedOptions = () => {
       </label>
     </div>
 
-    <div
-      v-if="!showAdvancedOptions"
-      class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%] mb-4"
-    >
-      <NextButton icon="i-lucide-plus" sm link @click="setShowAdvancedOptions">
-        {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
-      </NextButton>
-    </div>
-    <template v-else>
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <span class="text-sm text-gray-600">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.ADVANCED_OPTIONS') }}
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.providerUrl.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.LABEL') }}
+        <input
+          v-model="providerUrl"
+          type="text"
+          :placeholder="
+            $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.PLACEHOLDER')
+          "
+        />
+        <span v-if="v$.providerUrl.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.ERROR') }}
         </span>
-        <label :class="{ error: v$.providerUrl.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.LABEL') }}
-          <input
-            v-model="providerUrl"
-            type="text"
-            :placeholder="
-              $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.PLACEHOLDER')
-            "
-          />
-          <span v-if="v$.providerUrl.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.PROVIDER_URL.ERROR') }}
-          </span>
-        </label>
-      </div>
+      </label>
+    </div>
 
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label :class="{ error: v$.apiKey.$error }">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
-          <input
-            v-model="apiKey"
-            type="text"
-            :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
-          />
-          <span v-if="v$.apiKey.$error" class="message">
-            {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-          </span>
-        </label>
-      </div>
-
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label>
-          <div class="flex mb-2 items-center">
-            <span class="mr-2 text-sm">
-              {{ $t('INBOX_MGMT.ADD.WHATSAPP.MARK_AS_READ.LABEL') }}
-            </span>
-            <Switch id="markAsRead" v-model="markAsRead" />
-          </div>
-        </label>
-      </div>
-
-      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-        <label>
-          <div class="flex mb-2 items-center">
-            <span class="mr-2 text-sm">
-              {{ $t('INBOX_MGMT.ADD.WHATSAPP.PRESENCE_SUBSCRIBE.LABEL') }}
-            </span>
-            <Switch id="presenceSubscribe" v-model="presenceSubscribe" />
-          </div>
-        </label>
-      </div>
-    </template>
+    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
+      <label :class="{ error: v$.apiKey.$error }">
+        {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
+        <input
+          v-model="apiKey"
+          type="text"
+          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
+        />
+        <span v-if="v$.apiKey.$error" class="message">
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
+        </span>
+      </label>
+    </div>
 
     <div class="w-full">
       <NextButton

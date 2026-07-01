@@ -145,7 +145,7 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   end
 
   def allowed_channel_types
-    %w[web_widget api email line telegram whatsapp sms internal]
+    %w[web_widget api email line telegram whatsapp sms internal baileys wuzapi evolution_go]
   end
 
   def update_inbox_working_hours
@@ -228,7 +228,10 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
       'telegram' => Channel::Telegram,
       'whatsapp' => Channel::Whatsapp,
       'sms' => Channel::Sms,
-      'internal' => Channel::Internal
+      'internal' => Channel::Internal,
+      'baileys' => Channel::Baileys,
+      'wuzapi' => Channel::Wuzapi,
+      'evolution_go' => Channel::EvolutionGo
     }[permitted_params[:channel][:type]]
   end
 

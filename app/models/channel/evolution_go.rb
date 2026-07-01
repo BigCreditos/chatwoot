@@ -1,7 +1,7 @@
-class Channel::Baileys < ApplicationRecord
+class Channel::EvolutionGo < ApplicationRecord
   include Channelable
 
-  self.table_name = 'channel_baileys'
+  self.table_name = 'channel_evolution_go'
   EDITABLE_ATTRS = [:phone_number, { provider_config: {} }].freeze
 
   validates :phone_number, presence: true, uniqueness: true
@@ -16,11 +16,11 @@ class Channel::Baileys < ApplicationRecord
   before_destroy :disconnect_channel_provider
 
   def name
-    'WhatsApp Baileys'
+    'WhatsApp Evolution Go'
   end
 
   def provider_service
-    Baileys::ProviderService.new(channel: self)
+    EvolutionGo::ProviderService.new(channel: self)
   end
 
   def provider_connection_data
@@ -36,7 +36,7 @@ class Channel::Baileys < ApplicationRecord
 
     phone = phone_number.delete_prefix('+')
     config = provider_config
-    config['webhook_url'] = "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/baileys/#{phone}"
+    config['webhook_url'] = "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/evolution_go/#{phone}"
     config['webhook_setup_done'] = true
     update!(provider_config: config)
   end
@@ -52,7 +52,7 @@ class Channel::Baileys < ApplicationRecord
   def disconnect_channel_provider
     provider_service.disconnect_channel_provider
   rescue StandardError => e
-    Rails.logger.warn("[BAILEYS] disconnect_channel_provider failed (ignored): #{e.message}")
+    Rails.logger.warn("[EVOLUTION_GO] disconnect_channel_provider failed (ignored): #{e.message}")
   end
 
   def send_message(recipient_id, message)
@@ -67,9 +67,9 @@ class Channel::Baileys < ApplicationRecord
 
   def ensure_provider_config_defaults
     self.provider_config ||= {}
-    provider_config['provider_url'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_URL', nil)
-    provider_config['api_key'] ||= ENV.fetch('BAILEYS_PROVIDER_DEFAULT_API_KEY', nil)
+    provider_config['provider_url'] ||= ENV.fetch('EVOLUTION_GO_PROVIDER_DEFAULT_URL', nil)
+    provider_config['api_key'] ||= ENV.fetch('EVOLUTION_GO_PROVIDER_DEFAULT_API_KEY', nil)
   end
 end
 
-Channel::Baileys.prepend_mod_with('Channel::Baileys')
+Channel::EvolutionGo.prepend_mod_with('Channel::EvolutionGo')

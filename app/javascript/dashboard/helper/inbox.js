@@ -14,6 +14,9 @@ export const INBOX_TYPES = {
   NOTIFICA_ME: 'Channel::NotificaMe',
   VOICE: 'Channel::Voice',
   INTERNAL: 'Channel::Internal',
+  BAILEYS: 'Channel::Baileys',
+  WUZAPI: 'Channel::Wuzapi',
+  EVOLUTION_GO: 'Channel::EvolutionGo',
 };
 
 // Add providers here as they gain voice capability (e.g., WhatsApp Cloud, Twilio WhatsApp)
@@ -56,6 +59,9 @@ const INBOX_ICON_MAP_FILL = {
   [INBOX_TYPES.NOTIFICA_ME]: 'i-ri-instagram-fill',
   [INBOX_TYPES.VOICE]: 'i-ri-phone-fill',
   [INBOX_TYPES.INTERNAL]: 'i-ri-chat-1-fill',
+  [INBOX_TYPES.BAILEYS]: 'i-ri-whatsapp-fill',
+  [INBOX_TYPES.WUZAPI]: 'i-ri-whatsapp-fill',
+  [INBOX_TYPES.EVOLUTION_GO]: 'i-ri-whatsapp-fill',
 };
 
 const DEFAULT_ICON_FILL = 'i-ri-chat-1-fill';
@@ -74,6 +80,9 @@ const INBOX_ICON_MAP_LINE = {
   [INBOX_TYPES.NOTIFICA_ME]: 'i-ri-instagram-fill',
   [INBOX_TYPES.VOICE]: 'i-ri-phone-line',
   [INBOX_TYPES.INTERNAL]: 'i-ri-chat-1-line',
+  [INBOX_TYPES.BAILEYS]: 'i-ri-whatsapp-line',
+  [INBOX_TYPES.WUZAPI]: 'i-ri-whatsapp-line',
+  [INBOX_TYPES.EVOLUTION_GO]: 'i-ri-whatsapp-line',
 };
 
 const DEFAULT_ICON_LINE = 'i-ri-chat-1-line';
@@ -85,6 +94,9 @@ export const getInboxSource = (type, phoneNumber, inbox) => {
 
     case INBOX_TYPES.TWILIO:
     case INBOX_TYPES.WHATSAPP:
+    case INBOX_TYPES.BAILEYS:
+    case INBOX_TYPES.WUZAPI:
+    case INBOX_TYPES.EVOLUTION_GO:
       return phoneNumber || '';
 
     case INBOX_TYPES.EMAIL:
@@ -135,6 +147,15 @@ export const getReadableInboxByType = (type, phoneNumber) => {
     case INBOX_TYPES.INTERNAL:
       return 'internal';
 
+    case INBOX_TYPES.BAILEYS:
+      return 'whatsapp';
+
+    case INBOX_TYPES.WUZAPI:
+      return 'whatsapp';
+
+    case INBOX_TYPES.EVOLUTION_GO:
+      return 'whatsapp';
+
     default:
       return 'chat';
   }
@@ -176,6 +197,15 @@ export const getInboxClassByType = (type, phoneNumber) => {
 
     case INBOX_TYPES.TIKTOK:
       return 'brand-tiktok';
+
+    case INBOX_TYPES.BAILEYS:
+      return 'brand-whatsapp';
+
+    case INBOX_TYPES.WUZAPI:
+      return 'brand-whatsapp';
+
+    case INBOX_TYPES.EVOLUTION_GO:
+      return 'brand-whatsapp';
 
     default:
       return 'chat';

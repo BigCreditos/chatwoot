@@ -760,6 +760,18 @@
           "INTERNAL": {
             "TITLE": "Internal chat",
             "DESCRIPTION": "Chat between your agents inside ViperChat"
+          },
+          "BAILEYS": {
+            "TITLE": "Baileys QR",
+            "DESCRIPTION": "Conecte via API Baileys WhatsApp"
+          },
+          "WUZAPI": {
+            "TITLE": "Wuzapi QR",
+            "DESCRIPTION": "Conecte via API Wuzapi WhatsApp"
+          },
+          "EVOLUTION_GO": {
+            "TITLE": "Evolution Go QR",
+            "DESCRIPTION": "Conecte via API Evolution Go WhatsApp"
           }
         }
       },
@@ -858,7 +870,9 @@
       "WHATSAPP_BAILEYS_QR_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
       "WHATSAPP_BAILEYS_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\".",
       "WHATSAPP_WUZAPI_QR_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
-      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\"."
+      "WHATSAPP_WUZAPI_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\".",
+      "EVOLUTION_GO_QR_INSTRUCTION": "Escaneie o código QR acima no WhatsApp do seu celular (Aparelhos conectados) para vincular a conta.",
+      "EVOLUTION_GO_CONFIGURE_MESSAGE": "Para conectar seu dispositivo WhatsApp, acesse as configurações da inbox e use a opção \"Gerenciar conexão\"."
     },
     "REAUTH": "Reautorizar",
     "VIEW": "Visualizar",

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n, I18nT } from 'vue-i18n';
 import Twilio from './Twilio.vue';
@@ -8,31 +8,10 @@ import ThreeSixtyDialogWhatsapp from './360DialogWhatsapp.vue';
 import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
-import ZapiWhatsapp from './ZapiWhatsapp.vue';
-
-const props = defineProps({
-  mode: {
-    type: String,
-    default: 'create',
-    validator: value => ['create', 'convert'].includes(value),
-  },
-  inbox: {
-    type: Object,
-    default: null,
-  },
-});
-
-const isConvertMode = computed(() => props.mode === 'convert');
 
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-
-// Latched by the child once it triggers the post-success router.replace.
-const isLeaving = ref(false);
-const handleEmbeddedSignupLeaving = () => {
-  isLeaving.value = true;
-};
 
 const PROVIDER_TYPES = {
   WHATSAPP: 'whatsapp',
@@ -42,7 +21,6 @@ const PROVIDER_TYPES = {
   WHATSAPP_MANUAL: 'whatsapp_manual',
   THREE_SIXTY_DIALOG: '360dialog',
   UNOAPI: 'unoapi',
-  ZAPI: 'zapi',
 };
 
 const hasWhatsappAppId = computed(() => {
@@ -54,18 +32,11 @@ const hasWhatsappAppId = computed(() => {
 
 const selectedProvider = computed(() => route.query.provider);
 
-const INBOX_PROVIDER_TO_KEY = {
-  whatsapp_cloud: PROVIDER_TYPES.WHATSAPP,
-  default: PROVIDER_TYPES.THREE_SIXTY_DIALOG,
-  zapi: PROVIDER_TYPES.ZAPI,
-};
+const showProviderSelection = computed(() => !selectedProvider.value);
 
-const currentProviderKey = computed(() => {
-  if (!props.inbox?.provider) return null;
-  return INBOX_PROVIDER_TO_KEY[props.inbox.provider] || null;
-});
+const showConfiguration = computed(() => Boolean(selectedProvider.value));
 
-const PROVIDER_CATALOG = computed(() => [
+const availableProviders = computed(() => [
   {
     key: PROVIDER_TYPES.WHATSAPP,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD'),
@@ -84,68 +55,7 @@ const PROVIDER_CATALOG = computed(() => [
     description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.UNOAPI'),
     icon: 'i-woot-whatsapp',
   },
-  {
-    key: PROVIDER_TYPES.ZAPI,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI_DESC'),
-    icon: 'i-woot-whatsapp',
-  },
-  {
-    key: PROVIDER_TYPES.THREE_SIXTY_DIALOG,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.360_DIALOG'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.360_DIALOG_DESC'),
-    icon: 'i-woot-whatsapp',
-  },
 ]);
-
-const CREATE_PICKER_KEYS = [
-  PROVIDER_TYPES.WHATSAPP,
-  PROVIDER_TYPES.TWILIO,
-  PROVIDER_TYPES.UNOAPI,
-  PROVIDER_TYPES.ZAPI,
-];
-
-const CONVERT_PICKER_KEYS = [
-  PROVIDER_TYPES.WHATSAPP,
-  PROVIDER_TYPES.ZAPI,
-  PROVIDER_TYPES.THREE_SIXTY_DIALOG,
-];
-
-const availableProviders = computed(() => {
-  const allowed = isConvertMode.value
-    ? CONVERT_PICKER_KEYS
-    : CREATE_PICKER_KEYS;
-  return PROVIDER_CATALOG.value
-    .filter(p => allowed.includes(p.key))
-    .filter(p => !isConvertMode.value || p.key !== currentProviderKey.value);
-});
-
-const currentProviderLabel = computed(() => {
-  if (!isConvertMode.value || !currentProviderKey.value) return '';
-  return (
-    PROVIDER_CATALOG.value.find(({ key }) => key === currentProviderKey.value)
-      ?.title || ''
-  );
-});
-
-const isValidSelectedProvider = computed(() => {
-  if (!selectedProvider.value) return false;
-  if (!isConvertMode.value) {
-    if (selectedProvider.value === PROVIDER_TYPES.WHATSAPP_MANUAL) return true;
-    if (selectedProvider.value === PROVIDER_TYPES.THREE_SIXTY_DIALOG)
-      return true;
-  }
-  return availableProviders.value.some(
-    ({ key }) => key === selectedProvider.value
-  );
-});
-
-const showProviderSelection = computed(
-  () => !isLeaving.value && !isValidSelectedProvider.value
-);
-const showConfiguration = computed(
-  () => !isLeaving.value && isValidSelectedProvider.value
-);
 
 const selectProvider = providerValue => {
   router.push({
@@ -172,21 +82,10 @@ const handleManualLinkClick = () => {
     <div v-if="showProviderSelection">
       <div class="mb-10 text-left">
         <h1 class="mb-2 text-lg font-medium text-n-slate-12">
-          {{
-            isConvertMode
-              ? $t('INBOX_MGMT.CONVERT.SELECT_PROVIDER_TITLE')
-              : $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.TITLE')
-          }}
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.TITLE') }}
         </h1>
         <p class="text-sm leading-relaxed text-n-slate-11">
-          {{
-            isConvertMode
-              ? $t('INBOX_MGMT.CONVERT.SELECT_PROVIDER_DESCRIPTION', {
-                  inboxName: inbox?.name,
-                  currentProvider: currentProviderLabel,
-                })
-              : $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.DESCRIPTION')
-          }}
+          {{ $t('INBOX_MGMT.ADD.WHATSAPP.SELECT_PROVIDER.DESCRIPTION') }}
         </p>
       </div>
 
@@ -210,11 +109,7 @@ const handleManualLinkClick = () => {
             hasWhatsappAppId && selectedProvider === PROVIDER_TYPES.WHATSAPP
           "
         >
-          <WhatsappEmbeddedSignup
-            :mode="mode"
-            :inbox="inbox"
-            @leaving="handleEmbeddedSignupLeaving"
-          />
+          <WhatsappEmbeddedSignup />
 
           <!-- Manual setup fallback option -->
           <div class="pt-6 mt-6 border-t border-n-weak">
@@ -241,11 +136,7 @@ const handleManualLinkClick = () => {
         </div>
 
         <!-- Show manual setup -->
-        <CloudWhatsapp
-          v-else-if="shouldShowCloudWhatsapp(selectedProvider)"
-          :mode="mode"
-          :inbox="inbox"
-        />
+        <CloudWhatsapp v-else-if="shouldShowCloudWhatsapp(selectedProvider)" />
 
         <!-- Other providers -->
         <Twilio
@@ -254,16 +145,9 @@ const handleManualLinkClick = () => {
         />
         <ThreeSixtyDialogWhatsapp
           v-else-if="selectedProvider === PROVIDER_TYPES.THREE_SIXTY_DIALOG"
-          :mode="mode"
-          :inbox="inbox"
         />
         <Unoapi v-else-if="selectedProvider === PROVIDER_TYPES.UNOAPI" />
-        <ZapiWhatsapp
-          v-else-if="selectedProvider === PROVIDER_TYPES.ZAPI"
-          :mode="mode"
-          :inbox="inbox"
-        />
-        <CloudWhatsapp v-else :mode="mode" :inbox="inbox" />
+        <CloudWhatsapp v-else />
       </div>
     </div>
   </div>

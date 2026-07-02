@@ -235,7 +235,6 @@ Rails.application.routes.draw do
               resources :contact_inboxes, only: [:create]
               resources :labels, only: [:create, :index]
               resources :notes
-              resources :contact_reminders
               post :call, on: :member, to: 'calls#create' if ChatwootApp.enterprise?
               post :call, on: :collection, to: 'calls#create_from_phone' if ChatwootApp.enterprise?
             end
@@ -267,9 +266,6 @@ Rails.application.routes.draw do
             post :sync_templates, on: :member
             get :health, on: :member
             post :register_webhook, on: :member
-            post :setup_channel_provider, on: :member
-            post :disconnect_channel_provider, on: :member
-            post :convert_provider, on: :member
             post :reset_secret, on: :member
             if ChatwootApp.enterprise?
               resource :conference, only: %i[create destroy], controller: 'conference' do
@@ -633,9 +629,6 @@ Rails.application.routes.draw do
   post 'webhooks/sms/:phone_number', to: 'webhooks/sms#process_payload'
   get 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#verify'
   post 'webhooks/whatsapp/:phone_number', to: 'webhooks/whatsapp#process_payload'
-  post 'webhooks/baileys/:phone_number', to: 'webhooks/baileys#process_payload'
-  post 'webhooks/wuzapi/:phone_number', to: 'webhooks/wuzapi#process_payload'
-  post 'webhooks/evolution_go/:phone_number', to: 'webhooks/evolution_go#process_payload'
   get 'webhooks/instagram', to: 'webhooks/instagram#verify'
   post 'webhooks/instagram', to: 'webhooks/instagram#events'
   post 'webhooks/tiktok', to: 'webhooks/tiktok#events'

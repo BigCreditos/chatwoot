@@ -66,7 +66,6 @@ const isActive = computed(() => {
     'voice',
     'notifica_me',
     'internal',
-    'whatsapp_qr',
   ].includes(key);
 });
 

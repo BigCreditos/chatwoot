@@ -167,18 +167,6 @@ class Inbox < ApplicationRecord
     channel_type == 'Channel::Whatsapp'
   end
 
-  def baileys?
-    channel_type == 'Channel::Baileys'
-  end
-
-  def wuzapi?
-    channel_type == 'Channel::Wuzapi'
-  end
-
-  def evolution_go?
-    channel_type == 'Channel::EvolutionGo'
-  end
-
   def notifica_me?
     channel_type == 'Channel::NotificaMe'
   end
@@ -204,10 +192,6 @@ class Inbox < ApplicationRecord
     channel.name
   end
 
-  def push_event_data
-    Inbox::EventDataPresenter.new(self).push_data
-  end
-
   def webhook_data
     {
       id: id,
@@ -224,28 +208,9 @@ class Inbox < ApplicationRecord
     when 'Channel::Line'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/line/#{channel.line_channel_id}"
     when 'Channel::Whatsapp'
-      provider_specific_webhook_url(channel)
-    when 'Channel::Baileys'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/baileys/#{channel.phone_number.delete_prefix('+')}"
-    when 'Channel::Wuzapi'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/wuzapi/#{channel.phone_number.delete_prefix('+')}"
-    when 'Channel::EvolutionGo'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/evolution_go/#{channel.phone_number.delete_prefix('+')}"
+      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
     when 'Channel::NotificaMe'
       "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/notifica_me/#{channel.notifica_me_id}"
-    end
-  end
-
-  def provider_specific_webhook_url(channel)
-    case channel.provider
-    when 'baileys'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/baileys/#{channel.phone_number}"
-    when 'wuzapi'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/wuzapi/#{channel.phone_number}"
-    when 'zapi'
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/zapi/#{channel.phone_number}"
-    else
-      "#{ENV.fetch('FRONTEND_URL', nil)}/webhooks/whatsapp/#{channel.phone_number}"
     end
   end
 

@@ -84,12 +84,6 @@ const channelList = computed(() => {
       icon: 'i-woot-instagram',
     },
     {
-      key: 'whatsapp_qr',
-      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_QR.TITLE'),
-      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_QR.DESCRIPTION'),
-      icon: 'i-woot-whatsapp',
-    },
-    {
       key: 'notifica_me',
       title: 'NotificaMe',
       description: '',

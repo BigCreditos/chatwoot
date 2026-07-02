@@ -63,7 +63,7 @@ class Baileys::ProviderService
     elsif message.attachments.present?
       { phone: phone, type: message.attachments.first.file_type, mediaUrl: download_attachment(message) }
     elsif message.content_type == 'input_select'
-      { phone: phone, type: 'interactive', interactiveType: 'list', ...build_interactive_payload(message) }
+      { phone: phone, type: 'interactive', interactiveType: 'list', **build_interactive_payload(message) }
     else
       { phone: phone, type: 'text', text: message.content }
     end

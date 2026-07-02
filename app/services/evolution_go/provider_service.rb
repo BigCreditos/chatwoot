@@ -78,7 +78,7 @@ class EvolutionGo::ProviderService
       att = message.attachments.first
       { number: phone, options: { mediaUrl: download_attachment(message), caption: message.content.presence } }
     elsif message.content_type == 'input_select'
-      { number: phone, options: { interactiveType: 'list', title: message.content, ...build_interactive_payload(message) } }
+      { number: phone, options: { interactiveType: 'list', title: message.content, **build_interactive_payload(message) } }
     else
       { number: phone, text: message.content }
     end

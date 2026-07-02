@@ -3,7 +3,7 @@ name: Publish Chatwoot Docker images to GHCR
 on:
   push:
     branches:
-      - **
+      - "**"
   workflow_dispatch:
 
 env:

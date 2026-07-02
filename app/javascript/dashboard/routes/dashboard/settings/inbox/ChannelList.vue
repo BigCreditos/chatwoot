@@ -84,21 +84,9 @@ const channelList = computed(() => {
       icon: 'i-woot-instagram',
     },
     {
-      key: 'baileys',
-      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.BAILEYS.TITLE'),
-      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.BAILEYS.DESCRIPTION'),
-      icon: 'i-woot-whatsapp',
-    },
-    {
-      key: 'wuzapi',
-      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WUZAPI.TITLE'),
-      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WUZAPI.DESCRIPTION'),
-      icon: 'i-woot-whatsapp',
-    },
-    {
-      key: 'evolution_go',
-      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.EVOLUTION_GO.TITLE'),
-      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.EVOLUTION_GO.DESCRIPTION'),
+      key: 'whatsapp_qr',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_QR.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_QR.DESCRIPTION'),
       icon: 'i-woot-whatsapp',
     },
     {

@@ -14,9 +14,7 @@ import Tiktok from './channels/Tiktok.vue';
 import NotificaMe from './channels/NotificaMe.vue';
 import Voice from './channels/Voice.vue';
 import Internal from './channels/Internal.vue';
-import Baileys from './channels/Baileys.vue';
-import WuzapiWhatsapp from './channels/WuzapiWhatsapp.vue';
-import EvolutionGo from './channels/EvolutionGo.vue';
+import WhatsappQR from './channels/WhatsappQR.vue';
 
 const channelViewList = {
   facebook: Facebook,
@@ -33,9 +31,7 @@ const channelViewList = {
   notifica_me: NotificaMe,
   internal: Internal,
   voice: Voice,
-  baileys: Baileys,
-  wuzapi: WuzapiWhatsapp,
-  evolution_go: EvolutionGo,
+  whatsapp_qr: WhatsappQR,
 };
 
 export default defineComponent({

@@ -254,7 +254,9 @@
           "ZAPI": "Z-API",
           "ZAPI_DESC": "Connect via non-official API Z-API",
           "WUZAPI": "Wuzapi",
-          "WUZAPI_DESC": "Connect via unofficial API Wuzapi (Whatsmeow)"
+          "WUZAPI_DESC": "Connect via unofficial API Wuzapi (Whatsmeow)",
+          "EVOLUTION_GO": "Evolution Go",
+          "EVOLUTION_GO_DESC": "Connect via Evolution Go WhatsApp API"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Select your API provider",
@@ -502,6 +504,12 @@
             "DISCONNECT": "Disconnect",
             "CONNECTED": "Your device has been connected successfully. You can now start sending and receiving messages."
           }
+        }
+      },
+      "WHATSAPP_QR": {
+        "SELECT_PROVIDER": {
+          "TITLE": "Select your WhatsApp QR provider",
+          "DESCRIPTION": "Choose which WhatsApp QR Code API provider you want to connect."
         }
       },
         "VOICE": {
@@ -797,17 +805,9 @@
             "TITLE": "Voice",
             "DESCRIPTION": "Integrate with Voice (Twilio or WebRTC)"
           },
-          "BAILEYS": {
-            "TITLE": "Baileys QR",
-            "DESCRIPTION": "Connect via Baileys WhatsApp API"
-          },
-          "WUZAPI": {
-            "TITLE": "Wuzapi QR",
-            "DESCRIPTION": "Connect via Wuzapi WhatsApp API"
-          },
-          "EVOLUTION_GO": {
-            "TITLE": "Evolution Go QR",
-            "DESCRIPTION": "Connect via Evolution Go WhatsApp API"
+          "WHATSAPP_QR": {
+            "TITLE": "WhatsApp QR Code",
+            "DESCRIPTION": "Connect via unofficial WhatsApp APIs (QR Code)"
           }
         }
       },

@@ -254,7 +254,9 @@
           "ZAPI": "Z-API",
           "ZAPI_DESC": "Conectar via API não oficial Z-API",
           "WUZAPI": "Wuzapi",
-          "WUZAPI_DESC": "Conectar via API não oficial Wuzapi (Whatsmeow)"
+          "WUZAPI_DESC": "Conectar via API não oficial Wuzapi (Whatsmeow)",
+          "EVOLUTION_GO": "Evolution Go",
+          "EVOLUTION_GO_DESC": "Conectar via API Evolution Go WhatsApp"
         },
         "SELECT_PROVIDER": {
           "TITLE": "Selecione seu provedor de API",
@@ -502,6 +504,12 @@
           "LABEL": "URL do Unoapi",
           "PLACEHOLDER": "Informe uma URL do Unoapi ou use o padrão https://unoapi.cloud",
           "ERROR": "Este campo é obrigatório"
+        }
+      },
+      "WHATSAPP_QR": {
+        "SELECT_PROVIDER": {
+          "TITLE": "Selecione seu provedor WhatsApp QR",
+          "DESCRIPTION": "Escolha qual provedor de API WhatsApp QR Code você deseja conectar."
         }
       },
       "VOICE": {
@@ -761,17 +769,9 @@
             "TITLE": "Internal chat",
             "DESCRIPTION": "Chat between your agents inside ViperChat"
           },
-          "BAILEYS": {
-            "TITLE": "Baileys QR",
-            "DESCRIPTION": "Conecte via API Baileys WhatsApp"
-          },
-          "WUZAPI": {
-            "TITLE": "Wuzapi QR",
-            "DESCRIPTION": "Conecte via API Wuzapi WhatsApp"
-          },
-          "EVOLUTION_GO": {
-            "TITLE": "Evolution Go QR",
-            "DESCRIPTION": "Conecte via API Evolution Go WhatsApp"
+          "WHATSAPP_QR": {
+            "TITLE": "WhatsApp QR Code",
+            "DESCRIPTION": "Conecte via APIs WhatsApp não oficiais (QR Code)"
           }
         }
       },

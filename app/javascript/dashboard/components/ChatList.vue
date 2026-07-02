@@ -826,7 +826,8 @@ function handleResolveConversation(conversationId, status, snoozedUntil) {
   const conversation = getConversationById.value(conversationId);
   const currentCustomAttributes = conversation?.custom_attributes || {};
   const { hasMissing, missing } = checkMissingAttributes(
-    currentCustomAttributes
+    currentCustomAttributes,
+    conversation
   );
 
   if (hasMissing) {

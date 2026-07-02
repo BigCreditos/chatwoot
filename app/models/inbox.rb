@@ -22,6 +22,7 @@
 #  lock_to_single_conversation   :boolean          default(FALSE), not null
 #  name                          :string           not null
 #  out_of_office_message         :string
+#  out_of_office_send_to_groups  :boolean          default(FALSE), not null
 #  sender_name_type              :integer          default("friendly"), not null
 #  timezone                      :string           default("UTC")
 #  working_hours_enabled         :boolean          default(FALSE)
@@ -220,6 +221,15 @@ class Inbox < ApplicationRecord
 
   def auto_assignment_v2_enabled?
     account.feature_enabled?('assignment_v2')
+  end
+
+  # Callers (Reauthorizable) only invoke this on a real transition, so the previous
+  # value is always the inverse of the new boolean value.
+  def dispatch_reauthorization_event(reauthorization_required)
+    return if ENV['ENABLE_INBOX_EVENTS'].blank?
+
+    changed_attributes = { reauthorization_required: [!reauthorization_required, reauthorization_required] }
+    Rails.configuration.dispatcher.dispatch(INBOX_UPDATED, Time.zone.now, inbox: self, changed_attributes: changed_attributes)
   end
 
   private

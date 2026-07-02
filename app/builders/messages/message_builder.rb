@@ -13,6 +13,7 @@ class Messages::MessageBuilder
     @account = conversation.account
     @message_type = params[:message_type] || 'outgoing'
     @attachments = params[:attachments]
+    @is_voice_message = ActiveModel::Type::Boolean.new.cast(params[:is_voice_message])
     @automation_rule = content_attributes&.dig(:automation_rule_id)
     return unless params.instance_of?(ActionController::Parameters)
 
@@ -30,7 +31,7 @@ class Messages::MessageBuilder
       process_emails
       # When the message has no quoted content, it will just be rendered as a regular message
       # The frontend is equipped to handle this case
-      process_email_content if @account.feature_enabled?(:quoted_email_reply)
+      process_email_content
       @message.save!
       update_sticker_last_used
       @message
@@ -62,14 +63,23 @@ class Messages::MessageBuilder
         file: uploaded_attachment
       )
 
-      attachment.file_type = if uploaded_attachment.is_a?(String)
-                               file_type_by_signed_id(
-                                 uploaded_attachment
-                               )
-                             else
-                               file_type(uploaded_attachment&.content_type)
-                             end
+      attachment.file_type = attachment_file_type(uploaded_attachment)
+      tag_voice_message(attachment)
     end
+  end
+
+  def attachment_file_type(uploaded_attachment)
+    if uploaded_attachment.is_a?(String)
+      file_type_by_signed_id(uploaded_attachment)
+    else
+      file_type(uploaded_attachment&.content_type)
+    end
+  end
+
+  def tag_voice_message(attachment)
+    return unless @is_voice_message && attachment.file_type == 'audio'
+
+    attachment.meta = (attachment.meta || {}).merge('is_voice_message' => true)
   end
 
   def process_contact_attachments
@@ -114,7 +124,7 @@ class Messages::MessageBuilder
       process_attachments
       process_contact_attachments
       process_emails
-      process_email_content if @account.feature_enabled?(:quoted_email_reply)
+      process_email_content
 
       @message.save!
       update_sticker_last_used
@@ -362,4 +372,6 @@ class Messages::MessageBuilder
                                        })
   end
 end
+
+Messages::MessageBuilder.prepend_mod_with('Messages::MessageBuilder')
 

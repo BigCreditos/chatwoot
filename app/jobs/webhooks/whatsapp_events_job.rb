@@ -94,10 +94,37 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   # Returns nil for status-only webhooks so they bypass the lock.
   def contact_sender_id(params)
     value = params.dig(:entry, 0, :changes, 0, :value) || params
-    message = (value[:messages] || value[:message_echoes])&.first
+    return contact_sender_id_from_message_echoes(value[:message_echoes]) if value[:message_echoes].present?
+
+    contact_sender_id_from_messages(value[:messages], value[:contacts])
+  end
+
+  # Echo payloads are outbound messages from the WhatsApp Business app, so `to`
+  # points to the contact. Prefer parent BSUID when present so payloads that have
+  # both regular+parent BSUIDs serialize with parent-BSUID-only payloads.
+  def contact_sender_id_from_message_echoes(message_echoes)
+    message = message_echoes&.first
     return if message.blank?
 
-    message[:to] || message[:from]
+    [message[:to_parent_user_id], message[:to_user_id], message[:to]].compact_blank.first
+  end
+
+  # Regular inbound payloads are sent by the contact, so `from` points to the
+  # contact. Prefer parent BSUID when present so payloads that have both
+  # regular+parent BSUIDs serialize with parent-BSUID-only payloads.
+  def contact_sender_id_from_messages(messages, contacts)
+    message = messages&.first
+    return if message.blank?
+
+    contact = contacts&.first || {}
+
+    [
+      message[:from_parent_user_id],
+      contact[:parent_user_id],
+      message[:from_user_id],
+      contact[:user_id],
+      message[:from]
+    ].compact_blank.first
   end
 
   def channel_is_inactive?(channel)
@@ -125,8 +152,11 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   end
 
   def get_channel_from_wb_payload(wb_params)
+    metadata = wb_payload_metadata(wb_params)
+    return if metadata.blank?
+
     phone_number = payload_phone_number(wb_params)
-    phone_number_id = wb_params[:entry].first[:changes].first.dig(:value, :metadata, :phone_number_id)
+    phone_number_id = metadata[:phone_number_id]
     channel = Channel::Whatsapp.find_by(phone_number: phone_number)
     # validate to ensure the phone number id matches the whatsapp channel
     return channel if channel && channel.provider_config['phone_number_id'] == phone_number_id
@@ -137,6 +167,8 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     # the configured webhook URL number. If the payload number does not identify any local
     # channel, fall back to the verified URL param. If it identifies a channel but the
     # phone_number_id mismatches, do not fall back because that would route to the wrong inbox.
+    return if wb_payload_metadata(wb_params).blank?
+
     payload_number = payload_phone_number(wb_params)
     return find_channel_by_url_param(wb_params) if payload_number.blank?
     return if Channel::Whatsapp.exists?(phone_number: payload_number)
@@ -145,9 +177,13 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   end
 
   def payload_phone_number(wb_params)
-    display_phone_number = wb_params[:entry].first[:changes].first.dig(:value, :metadata, :display_phone_number)
+    display_phone_number = wb_payload_metadata(wb_params)&.dig(:display_phone_number)
     return if display_phone_number.blank?
 
     display_phone_number.to_s.start_with?('+') ? display_phone_number.to_s : "+#{display_phone_number}"
+  end
+
+  def wb_payload_metadata(wb_params)
+    wb_params.dig(:entry, 0, :changes, 0, :value, :metadata)
   end
 end

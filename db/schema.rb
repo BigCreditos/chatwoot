@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_09_121500) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_15_090000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -374,7 +374,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_09_121500) do
 
   create_table "captain_documents", force: :cascade do |t|
     t.string "name"
-    t.string "external_link", null: false
+    t.text "external_link", null: false
     t.text "content"
     t.bigint "assistant_id", null: false
     t.bigint "account_id", null: false
@@ -385,9 +385,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_09_121500) do
     t.integer "sync_status"
     t.datetime "last_synced_at"
     t.datetime "last_sync_attempted_at"
+    t.index "assistant_id, md5(external_link)", name: "idx_captain_documents_on_assistant_id_and_external_link_md5", unique: true
+    t.index ["account_id", "assistant_id", "sync_status", "last_synced_at"], name: "idx_captain_documents_on_account_assistant_sync_stats"
     t.index ["account_id", "sync_status"], name: "index_captain_documents_on_account_id_and_sync_status"
     t.index ["account_id"], name: "index_captain_documents_on_account_id"
-    t.index ["assistant_id", "external_link"], name: "index_captain_documents_on_assistant_id_and_external_link", unique: true
     t.index ["assistant_id"], name: "index_captain_documents_on_assistant_id"
     t.index ["status"], name: "index_captain_documents_on_status"
   end
@@ -960,6 +961,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_09_121500) do
     t.string "email_address"
     t.boolean "working_hours_enabled", default: false
     t.string "out_of_office_message"
+    t.boolean "out_of_office_send_to_groups", default: false, null: false
     t.string "timezone", default: "UTC"
     t.boolean "enable_email_collect", default: true
     t.boolean "csat_survey_enabled", default: false
@@ -1406,9 +1408,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_09_121500) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "group_contacts", "accounts"
-  add_foreign_key "group_contacts", "contacts"
-  add_foreign_key "group_contacts", "conversations"
+  add_foreign_key "group_contacts", "accounts", on_delete: :cascade
+  add_foreign_key "group_contacts", "contacts", on_delete: :cascade
+  add_foreign_key "group_contacts", "conversations", on_delete: :cascade
   add_foreign_key "inboxes", "portals"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

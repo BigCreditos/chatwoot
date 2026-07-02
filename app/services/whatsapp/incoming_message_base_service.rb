@@ -3,6 +3,23 @@
 # https://developers.facebook.com/docs/whatsapp/api/media/
 class Whatsapp::IncomingMessageBaseService
   include ::Whatsapp::IncomingMessageServiceHelpers
+  include ::Whatsapp::IncomingMessageIdentifierHelper
+
+  AVATAR_METADATA_KEYS = %i[
+    avatar_hash content_length content_md5 content_type etag file_hash file_size
+    hash last_modified picture_hash profile_picture_hash size updated_at
+  ].freeze
+
+  STATUS_ALIASES = {
+    'received' => 'delivered'
+  }.freeze
+
+  STATUS_ORDER = {
+    'progress' => -1,
+    'sent' => 0,
+    'delivered' => 1,
+    'read' => 2
+  }.freeze
 
   # rubocop:disable Style/ClassVars
   @@microsecond = 0
@@ -56,9 +73,11 @@ class Whatsapp::IncomingMessageBaseService
   end
 
   def process_statuses
-    return unless find_message_by_source_id(@processed_params[:statuses].first[:id])
+    status = @processed_params[:statuses].first
+    return unless find_message_by_source_id(status[:id])
 
-    update_message_with_status(@message, @processed_params[:statuses].first)
+    update_whatsapp_identifiers_from_status(status)
+    update_message_with_status(@message, status)
   rescue ArgumentError => e
     Rails.logger.error "Error while processing whatsapp status update #{e.message}"
   end
@@ -86,6 +105,7 @@ class Whatsapp::IncomingMessageBaseService
     contact_attributes = {
       name: contact_display_name(contact_params),
       avatar_url: contact_params.dig(:profile, :picture).presence,
+      avatar_metadata: avatar_metadata_from(contact_params, contact_params[:profile]),
       bsuid: contact_bsuid(contact_params),
       whatsapp_username: contact_username(contact_params)
     }.compact
@@ -104,6 +124,11 @@ class Whatsapp::IncomingMessageBaseService
     @contact = contact_inbox.contact
 
     raw_from = contact_phone_identifier(contact_params).presence || contact_bsuid(contact_params)
+    update_whatsapp_identifiers(
+      source_ids: incoming_message_source_ids(contact_params),
+      username: contact_username(contact_params),
+      phone_number: contact_attributes[:phone_number]
+    )
     update_contact_with_profile_name(contact_params, raw_from: raw_from)
     sync_group_contact(contact_params)
   end
@@ -117,13 +142,31 @@ class Whatsapp::IncomingMessageBaseService
       contact_attributes: {
         email: contact_params[:group_id],
         name: contact_params[:group_subject] || contact_params[:group_id],
-        avatar_url: contact_params[:group_picture].presence
+        avatar_url: contact_params[:group_picture].presence,
+        avatar_metadata: avatar_metadata_from(contact_params)
       }
     ).perform
   end
 
+  def avatar_metadata_from(*sources)
+    Array(sources).compact.each_with_object({}) do |source, result|
+      next unless source.respond_to?(:with_indifferent_access)
+
+      attrs = source.with_indifferent_access
+      [attrs[:picture_metadata], attrs[:profile_picture_metadata], attrs[:group_picture_metadata]].compact.each do |metadata|
+        result.merge!(avatar_metadata_from(metadata))
+      end
+      AVATAR_METADATA_KEYS.each do |key|
+        value = attrs[key].presence || attrs[:"picture_#{key}"].presence || attrs[:"profile_picture_#{key}"].presence
+        result[key] = value if value.present?
+      end
+    end
+  end
+
   def update_message_with_status(message, status)
-    if status[:status] == 'deleted'
+    incoming_status = normalized_message_status(status[:status])
+
+    if incoming_status == 'deleted'
       content_attributes = (message.content_attributes || {}).merge(
         'deleted' => true
       )
@@ -132,14 +175,31 @@ class Whatsapp::IncomingMessageBaseService
       message.assign_attributes(content_attributes: content_attributes)
       message.content = I18n.t('conversations.messages.deleted') unless preserve_content
     else
-      message.status = status[:status]
+      return unless should_update_message_status?(message, incoming_status)
+
+      message.status = incoming_status
     end
-    if status[:status] == 'failed' && status[:errors].present?
+    if incoming_status == 'failed' && status[:errors].present?
       error = status[:errors]&.first
       message.external_error = "#{error[:code]}: #{error[:title]}"
       message.conversation.open! unless message.conversation.open?
     end
     message.save!
+  end
+
+  def normalized_message_status(status)
+    STATUS_ALIASES.fetch(status.to_s, status.to_s)
+  end
+
+  def should_update_message_status?(message, incoming_status)
+    return true if incoming_status == 'failed'
+    return true if message.failed?
+
+    current_index = STATUS_ORDER[message.status]
+    incoming_index = STATUS_ORDER[incoming_status]
+    return true if current_index.blank? || incoming_index.blank?
+
+    incoming_index >= current_index
   end
 
   def preserve_deleted_message_content?
@@ -148,11 +208,25 @@ class Whatsapp::IncomingMessageBaseService
 
   def create_messages
     message = messages_data.first
+    return create_unsupported_message(message) if message_type == 'unsupported'
+
     log_error(message) && return if error_webhook_event?(message)
 
     process_in_reply_to(message)
 
     message_type == 'contacts' ? create_contact_messages(message) : create_regular_message(message)
+  end
+
+  # WhatsApp delivers messages it cannot render (e.g. coexistence companion-device syncs that
+  # fail with error 131060) as type: unsupported with no content. We still persist a placeholder
+  # so the contact/conversation isn't created "headless" and agents know to check the WhatsApp app.
+  def create_unsupported_message(message)
+    log_error(message) if error_webhook_event?(message)
+    process_in_reply_to(message)
+    create_message(message, source_id: message[:id])
+    @message.content = I18n.t('conversations.messages.whatsapp.unsupported_message')
+    @message.content_attributes = @message.content_attributes.merge(is_unsupported: true)
+    @message.save!
   end
 
   def create_contact_messages(message)
@@ -278,6 +352,7 @@ class Whatsapp::IncomingMessageBaseService
     @contact_inbox = contact_inbox
     @contact = contact_inbox.contact
     @sender = nil
+    update_whatsapp_identifiers(source_ids: outgoing_message_source_ids(messages_data.first), phone_number: "+#{phone_number}")
   end
 
   def set_contact_from_message
@@ -290,6 +365,7 @@ class Whatsapp::IncomingMessageBaseService
     contact_attributes = {
       name: contact_display_name(contact_params),
       avatar_url: contact_params.dig(:profile, :picture).presence,
+      avatar_metadata: avatar_metadata_from(contact_params, contact_params[:profile]),
       bsuid: contact_bsuid(contact_params),
       whatsapp_username: contact_username(contact_params)
     }.compact
@@ -304,6 +380,11 @@ class Whatsapp::IncomingMessageBaseService
     @contact_inbox = contact_inbox
     @contact = contact_inbox.contact
     @sender = webhook_outgoing_message? ? nil : contact_inbox.contact
+    update_whatsapp_identifiers(
+      source_ids: incoming_message_source_ids(contact_params),
+      username: contact_username(contact_params),
+      phone_number: contact_attributes[:phone_number]
+    )
 
     # Update existing contact name for LID-suffix placeholders or low-quality names
     update_contact_with_profile_name(contact_params)
@@ -363,33 +444,20 @@ class Whatsapp::IncomingMessageBaseService
     attachment_file = download_attachment_file(attachment_payload)
     return if attachment_file.blank?
 
-    payload_mime_type = attachment_payload[:mime_type] || attachment_payload['mime_type']
-    content_type = payload_mime_type.to_s.split(';').first&.strip
-    content_type = attachment_file.content_type if content_type.blank?
-
-    if %w[audio voice].include?(message_type) && (content_type.blank? || content_type == 'application/octet-stream')
-      content_type = 'audio/ogg'
-    end
-
-    original_filename = attachment_file.original_filename
-    if %w[audio voice].include?(message_type) && original_filename.present? && !original_filename.include?('.')
-      original_filename = "#{original_filename}.ogg"
-    end
-
     @message.attachments.new(
       account_id: @message.account_id,
       file_type: file_content_type(message_type),
       file: {
         io: attachment_file,
-        filename: original_filename,
-        content_type: content_type
+        filename: attachment_file.original_filename,
+        content_type: attachment_file.content_type
       }
     )
   end
 
   def attach_location
     location = messages_data.first['location']
-    location_name = location['name'] ? "#{location['name']}, #{location['address']}" : ''
+    location_name = (location['name'] ? "#{location['name']}, #{location['address']}" : '').first(255)
     @message.attachments.new(
       account_id: @message.account_id,
       file_type: file_content_type(message_type),
@@ -399,6 +467,7 @@ class Whatsapp::IncomingMessageBaseService
       external_url: location['url']
     )
   end
+
   def create_message(message, source_id: nil)
     timestamp = message[:timestamp] ? Time.at(message[:timestamp].to_i, microsecond, :microsecond, in: 'UTC') : Time.current.utc
     Rails.logger.info("[WHATSAPP] Incoming message type=#{message_type} content_type=#{message_type == 'sticker' ? 'sticker' : 'nil'} source_id=#{message[:id]}")

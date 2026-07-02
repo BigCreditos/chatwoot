@@ -68,7 +68,13 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
                 contacts: [{
                   profile: {
                     name: 'Sojan Jose',
-                    picture: 'https://cdn.example.com/profile/sojan.jpg'
+                    picture: 'https://cdn.example.com/profile/sojan.jpg',
+                    picture_metadata: {
+                      etag: '"avatar-etag"',
+                      content_length: '41053',
+                      content_type: 'image/jpeg',
+                      last_modified: '2026-06-15T19:24:29.000Z'
+                    }
                   },
                   wa_id: '2423423243'
                 }],
@@ -84,7 +90,16 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
 
         expect do
           described_class.new(inbox: whatsapp_channel.inbox, params: status_params).perform
-        end.to have_enqueued_job(Avatar::AvatarFromUrlJob).with(instance_of(Contact), 'https://cdn.example.com/profile/sojan.jpg')
+        end.to have_enqueued_job(Avatar::AvatarFromUrlJob).with(
+          instance_of(Contact),
+          'https://cdn.example.com/profile/sojan.jpg',
+          {
+            'content_length' => '41053',
+            'content_type' => 'image/jpeg',
+            'etag' => '"avatar-etag"',
+            'last_modified' => '2026-06-15T19:24:29.000Z'
+          }
+        )
       end
 
       it 'increments reauthorization count if fetching attachment fails' do
@@ -139,6 +154,98 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
         expect(whatsapp_channel.inbox.conversations.count).not_to eq(0)
         expect(Contact.all.first.name).to eq('Sojan Jose')
         expect(whatsapp_channel.inbox.messages.count).to eq(0)
+      end
+    end
+
+    context 'when BSUID identifiers are present' do
+      it 'creates a contact and conversation when only BSUID is present' do
+        bsuid_params = {
+          phone_number: whatsapp_channel.phone_number,
+          object: 'whatsapp_business_account',
+          entry: [{
+            changes: [{
+              value: {
+                contacts: [{
+                  profile: { name: 'Muhsin', username: 'muhsin' },
+                  user_id: 'IN.2081978709342942',
+                  parent_user_id: 'IN.ENT.9081726354'
+                }],
+                messages: [{
+                  from_user_id: 'IN.2081978709342942',
+                  from_parent_user_id: 'IN.ENT.9081726354',
+                  id: 'wamid.cloud-bsuid-only-message',
+                  text: { body: 'testing bsuid' },
+                  timestamp: '1778579582',
+                  type: 'text'
+                }]
+              }
+            }]
+          }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: bsuid_params).perform
+
+        contact_inbox = whatsapp_channel.inbox.contact_inboxes.find_by!(source_id: 'IN.2081978709342942')
+        contact = contact_inbox.contact
+        parent_contact_inbox = whatsapp_channel.inbox.contact_inboxes.find_by!(source_id: 'IN.ENT.9081726354')
+
+        expect(whatsapp_channel.inbox.conversations.count).to eq(1)
+        expect(whatsapp_channel.inbox.messages.first.content).to eq('testing bsuid')
+        expect(contact).to have_attributes(name: 'Muhsin', phone_number: nil)
+        expect(contact.additional_attributes).to include(
+          'social_whatsapp_user_name' => 'muhsin',
+          'social_profiles' => { 'whatsapp' => 'muhsin' }
+        )
+        expect(parent_contact_inbox.contact).to eq(contact)
+      end
+
+      it 'links phone and BSUID source ids to the same contact' do
+        phone_with_bsuid_params = {
+          phone_number: whatsapp_channel.phone_number,
+          object: 'whatsapp_business_account',
+          entry: [{
+            changes: [{
+              value: {
+                contacts: [{ profile: { name: 'Muhsin' }, wa_id: '919745786257', user_id: 'IN.2081978709342942' }],
+                messages: [{
+                  from: '919745786257',
+                  from_user_id: 'IN.2081978709342942',
+                  id: 'wamid.cloud-phone-bsuid-message',
+                  text: { body: 'phone and bsuid' },
+                  timestamp: '1778579582',
+                  type: 'text'
+                }]
+              }
+            }]
+          }]
+        }.with_indifferent_access
+        bsuid_only_params = {
+          phone_number: whatsapp_channel.phone_number,
+          object: 'whatsapp_business_account',
+          entry: [{
+            changes: [{
+              value: {
+                contacts: [{ profile: { name: 'Muhsin' }, user_id: 'IN.2081978709342942' }],
+                messages: [{
+                  from_user_id: 'IN.2081978709342942',
+                  id: 'wamid.cloud-bsuid-follow-up-message',
+                  text: { body: 'bsuid only' },
+                  timestamp: '1778579583',
+                  type: 'text'
+                }]
+              }
+            }]
+          }]
+        }.with_indifferent_access
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: phone_with_bsuid_params).perform
+        contact_inbox = whatsapp_channel.inbox.contact_inboxes.find_by!(source_id: '919745786257')
+        bsuid_contact_inbox = whatsapp_channel.inbox.contact_inboxes.find_by!(source_id: 'IN.2081978709342942')
+
+        expect { described_class.new(inbox: whatsapp_channel.inbox, params: bsuid_only_params).perform }.not_to raise_error
+        expect(whatsapp_channel.inbox.contact_inboxes.count).to eq(2)
+        expect(whatsapp_channel.inbox.messages.pluck(:content)).to contain_exactly('phone and bsuid', 'bsuid only')
+        expect(bsuid_contact_inbox.contact).to eq(contact_inbox.contact)
       end
     end
 
@@ -536,11 +643,23 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
                   profile: {
                     name: 'Maria',
                     username: '@maria.vendas',
-                    picture: 'https://cdn.example.com/profile/maria.jpg'
+                    picture: 'https://cdn.example.com/profile/maria.jpg',
+                    picture_metadata: {
+                      etag: '"sender-etag"',
+                      content_length: '12345',
+                      content_type: 'image/jpeg',
+                      last_modified: '2026-06-15T19:24:29.000Z'
+                    }
                   },
                   group_id: '120363040468224422@g.us',
                   group_subject: 'Equipe Comercial',
-                  group_picture: 'https://cdn.example.com/groups/120363040468224422.jpg'
+                  group_picture: 'https://cdn.example.com/groups/120363040468224422.jpg',
+                  group_picture_metadata: {
+                    etag: '"group-etag"',
+                    content_length: '41053',
+                    content_type: 'image/jpeg',
+                    last_modified: '2026-06-15T19:24:29.000Z'
+                  }
                 }],
                 messages: [{
                   from: '5566999999999',
@@ -758,6 +877,51 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
         expect(conversation.group_description).to eq('Descricao atualizada')
         expect(conversation.additional_attributes['group_picture']).to eq('https://cdn.example.com/groups/new-picture.jpg')
         expect(group_contact.reload.name).to eq('Equipe Comercial VIP')
+      end
+
+      it 'does not enqueue group avatar sync when group settings picture hash is unchanged' do
+        picture_url = 'https://cdn.example.com/groups/new-picture.jpg'
+        group_contact = create(
+          :contact,
+          account: whatsapp_channel.account,
+          name: 'Equipe Comercial',
+          additional_attributes: { 'avatar_url_hash' => Digest::SHA256.hexdigest(picture_url) }
+        )
+        group_contact_inbox = create(
+          :contact_inbox,
+          inbox: whatsapp_channel.inbox,
+          contact: group_contact,
+          source_id: '120363040468224422@g.us'
+        )
+        create(
+          :conversation,
+          account: whatsapp_channel.account,
+          inbox: whatsapp_channel.inbox,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox,
+          group: true,
+          group_source_id: '120363040468224422@g.us',
+          group_title: 'Equipe Comercial'
+        )
+
+        settings_params = {
+          object: 'whatsapp_business_account',
+          entry: [{
+            changes: [{
+              field: 'group_settings_update',
+              value: {
+                group_id: '120363040468224422@g.us',
+                changes: {
+                  picture: picture_url
+                }
+              }
+            }]
+          }]
+        }.with_indifferent_access
+
+        expect do
+          described_class.new(inbox: whatsapp_channel.inbox, params: settings_params).perform
+        end.not_to have_enqueued_job(Avatar::AvatarFromUrlJob)
       end
     end
   end

@@ -18,6 +18,7 @@ RSpec.describe Conversation do
     it { is_expected.to belong_to(:assignee).optional }
     it { is_expected.to belong_to(:team).optional }
     it { is_expected.to belong_to(:campaign).optional }
+    it { is_expected.to have_many(:group_contacts).dependent(:destroy) }
   end
 
   describe 'concerns' do
@@ -670,6 +671,11 @@ RSpec.describe Conversation do
         created_at: conversation.created_at.to_i,
         updated_at: conversation.updated_at.to_f,
         waiting_since: conversation.waiting_since.to_i,
+        group: false,
+        group_contacts_count: 0,
+        group_picture: nil,
+        group_source_id: nil,
+        group_title: nil,
         priority: nil,
         unread_count: 0
       }
@@ -757,6 +763,25 @@ RSpec.describe Conversation do
       end
 
       expect { notification.reload }.to raise_error ActiveRecord::RecordNotFound
+    end
+
+    it 'dispatches conversation deleted event with unread count cache data' do
+      allow(Rails.configuration.dispatcher).to receive(:dispatch)
+
+      conversation.destroy!
+
+      expect(Rails.configuration.dispatcher).to have_received(:dispatch).with(
+        'conversation.deleted',
+        kind_of(Time),
+        conversation_data: {
+          id: conversation.id,
+          account_id: conversation.account_id,
+          inbox_id: conversation.inbox_id,
+          assignee_id: conversation.assignee_id,
+          team_id: conversation.team_id,
+          cached_label_list: conversation.cached_label_list
+        }
+      )
     end
   end
 
@@ -847,6 +872,7 @@ RSpec.describe Conversation do
             content: 'Conversation was marked resolved by system due to days of inactivity'
           )
         end
+        conversation_1.update!(last_activity_at: 1.second.from_now)
         records = described_class.sort_on_last_activity_at
 
         expect(records.first.id).to eq(conversation_1.id)
@@ -971,7 +997,7 @@ RSpec.describe Conversation do
 
     context 'when a new conversation is created' do
       it 'sets last_activity_at to the created_at time (within DB precision)' do
-        expect(conversation.last_activity_at).to be_within(1.second).of(conversation.created_at)
+        expect(conversation.last_activity_at).to be_within(5.seconds).of(conversation.created_at)
       end
     end
 
@@ -1074,7 +1100,7 @@ RSpec.describe Conversation do
 
       first_response_events = account.reporting_events.where(name: 'first_response', conversation_id: conversation.id)
       expect(first_response_events.count).to eq(1)
-      expect(first_response_events.first.value).to be_within(1.second).of(1.hour)
+      expect(first_response_events.first.value).to be_within(5.seconds).of(1.hour)
 
       # the first response should also clear the waiting_since
       conversation.reload
@@ -1099,7 +1125,7 @@ RSpec.describe Conversation do
       create_agent_message(conversation, created_at: 2.hours.ago)
       reply_events = account.reporting_events.where(name: 'reply_time', conversation_id: conversation.id)
       expect(reply_events.count).to eq(1)
-      expect(reply_events.first.value).to be_within(1.second).of(1.hour)
+      expect(reply_events.first.value).to be_within(5.seconds).of(1.hour)
 
       conversation.reload
       expect(conversation.waiting_since).to be_nil

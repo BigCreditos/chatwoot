@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Integrations::Typebot::ProcessorService < Integrations::BotProcessorService
   pattr_initialize [:event_name!, :hook!, :event_data!]
 
@@ -44,9 +46,12 @@ class Integrations::Typebot::ProcessorService < Integrations::BotProcessorServic
   def process_response(message, response)
     return if response.blank?
 
-    (response[:messages] || []).each do |typebot_msg|
+    (response[:messages] || []).each_with_index do |typebot_msg, index|
       content_params = generate_content_params(typebot_msg)
       create_conversation(message, content_params) if content_params.present?
+
+      # Sleep para evitar atropelo na fila WhatsApp (exceto na última mensagem)
+      sleep(1) if index < (response[:messages] || []).size - 1
     end
 
     input = response[:input]
@@ -78,15 +83,28 @@ class Integrations::Typebot::ProcessorService < Integrations::BotProcessorServic
     return if content_params.blank?
 
     conversation = message.conversation
-    conversation.messages.create!(
-      content_params.merge(
-        {
+
+    # Se tem attachments, constrói message + anexa + save! único (autosave: true)
+    if content_params[:attachments].present?
+      attachments = content_params.delete(:attachments)
+      msg = conversation.messages.build(
+        content_params.merge(
           message_type: :outgoing,
           account_id: conversation.account_id,
           inbox_id: conversation.inbox_id
-        }
+        )
       )
-    )
+      attachments.each { |att| msg.attachments << att }
+      msg.save!
+    else
+      conversation.messages.create!(
+        content_params.merge(
+          message_type: :outgoing,
+          account_id: conversation.account_id,
+          inbox_id: conversation.inbox_id
+        )
+      )
+    end
   end
 
   def start_chat
@@ -144,27 +162,66 @@ class Integrations::Typebot::ProcessorService < Integrations::BotProcessorServic
 
   def generate_content_params(typebot_msg)
     type = typebot_msg['type']
+    url = extract_url(typebot_msg)
+    text = extract_text(typebot_msg)
+
     case type
     when 'text'
-      text = extract_text(typebot_msg)
       { content: text } if text.present?
-    when 'image'
-      url = extract_url(typebot_msg)
-      { content: "![Image](#{url})" } if url.present?
-    when 'video'
-      url = extract_url(typebot_msg)
-      { content: "[Video](#{url})" } if url.present?
-    when 'audio'
-      url = extract_url(typebot_msg)
-      { content: "[Audio](#{url})" } if url.present?
+    when 'image', 'video', 'audio', 'file'
+      if url.present?
+        process_typebot_media(type, url, text)
+      else
+        { content: text } if text.present?
+      end
     else
-      url = extract_url(typebot_msg)
       if url.present?
         { content: "[Attachment](#{url})" }
       else
-        text = extract_text(typebot_msg)
         { content: text } if text.present?
       end
+    end
+  end
+
+  def process_typebot_media(type, url, text)
+    # Usa SafeFetch (padrão Chatwoot) com proteção SSRF, timeout e validação de content-type
+    SafeFetch.fetch(url) do |result|
+      file_type = file_type_from_content_type(result.content_type)
+
+      attachment = Attachment.new(
+        account_id: conversation.account_id,
+        file_type: file_type
+      )
+      attachment.file.attach(
+        io: result.tempfile,
+        filename: result.original_filename,
+        content_type: result.content_type
+      )
+
+      content = text.present? ? text : format_typebot_media_message(type, url)
+      { content: content, attachments: [attachment] }
+    end
+  rescue => e
+    Rails.logger.warn "Typebot Media Download Failed (account-#{conversation.account_id}): #{e.message}"
+    { content: format_typebot_media_message(type, url) }
+  end
+
+  def file_type_from_content_type(content_type)
+    case content_type
+    when /^image/ then 'image'
+    when /^video/ then 'video'
+    when /^audio/ then 'audio'
+    when /^application\/pdf/ then 'file'
+    else 'file'
+    end
+  end
+
+  def format_typebot_media_message(type, url)
+    case type
+    when 'image' then "![Image](#{url})"
+    when 'video' then "[Video](#{url})"
+    when 'audio' then "[Audio](#{url})"
+    else "[Attachment](#{url})"
     end
   end
 

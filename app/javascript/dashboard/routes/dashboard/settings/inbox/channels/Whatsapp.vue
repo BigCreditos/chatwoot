@@ -4,13 +4,11 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n, I18nT } from 'vue-i18n';
 import Twilio from './Twilio.vue';
 import Unoapi from './Unoapi.vue';
-import Baileys from './Baileys.vue';
 import ThreeSixtyDialogWhatsapp from './360DialogWhatsapp.vue';
 import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
 import ZapiWhatsapp from './ZapiWhatsapp.vue';
-import WuzapiWhatsapp from './WuzapiWhatsapp.vue';
 
 const props = defineProps({
   mode: {
@@ -44,9 +42,7 @@ const PROVIDER_TYPES = {
   WHATSAPP_MANUAL: 'whatsapp_manual',
   THREE_SIXTY_DIALOG: '360dialog',
   UNOAPI: 'unoapi',
-  BAILEYS: 'baileys',
   ZAPI: 'zapi',
-  WUZAPI: 'wuzapi',
 };
 
 const hasWhatsappAppId = computed(() => {
@@ -61,9 +57,7 @@ const selectedProvider = computed(() => route.query.provider);
 const INBOX_PROVIDER_TO_KEY = {
   whatsapp_cloud: PROVIDER_TYPES.WHATSAPP,
   default: PROVIDER_TYPES.THREE_SIXTY_DIALOG,
-  baileys: PROVIDER_TYPES.BAILEYS,
   zapi: PROVIDER_TYPES.ZAPI,
-  wuzapi: PROVIDER_TYPES.WUZAPI,
 };
 
 const currentProviderKey = computed(() => {
@@ -91,21 +85,9 @@ const PROVIDER_CATALOG = computed(() => [
     icon: 'i-woot-whatsapp',
   },
   {
-    key: PROVIDER_TYPES.BAILEYS,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.BAILEYS_DESC'),
-    icon: 'i-woot-baileys',
-  },
-  {
     key: PROVIDER_TYPES.ZAPI,
     title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI'),
     description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.ZAPI_DESC'),
-    icon: 'i-woot-whatsapp',
-  },
-  {
-    key: PROVIDER_TYPES.WUZAPI,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WUZAPI_DESC'),
     icon: 'i-woot-whatsapp',
   },
   {
@@ -120,15 +102,11 @@ const CREATE_PICKER_KEYS = [
   PROVIDER_TYPES.WHATSAPP,
   PROVIDER_TYPES.TWILIO,
   PROVIDER_TYPES.UNOAPI,
-  PROVIDER_TYPES.BAILEYS,
-  PROVIDER_TYPES.WUZAPI,
   PROVIDER_TYPES.ZAPI,
 ];
 
 const CONVERT_PICKER_KEYS = [
   PROVIDER_TYPES.WHATSAPP,
-  PROVIDER_TYPES.BAILEYS,
-  PROVIDER_TYPES.WUZAPI,
   PROVIDER_TYPES.ZAPI,
   PROVIDER_TYPES.THREE_SIXTY_DIALOG,
 ];
@@ -280,16 +258,6 @@ const handleManualLinkClick = () => {
           :inbox="inbox"
         />
         <Unoapi v-else-if="selectedProvider === PROVIDER_TYPES.UNOAPI" />
-        <Baileys
-          v-else-if="selectedProvider === PROVIDER_TYPES.BAILEYS"
-          :mode="mode"
-          :inbox="inbox"
-        />
-        <WuzapiWhatsapp
-          v-else-if="selectedProvider === PROVIDER_TYPES.WUZAPI"
-          :mode="mode"
-          :inbox="inbox"
-        />
         <ZapiWhatsapp
           v-else-if="selectedProvider === PROVIDER_TYPES.ZAPI"
           :mode="mode"
